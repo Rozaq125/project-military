@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project Military - Redeem System</title>
+  <title>Project Military - Redeem</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -65,19 +65,6 @@
       border-radius: 10px;
     }
 
-    #adminBtn {
-      position: fixed;
-      top: 15px;
-      right: 20px;
-      padding: 8px 14px;
-      font-size: 14px;
-      background: #ffc107;
-      color: #000;
-      border-radius: 6px;
-      cursor: pointer;
-      border: none;
-    }
-
     .popup {
       position: fixed;
       top: 0; left: 0;
@@ -102,7 +89,6 @@
   </style>
 </head>
 <body>
-  <button id="adminBtn" onclick="toggleAdmin()">🔧 Admin</button>
 
   <h1>🎮 Project Military - Redeem</h1>
 
@@ -117,21 +103,17 @@
     <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
   </div>
 
+  <!-- ADMIN PANEL -->
   <div id="adminPanel">
     <h3>👑 Admin Panel</h3>
-    <input type="password" id="adminPass" placeholder="Password Admin" />
-    <button onclick="validateAdmin()">Masuk</button>
-
-    <div id="adminForm" class="hidden">
-      <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
-      <select id="packSelect">
-        <option value="Reguler">Reguler (2K–10K)</option>
-        <option value="Exclusive">Exclusive (20K–50K)</option>
-        <option value="Super">Super Exclusive (60K–100K)</option>
-      </select>
-      <button onclick="beriKode()">Kirim Kode ke User</button>
-      <p id="adminStatus"></p>
-    </div>
+    <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
+    <select id="packSelect">
+      <option value="Reguler">Reguler (2K–10K)</option>
+      <option value="Exclusive">Exclusive (20K–50K)</option>
+      <option value="Super">Super Exclusive (60K–100K)</option>
+    </select>
+    <button onclick="beriKode()">Kirim Kode ke User</button>
+    <p id="adminStatus"></p>
   </div>
 
   <!-- POPUP -->
@@ -162,22 +144,13 @@
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
 
+      if (user === "Rozaq") {
+        document.getElementById("adminPanel").style.display = "block";
+      }
+
       if (assignedCodes[user]) {
         document.getElementById("popupKode").innerText = assignedCodes[user];
         document.getElementById("popup").classList.remove("hidden");
-      }
-    }
-
-    function toggleAdmin() {
-      document.getElementById("adminPanel").style.display = "block";
-    }
-
-    function validateAdmin() {
-      const pass = document.getElementById("adminPass").value;
-      if (pass === "spcstorestudio") {
-        document.getElementById("adminForm").classList.remove("hidden");
-      } else {
-        alert("Password salah!");
       }
     }
 
