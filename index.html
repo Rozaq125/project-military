@@ -162,9 +162,13 @@
         updateUserList();
       }
 
-      if (assignedCodes[user]) {
-        document.getElementById("popupKode").innerText = assignedCodes[user];
+      // 🔥 Tampilkan popup hanya 1x
+      const hasCode = assignedCodes[user];
+      const lastCode = localStorage.getItem(`popupCode_${user}`);
+      if (hasCode && lastCode !== hasCode) {
+        document.getElementById("popupKode").innerText = hasCode;
         document.getElementById("popup").classList.remove("hidden");
+        localStorage.setItem(`popupCode_${user}`, hasCode);
       }
     }
 
@@ -185,6 +189,9 @@
 
       localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
       localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+
+      // Reset popup agar muncul lagi saat login
+      localStorage.removeItem(`popupCode_${user}`);
 
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
     }
