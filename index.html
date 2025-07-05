@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Project Military - Redeem</title>
   <style>
     body {
@@ -63,6 +63,8 @@
       padding: 20px;
       margin-top: 30px;
       border-radius: 10px;
+      width: 100%;
+      max-width: 420px;
     }
 
     .popup {
@@ -114,6 +116,10 @@
     </select>
     <button onclick="beriKode()">Kirim Kode ke User</button>
     <p id="adminStatus"></p>
+
+    <hr style="margin: 20px 0;">
+    <h4>📋 Daftar Username</h4>
+    <div id="userListDisplay" style="text-align:left; max-height: 150px; overflow-y:auto;"></div>
   </div>
 
   <!-- POPUP -->
@@ -135,10 +141,17 @@
 
     const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
     const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
+    const userList = JSON.parse(localStorage.getItem("userList") || "[]");
 
     function loginUser() {
       const user = document.getElementById("usernameInput").value.trim();
       if (!user) return alert("Isi username dulu!");
+
+      if (!userList.includes(user)) {
+        userList.push(user);
+        localStorage.setItem("userList", JSON.stringify(userList));
+      }
+
       localStorage.setItem("username", user);
       document.getElementById("userNameDisplay").innerText = user;
       document.getElementById("loginSection").classList.add("hidden");
@@ -146,6 +159,7 @@
 
       if (user === "Rozaq") {
         document.getElementById("adminPanel").style.display = "block";
+        updateUserList();
       }
 
       if (assignedCodes[user]) {
@@ -179,7 +193,11 @@
       document.getElementById("popup").classList.add("hidden");
     }
 
-    // Auto-login if user already saved
+    function updateUserList() {
+      const list = userList.map(name => `<li>${name}</li>`).join("");
+      document.getElementById("userListDisplay").innerHTML = `<ul>${list}</ul>`;
+    }
+
     window.onload = () => {
       const saved = localStorage.getItem("username");
       if (saved) {
