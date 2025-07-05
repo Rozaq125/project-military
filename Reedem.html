@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Code Redeem Game Project Military</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    input {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    button {
+      background-color: #00c853;
+      color: #fff;
+      font-weight: bold;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00b44b;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-size: 16px;
+    }
+
+    .username-section {
+      margin-bottom: 15px;
+    }
+
+    .section-title {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #00e676;
+    }
+  </style>
+</head>
+<body>
+  <div class="glass" id="app">
+    <h1>🎮 Code Redeem Game<br>Project Military</h1>
+
+    <div class="username-section" id="loginSection">
+      <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+      <button onclick="login()">Masuk</button>
+    </div>
+
+    <div id="mainSection" style="display:none;">
+      <p id="welcomeText"></p>
+      <p id="pointText">Poin: 0</p>
+
+      <div class="section-title">🔑 Masukkan Kode Redeem</div>
+      <input type="text" id="codeInput" placeholder="Kode Redeem" />
+      <button onclick="redeemCode()">Redeem</button>
+
+      <div class="section-title">🎁 Claim Harian</div>
+      <button onclick="claimDaily()">Claim Sekarang</button>
+
+      <div class="section-title">💎 Tukar 100 Poin</div>
+      <button onclick="exchangeCode()" id="exchangeBtn" disabled>🎫 Dapatkan Kode Gratis</button>
+
+      <p id="message"></p>
+    </div>
+  </div>
+
+  <script>
+    const kodeList = [
+      "PM-LV7KXE", "PM-QYZJ9F", "PM-B9SKGC", "PM-TAK29M", "PM-XF4PYB", "PM-JELR5Q", "PM-RA6XNU", "PM-MWPJTY",
+      "PM-Z86LUW", "PM-VBQN5R", "PM-GKTN2L", "PM-URFQXA", "PM-HZ7DQL", "PM-YC3MVA", "PM-XLM8NT", "PM-FWTYB2",
+      "PM-NDZV7U", "PM-W3EBLJ", "PM-JX5KYM", "PM-C89FRZ", "PM-AQL9WN", "PM-PYBGJD", "PM-K2WZHL", "PM-RL6XFB"
+    ];
+
+    const redeemCodes = {};
+    kodeList.forEach(code => {
+      redeemCodes[code] = {
+        reward: `💰 ${Math.floor(Math.random() * 5000) + 10000} Uang`,
+        used: false
+      };
+    });
+
+    function updateUI() {
+      const username = localStorage.getItem("username");
+      const point = parseInt(localStorage.getItem(`point_${username}`) || "0");
+      document.getElementById("pointText").textContent = `Poin: ${point}`;
+      document.getElementById("exchangeBtn").disabled = point < 100;
+    }
+
+    function login() {
+      const username = document.getElementById("usernameInput").value.trim();
+      if (username === "") {
+        alert("Masukkan username terlebih dahulu.");
+        return;
+      }
+
+      localStorage.setItem("username", username);
+      localStorage.setItem(`point_${username}`, localStorage.getItem(`point_${username}`) || "0");
+
+      document.getElementById("welcomeText").innerHTML = `👋 Selamat datang, <b>${username}</b>`;
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("mainSection").style.display = "block";
+
+      updateUI();
+    }
+
+    function redeemCode() {
+      const codeInput = document.getElementById("codeInput").value.trim().toUpperCase();
+      const message = document.getElementById("message");
+
+      if (!localStorage.getItem("username")) {
+        message.innerHTML = "❌ Login terlebih dahulu!";
+        message.style.color = "red";
+        return;
+      }
+
+      if (redeemCodes[codeInput]) {
+        if (redeemCodes[codeInput].used) {
+          message.innerHTML = "❌ Kode ini sudah digunakan oleh pemain lain!";
+          message.style.color = "orange";
+        } else {
+          message.innerHTML = `✅ Berhasil! Kamu mendapatkan: <b>${redeemCodes[codeInput].reward}</b>`;
+          message.style.color = "lightgreen";
+          redeemCodes[codeInput].used = true;
+        }
+      } else {
+        message.innerHTML = "❌ Kode tidak valid.";
+        message.style.color = "red";
+      }
+    }
+
+    function claimDaily() {
+      const username = localStorage.getItem("username");
+      const message = document.getElementById("message");
+
+      if (!username) {
+        message.innerHTML = "❌ Login terlebih dahulu!";
+        message.style.color = "red";
+        return;
+      }
+
+      const lastClaim = localStorage.getItem(`lastClaim_${username}`);
+      const today = new Date().toDateString();
+
+      if (lastClaim === today) {
+        message.innerHTML = "❌ Kamu sudah claim harian hari ini!";
+        message.style.color = "orange";
+      } else {
+        const amount = 10; // 10 poin per hari
+        let currentPoint = parseInt(localStorage.getItem(`point_${username}`) || "0");
+        currentPoint += amount;
+
+        localStorage.setItem(`point_${username}`, currentPoint);
+        localStorage.setItem(`lastClaim_${username}`, today);
+
+        message.innerHTML = `🎉 Kamu mendapatkan <b>${amount} poin</b> hari ini!`;
+        message.style.color = "#00e676";
+
+        updateUI();
+      }
+    }
+
+    function generateRandomCode() {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      return "PM-" + Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    }
+
+    function exchangeCode() {
+      const username = localStorage.getItem("username");
+      const pointKey = `point_${username}`;
+      let point = parseInt(localStorage.getItem(pointKey) || "0");
+
+      if (point < 100) {
+        alert("Poin kamu belum cukup!");
+        return;
+      }
+
+      point -= 100;
+      const newCode = generateRandomCode();
+      redeemCodes[newCode] = { reward: "💎 Kode Tukar Gratis", used: true };
+
+      localStorage.setItem(pointKey, point);
+      document.getElementById("message").innerHTML = `🎁 Kamu menukar 100 poin dan mendapatkan kode baru: <b>${newCode}</b>`;
+      document.getElementById("message").style.color = "#00e676";
+
+      updateUI();
+    }
+
+    // Auto login
+    window.onload = function () {
+      const savedUsername = localStorage.getItem("username");
+      if (savedUsername) {
+        document.getElementById("usernameInput").value = savedUsername;
+        login();
+      }
+    };
+  </script>
+</body>
+</html>
