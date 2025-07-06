@@ -125,7 +125,7 @@
 <div id="user-popup" class="popup"></div>
 
 <script>
-  const users = {}; // user => code
+  const users = {};
   const accounts = { "RozaqSigma123": "akurozaknih123" };
   let currentUser = null;
   let isAdmin = false;
@@ -181,6 +181,7 @@
       updateCodeListUI();
     }
     checkRedeem();
+    checkPopup();
   }
 
   function beli() {
@@ -217,12 +218,28 @@
     const target = document.getElementById("popupTarget").value.trim();
     const msg = document.getElementById("popupMessage").value.trim();
     const type = document.getElementById("popupType").value;
-    if (target !== currentUser) return;
-    const popup = document.getElementById("user-popup");
-    popup.className = "popup " + type;
-    popup.innerText = (type === "green" ? "✅ " : "❌ ") + msg;
-    popup.style.display = "block";
-    setTimeout(() => popup.style.display = "none", 6000);
+    if (!target || !msg) return alert("Isi username & pesan.");
+    const popups = JSON.parse(localStorage.getItem("pendingPopups")) || [];
+    popups.push({ target, msg, type });
+    localStorage.setItem("pendingPopups", JSON.stringify(popups));
+    alert("Pop-up dikirim ke " + target);
+  }
+
+  function checkPopup() {
+    const popups = JSON.parse(localStorage.getItem("pendingPopups")) || [];
+    const remain = [];
+    popups.forEach(p => {
+      if (p.target === currentUser) {
+        const popup = document.getElementById("user-popup");
+        popup.className = "popup " + p.type;
+        popup.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
+        popup.style.display = "block";
+        setTimeout(() => popup.style.display = "none", 6000);
+      } else {
+        remain.push(p);
+      }
+    });
+    localStorage.setItem("pendingPopups", JSON.stringify(remain));
   }
 
   function checkRedeem() {
