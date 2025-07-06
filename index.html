@@ -1,1 +1,272 @@
-Perbaruan terdeteksi,tunggu
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Military - Redeem</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .container, #adminPanel {
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 20px auto;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      background: #00c853;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #009624;
+    }
+    #user-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      color: black;
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      z-index: 9999;
+      min-width: 250px;
+    }
+    .popup.green { background: #d4edda; color: #155724; }
+    .popup.red { background: #f8d7da; color: #721c24; }
+    .admin-section { margin-top: 20px; text-align: left; }
+    a { color: lightblue; }
+    #updatePopup {
+      display: none;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #272727;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.7);
+      z-index: 9999;
+      animation: slideUp 0.3s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    #updatePopup p {
+      margin: 0 0 10px 0;
+      color: #fff;
+    }
+    #updatePopup button {
+      padding: 10px 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Project Military - Redeem</h1>
+
+  <div class="container" id="loginSection">
+    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+    <button onclick="loginUser()">Masuk</button>
+  </div>
+
+  <div class="container" id="mainSection" style="display:none;">
+    <h2>Selamat datang, <span id="userDisplay"></span></h2>
+    <button onclick="window.open('https://wa.me/6285282790834')">💰 Beli Sekarang</button>
+    <button onclick="logoutUser()">Logout</button>
+  </div>
+
+  <div id="adminPanel" style="display:none;">
+    <h2>👑 Admin Panel</h2>
+
+    <div class="admin-section">
+      <h4>Kirim Kode Redeem</h4>
+      <input type="text" id="targetUser" placeholder="Username Pembeli">
+      <select id="packSelect">
+        <option value="Reguler">Reguler</option>
+        <option value="Exclusive">Exclusive</option>
+        <option value="Super">Super Exclusive</option>
+      </select>
+      <button onclick="beriKode()">Kirim Kode</button>
+      <p id="adminStatus"></p>
+    </div>
+
+    <div class="admin-section">
+      <h4>Kirim Pop-up ke User</h4>
+      <input type="text" id="popupTarget" placeholder="Username Tujuan">
+      <select id="popupType">
+        <option value="green">Kabar Baik ✅</option>
+        <option value="red">Kabar Buruk ❌</option>
+      </select>
+      <input type="text" id="popupMessage" placeholder="Isi Pesan">
+      <button onclick="kirimPopupKeUser()">Kirim Pop-up</button>
+    </div>
+
+    <div class="admin-section">
+      <h4>📦 Upload File Download</h4>
+      <input type="file" id="fileInput" />
+      <input type="text" id="fileTitleInput" placeholder="Judul File (misal: Download App Promi)" />
+      <button onclick="tambahFileDownload()">Tambah File</button>
+      <div id="fileDownloadList"></div>
+    </div>
+  </div>
+
+  <div id="user-popup" class="popup">
+    <span id="popup-text"></span><br><br>
+    <button onclick="closePopup()">Tutup</button>
+  </div>
+
+  <div id="updatePopup">
+    <p><strong>📦 App redeem pc telah diperbarui! Download di sini untuk mendapatkan update</strong></p>
+    <button onclick="window.open('https://projectmilitary.netlify.app/file.exe')">Download File</button>
+  </div>
+
+  <script>
+    let currentUser = "";
+
+    const codes = {
+      Reguler: ["PM-KFFNE-ABCDE-GT789", "PM-BK456-HFKRR-PLM87"],
+      Exclusive: ["PM-EX123-ABCDF-BFHGJE"],
+      Super: ["PM-SX456-KGJRN-QAZ99", "PM-ROBJDH-SPSIAL-ABCDE"]
+    };
+
+    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
+    const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
+
+    function loginUser() {
+      const u = document.getElementById("usernameInput").value.trim();
+      if (!u) return alert("Isi username dulu!");
+      currentUser = u;
+      localStorage.setItem("username", u);
+      document.getElementById("userDisplay").innerText = u;
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("mainSection").style.display = "block";
+
+      if (u === "Rozaq" || u === "Rozak") {
+        document.getElementById("adminPanel").style.display = "block";
+      }
+
+      checkPopup();
+    }
+
+    function logoutUser() {
+      localStorage.removeItem("username");
+      location.reload();
+    }
+
+    function beriKode() {
+      const user = document.getElementById("targetUser").value.trim();
+      const pack = document.getElementById("packSelect").value;
+      const available = codes[pack].filter(code => !usedCodes[code]);
+
+      if (!user) return alert("Isi username!");
+      if (available.length === 0) {
+        document.getElementById("adminStatus").innerText = "❌ Stok kode habis.";
+        return;
+      }
+
+      const code = available[0];
+      usedCodes[code] = true;
+      assignedCodes[user] = code;
+
+      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
+      localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+      localStorage.removeItem("popupCode_" + user);
+
+      document.getElementById("adminStatus").innerText = `✅ Kode ${code} dikirim ke ${user}`;
+    }
+
+    function checkPopup() {
+      const popupRaw = localStorage.getItem("popup_" + currentUser);
+      const popup = document.getElementById("user-popup");
+      const popupText = document.getElementById("popup-text");
+
+      if (popupRaw) {
+        const p = JSON.parse(popupRaw);
+        popup.className = "popup " + p.type;
+        popupText.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
+        popup.style.display = "block";
+      }
+
+      const k = assignedCodes[currentUser];
+      if (k && !localStorage.getItem("popupCode_" + currentUser)) {
+        popup.className = "popup green";
+        popupText.innerText = `🎉 Ini kode kamu (ikuti event untuk mendapatkan kode gratis):\n${k}`;
+        popup.style.display = "block";
+        localStorage.setItem("popupCode_" + currentUser, k);
+      }
+    }
+
+    function closePopup() {
+      document.getElementById("user-popup").style.display = "none";
+      localStorage.removeItem("popup_" + currentUser);
+    }
+
+    function kirimPopupKeUser() {
+      const target = document.getElementById("popupTarget").value.trim();
+      const msg = document.getElementById("popupMessage").value.trim();
+      const type = document.getElementById("popupType").value;
+      if (!target || !msg) return alert("Isi username & pesan.");
+      const popupData = { msg, type };
+      localStorage.setItem("popup_" + target, JSON.stringify(popupData));
+      alert("Pop-up dikirim ke " + target);
+    }
+
+    function tambahFileDownload() {
+      const list = document.getElementById("fileDownloadList");
+      const fileInput = document.getElementById("fileInput");
+      const titleInput = document.getElementById("fileTitleInput");
+
+      if (!fileInput.files[0] || !titleInput.value.trim()) {
+        return alert("Pilih file dan isi judul terlebih dahulu.");
+      }
+
+      const fileURL = URL.createObjectURL(fileInput.files[0]);
+      const item = document.createElement("div");
+      item.innerHTML = `<a href="${fileURL}" download>⬇️ ${titleInput.value.trim()}</a>`;
+      list.appendChild(item);
+
+      fileInput.value = "";
+      titleInput.value = "";
+    }
+
+    fetch("https://projectmilitary.netlify.app/version.json")
+      .then(res => res.json())
+      .then(data => {
+        if (data.version !== "1.0.0") {
+          document.getElementById("updatePopup").style.display = "block";
+        }
+      })
+      .catch(err => console.error("Gagal cek versi:", err));
+
+    window.onload = () => {
+      const saved = localStorage.getItem("username");
+      if (saved) {
+        document.getElementById("usernameInput").value = saved;
+        loginUser();
+      }
+    };
+  </script>
+</body>
+</html>
