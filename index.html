@@ -70,12 +70,6 @@
     <button onclick="login()">Login</button>
   </div>
 
-  <div id="verify-section" class="hidden">
-    <p>Masukkan kode verifikasi dari <strong>ReedemCode.Gmail.com</strong></p>
-    <input type="text" id="verify-code" placeholder="Kode 10 Digit"/>
-    <button onclick="verifyAdmin()">Verifikasi</button>
-  </div>
-
   <div id="main-section" class="hidden">
     <h3>Selamat datang, <span id="displayName"></span></h3>
     <button onclick="beli()">Beli Code Redeem</button>
@@ -96,22 +90,19 @@
 
 <script>
   const users = {}; // Simpan data redeem
-  const accounts = {}; // Simpan user & password
-  const MIN_LENGTH = 8;
+  const accounts = {
+    "RozaqSigma123": "akurozaknih123"
+  };
+  const MIN_LENGTH = 4; // tidak ada batas minimal selain admin
   let currentUser = null;
-  let isAdminVerified = false;
-  let adminCode = "";
-
-  function isValid(username, password) {
-    return username.length >= MIN_LENGTH && password.length >= MIN_LENGTH;
-  }
+  let isAdmin = false;
 
   function register() {
     const username = document.getElementById("reg-username").value.trim();
     const password = document.getElementById("reg-password").value.trim();
 
-    if (!isValid(username, password)) {
-      alert("Username dan password minimal 8 karakter.");
+    if (!username || !password) {
+      alert("Username dan password harus diisi.");
       return;
     }
     if (accounts[username]) {
@@ -134,35 +125,19 @@
     }
 
     currentUser = username;
+    isAdmin = (username === "RozaqSigma123");
     localStorage.setItem("redeemUser", JSON.stringify({ username, password }));
-
-    if (username.toLowerCase() === "rozaq") {
-      adminCode = generateCode(10);
-      alert("Kode verifikasi dikirim ke ReedemCode.Gmail.com:\n\nKode: " + adminCode);
-      document.getElementById("login-section").classList.add("hidden");
-      document.getElementById("verify-section").classList.remove("hidden");
-    } else {
-      showMainUI();
-    }
-  }
-
-  function verifyAdmin() {
-    const inputCode = document.getElementById("verify-code").value.trim();
-    if (inputCode === adminCode) {
-      isAdminVerified = true;
-      showMainUI();
-      document.getElementById("admin-panel").classList.remove("hidden");
-    } else {
-      alert("Kode verifikasi salah.");
-    }
+    showMainUI();
   }
 
   function showMainUI() {
     document.getElementById("register-section").classList.add("hidden");
     document.getElementById("login-section").classList.add("hidden");
-    document.getElementById("verify-section").classList.add("hidden");
     document.getElementById("main-section").classList.remove("hidden");
     document.getElementById("displayName").innerText = currentUser;
+    if (isAdmin) {
+      document.getElementById("admin-panel").classList.remove("hidden");
+    }
     checkRedeem();
   }
 
@@ -171,8 +146,7 @@
       users[currentUser] = null;
       showPopup("popup-buy", `Pembelian tercatat atas nama: ${currentUser}`);
       window.open("https://wa.me/6285282790834", "_blank");
-
-      if (isAdminVerified) updateUserList();
+      if (isAdmin) updateUserList();
     } else {
       showPopup("popup-buy", "Kamu sudah melakukan pembelian.");
     }
@@ -215,15 +189,6 @@
     popup.innerText = message;
     popup.style.display = "block";
     setTimeout(() => popup.style.display = "none", 5000);
-  }
-
-  function generateCode(length) {
-    let result = "";
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   }
 
   function logout() {
