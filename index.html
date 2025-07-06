@@ -110,9 +110,9 @@
     <h3>👑 Admin Panel</h3>
     <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
     <select id="packSelect">
-      <option value="reguler">Reguler (2K–10K)</option>
-      <option value="exclusive">Exclusive (20K–50K)</option>
-      <option value="super">Super Exclusive (60K–100K)</option>
+      <option value="Reguler">Reguler (2K–10K)</option>
+      <option value="Exclusive">Exclusive (20K–50K)</option>
+      <option value="Super">Super Exclusive (60K–100K)</option>
     </select>
     <button onclick="beriKode()">Kirim Kode ke User</button>
     <p id="adminStatus"></p>
@@ -133,10 +133,10 @@
   </div>
 
   <script>
-    const codePools = {
-      reguler: [...Array(50)].map((_, i) => `PM-RG-${i+1}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`),
-      exclusive: [...Array(50)].map((_, i) => `PM-EX-${i+1}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`),
-      super: [...Array(50)].map((_, i) => `PM-SP-${i+1}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`)
+    const codes = {
+      Reguler: ["PM-LV7KXE", "PM-QYZJ9F", "PM-B9SKGC"],
+      Exclusive: ["PM-JELR5Q", "PM-XF4PYB", "PM-RA6XNU"],
+      Super: ["PM-MWPJTY", "PM-Z86LUW", "PM-VBQN5R"]
     };
 
     const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
@@ -157,11 +157,12 @@
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
 
-      if (["rozaq", "rozak"].includes(user.toLowerCase())) {
+      if (user === "Rozaq") {
         document.getElementById("adminPanel").style.display = "block";
         updateUserList();
       }
 
+      // 🔥 Tampilkan popup hanya 1x
       const hasCode = assignedCodes[user];
       const lastCode = localStorage.getItem(`popupCode_${user}`);
       if (hasCode && lastCode !== hasCode) {
@@ -172,12 +173,11 @@
     }
 
     function beriKode() {
-      const userRaw = document.getElementById("targetUser").value.trim();
-      const user = userRaw;
+      const user = document.getElementById("targetUser").value.trim();
       const pack = document.getElementById("packSelect").value;
       if (!user) return alert("Masukkan username!");
 
-      const available = codePools[pack].filter(kode => !usedCodes[kode]);
+      const available = codes[pack].filter(kode => !usedCodes[kode]);
       if (available.length === 0) {
         document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
         return;
@@ -189,16 +189,11 @@
 
       localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
       localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+
+      // Reset popup agar muncul lagi saat login
       localStorage.removeItem(`popupCode_${user}`);
 
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
-
-      const currentUser = localStorage.getItem("username");
-      if (currentUser === user) {
-        localStorage.setItem(`popupCode_${user}`, kode);
-        document.getElementById("popupKode").innerText = kode;
-        document.getElementById("popup").classList.remove("hidden");
-      }
     }
 
     function closePopup() {
