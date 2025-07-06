@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Redeem Code - Project Military</title>
   <style>
     body {
@@ -36,14 +36,17 @@
     .hidden { display: none; }
     .popup {
       position: fixed;
-      top: 20px;
-      right: 20px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: #ff4444;
       color: white;
-      padding: 15px;
+      padding: 20px;
       border-radius: 10px;
       display: none;
       z-index: 1000;
+      text-align: center;
+      max-width: 90%;
     }
     .popup.green { background: #4CAF50; }
     .popup.red { background: #F44336; }
@@ -53,27 +56,39 @@
       margin-top: 20px;
       border-radius: 10px;
     }
-    img.icon {
-      height: 20px;
-      vertical-align: middle;
-      margin-right: 10px;
+    .code-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+    }
+    .code-item span {
+      flex-grow: 1;
+    }
+    .remove-btn {
+      background-color: red;
+      border: none;
+      color: white;
+      padding: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
     }
   </style>
 </head>
 <body>
-
 <div class="container">
   <h2>Redeem Code System</h2>
 
   <div id="register-section">
-    <input type="text" id="reg-username" placeholder="Buat Username" />
-    <input type="password" id="reg-password" placeholder="Buat Password" />
+    <input type="text" id="reg-username" placeholder="Buat Username">
+    <input type="password" id="reg-password" placeholder="Buat Password">
     <button onclick="register()">Register</button>
   </div>
 
   <div id="login-section">
-    <input type="text" id="username" placeholder="Masukkan Username" />
-    <input type="password" id="password" placeholder="Masukkan Password" />
+    <input type="text" id="username" placeholder="Masukkan Username">
+    <input type="password" id="password" placeholder="Masukkan Password">
     <button onclick="login()">Login</button>
   </div>
 
@@ -81,30 +96,28 @@
     <h3>Selamat datang, <span id="displayName"></span></h3>
     <button onclick="beli()">Beli Code Redeem</button>
     <button onclick="logout()" style="background-color: #555; color: white;">Logout</button>
-    <button onclick="kickUser()" style="background-color: #900;">Kick User</button>
-    <div id="popup-buy" class="popup"></div>
 
     <div id="admin-panel" class="admin-panel hidden">
       <h3>Admin Panel</h3>
-      <p><strong>Masukkan Username Pembeli:</strong></p>
-      <input type="text" id="manualUsername" placeholder="Contoh: Player123" />
+
+      <input type="text" id="manualUsername" placeholder="Masukkan username pembeli">
       <button onclick="kirimKodeManual()">Kirim Code ke User</button>
 
-      <p><strong>Tambah Code Stok Baru:</strong></p>
-      <input type="text" id="newStockCode" placeholder="Contoh: PM-XXXXX-XXXXX" />
+      <input type="text" id="newStockCode" placeholder="Tambahkan Code ke Stok">
       <button onclick="tambahKodeManual()">Tambah ke Stok</button>
 
-      <p><strong>Stok Code:</strong></p>
+      <h4>Stok Code:</h4>
       <ul id="codeList"></ul>
 
       <hr>
-      <h4>Kirim Pesan Pop-up:</h4>
-      <input type="text" id="popupMessage" placeholder="Tulis pesan..." />
+      <h4>Kirim Pop-up ke User</h4>
+      <input type="text" id="popupTarget" placeholder="Username Tujuan">
+      <input type="text" id="popupMessage" placeholder="Isi Pesan">
       <select id="popupType">
         <option value="green">Kabar Gembira</option>
         <option value="red">Kabar Buruk</option>
       </select>
-      <button onclick="kirimPopupKeUser()">Kirim Popup</button>
+      <button onclick="kirimPopupKeUser()">Kirim Pop-up</button>
     </div>
   </div>
 </div>
@@ -116,30 +129,22 @@
   const accounts = { "RozaqSigma123": "akurozaknih123" };
   let currentUser = null;
   let isAdmin = false;
-  let redeemCodes = [];
-
-  function generatePMCode() {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const part = () => Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-    return `PM-${part()}-${part()}`;
-  }
-
-  function generateCodeList() {
-    redeemCodes = [];
-    for (let i = 0; i < 6; i++) {
-      redeemCodes.push(generatePMCode());
-    }
-    updateCodeListUI();
-  }
+  let redeemCodes = JSON.parse(localStorage.getItem("redeemStock")) || [];
 
   function updateCodeListUI() {
     const list = document.getElementById("codeList");
     list.innerHTML = "";
-    redeemCodes.forEach(code => {
+    redeemCodes.forEach((code, index) => {
       const li = document.createElement("li");
-      li.textContent = code;
+      li.className = "code-item";
+      li.innerHTML = `<span>${code}</span><button class='remove-btn' onclick='hapusKode(${index})'>X</button>`;
       list.appendChild(li);
     });
+    simpanStock();
+  }
+
+  function simpanStock() {
+    localStorage.setItem("redeemStock", JSON.stringify(redeemCodes));
   }
 
   function register() {
@@ -161,6 +166,11 @@
     showMainUI();
   }
 
+  function logout() {
+    localStorage.removeItem("redeemUser");
+    location.reload();
+  }
+
   function showMainUI() {
     document.getElementById("register-section").classList.add("hidden");
     document.getElementById("login-section").classList.add("hidden");
@@ -168,7 +178,7 @@
     document.getElementById("displayName").innerText = currentUser;
     if (isAdmin) {
       document.getElementById("admin-panel").classList.remove("hidden");
-      generateCodeList();
+      updateCodeListUI();
     }
     checkRedeem();
   }
@@ -176,21 +186,17 @@
   function beli() {
     if (!users[currentUser]) {
       users[currentUser] = null;
-      showPopup("popup-buy", `Pembelian tercatat atas nama: ${currentUser}`);
       window.open("https://wa.me/6285282790834", "_blank");
-    } else {
-      showPopup("popup-buy", "Kamu sudah membeli sebelumnya.");
     }
   }
 
   function kirimKodeManual() {
     const user = document.getElementById("manualUsername").value.trim();
-    if (!user) return alert("Masukkan username!");
-    if (redeemCodes.length === 0) return alert("Stok kosong.");
+    if (!user || redeemCodes.length === 0) return alert("Isi username dan pastikan stok ada!");
     const code = redeemCodes.shift();
     users[user] = code;
-    alert("Code dikirim ke " + user);
     updateCodeListUI();
+    alert("Code dikirim ke " + user);
   }
 
   function tambahKodeManual() {
@@ -202,44 +208,35 @@
     }
   }
 
+  function hapusKode(index) {
+    redeemCodes.splice(index, 1);
+    updateCodeListUI();
+  }
+
   function kirimPopupKeUser() {
+    const target = document.getElementById("popupTarget").value.trim();
     const msg = document.getElementById("popupMessage").value.trim();
     const type = document.getElementById("popupType").value;
-    if (!msg) return alert("Isi pesan dulu!");
+    if (target !== currentUser) return;
     const popup = document.getElementById("user-popup");
     popup.className = "popup " + type;
-    const icon = type === "green" ? "✅" : "❌";
-    popup.innerText = `${icon} ${msg}`;
+    popup.innerText = (type === "green" ? "✅ " : "❌ ") + msg;
     popup.style.display = "block";
-    setTimeout(() => popup.style.display = "none", 5000);
+    setTimeout(() => popup.style.display = "none", 6000);
   }
 
   function checkRedeem() {
     const code = users[currentUser];
     if (code) {
       setTimeout(() => {
-        showPopup("user-popup", `Pembayaran berhasil! Ini code kamu: ${code}`);
+        const popup = document.getElementById("user-popup");
+        popup.className = "popup green";
+        popup.innerText = `Pembayaran berhasil! Ini code kamu: ${code}`;
+        popup.style.display = "block";
+        setTimeout(() => popup.style.display = "none", 6000);
         users[currentUser] = null;
-      }, 1000);
+      }, 500);
     }
-  }
-
-  function showPopup(id, message) {
-    const popup = document.getElementById(id);
-    popup.className = "popup";
-    popup.innerText = message;
-    popup.style.display = "block";
-    setTimeout(() => popup.style.display = "none", 5000);
-  }
-
-  function logout() {
-    localStorage.removeItem("redeemUser");
-    location.reload();
-  }
-
-  function kickUser() {
-    alert("Kamu telah dikeluarkan dari sistem.");
-    logout();
   }
 
   window.onload = () => {
