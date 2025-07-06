@@ -157,17 +157,15 @@
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
 
-      if (user === "Rozaq") {
+      if (["rozaq", "rozak"].includes(user.toLowerCase())) {
         document.getElementById("adminPanel").style.display = "block";
         updateUserList();
       }
 
-      // 🔥 Tampilkan popup hanya 1x
       const hasCode = assignedCodes[user];
       const lastCode = localStorage.getItem(`popupCode_${user}`);
       if (hasCode && lastCode !== hasCode) {
-        document.getElementById("popupKode").innerText = hasCode;
-        document.getElementById("popup").classList.remove("hidden");
+        showPopup(hasCode);
         localStorage.setItem(`popupCode_${user}`, hasCode);
       }
     }
@@ -189,11 +187,21 @@
 
       localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
       localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-
-      // Reset popup agar muncul lagi saat login
       localStorage.removeItem(`popupCode_${user}`);
 
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
+
+      // ❗Jika yang dikirim adalah user yang sedang login, langsung tampilkan popup
+      const currentUser = localStorage.getItem("username");
+      if (currentUser === user) {
+        showPopup(kode);
+        localStorage.setItem(`popupCode_${user}`, kode);
+      }
+    }
+
+    function showPopup(kode) {
+      document.getElementById("popupKode").innerText = kode;
+      document.getElementById("popup").classList.remove("hidden");
     }
 
     function closePopup() {
