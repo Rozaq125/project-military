@@ -78,10 +78,11 @@
 
     <div id="admin-panel" class="admin-panel hidden">
       <h3>Admin Panel</h3>
-      <p><strong>Pembelian oleh:</strong></p>
-      <select id="userList"></select>
-      <input type="text" id="codeToSend" placeholder="Masukkan Code Redeem" />
-      <button onclick="kirimKode()">Kirim Code</button>
+      <p><strong>Masukkan Username Pembeli:</strong></p>
+      <input type="text" id="manualUsername" placeholder="Contoh: Player123" />
+      <button onclick="kirimKodeManual()">Kirim Code ke User</button>
+      <p><strong>Stok Code:</strong></p>
+      <ul id="codeList"></ul>
     </div>
   </div>
 </div>
@@ -89,18 +90,42 @@
 <div id="user-popup" class="popup"></div>
 
 <script>
-  const users = {}; // Simpan data redeem
+  const users = {}; // user => code
   const accounts = {
     "RozaqSigma123": "akurozaknih123"
   };
-  const MIN_LENGTH = 4; // tidak ada batas minimal selain admin
+  const MIN_LENGTH = 4;
   let currentUser = null;
   let isAdmin = false;
+  let redeemCodes = [];
+
+  function generatePMCode() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const part = () => Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    return `PM-${part()}-${part()}`;
+  }
+
+  function generateCodeList() {
+    redeemCodes = [];
+    for (let i = 0; i < 6; i++) {
+      redeemCodes.push(generatePMCode());
+    }
+    updateCodeListUI();
+  }
+
+  function updateCodeListUI() {
+    const list = document.getElementById("codeList");
+    list.innerHTML = "";
+    redeemCodes.forEach(code => {
+      const li = document.createElement("li");
+      li.textContent = code;
+      list.appendChild(li);
+    });
+  }
 
   function register() {
     const username = document.getElementById("reg-username").value.trim();
     const password = document.getElementById("reg-password").value.trim();
-
     if (!username || !password) {
       alert("Username dan password harus diisi.");
       return;
@@ -118,12 +143,10 @@
   function login() {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
-
     if (!accounts[username] || accounts[username] !== password) {
       alert("Username atau password salah.");
       return;
     }
-
     currentUser = username;
     isAdmin = (username === "RozaqSigma123");
     localStorage.setItem("redeemUser", JSON.stringify({ username, password }));
@@ -137,6 +160,7 @@
     document.getElementById("displayName").innerText = currentUser;
     if (isAdmin) {
       document.getElementById("admin-panel").classList.remove("hidden");
+      generateCodeList();
     }
     checkRedeem();
   }
@@ -146,32 +170,20 @@
       users[currentUser] = null;
       showPopup("popup-buy", `Pembelian tercatat atas nama: ${currentUser}`);
       window.open("https://wa.me/6285282790834", "_blank");
-      if (isAdmin) updateUserList();
     } else {
       showPopup("popup-buy", "Kamu sudah melakukan pembelian.");
     }
   }
 
-  function updateUserList() {
-    const select = document.getElementById("userList");
-    select.innerHTML = "";
-    Object.keys(users).forEach(u => {
-      if (!users[u]) {
-        const option = document.createElement("option");
-        option.value = u;
-        option.text = u;
-        select.appendChild(option);
-      }
-    });
-  }
+  function kirimKodeManual() {
+    const manualUsername = document.getElementById("manualUsername").value.trim();
+    if (!manualUsername) return alert("Masukkan username dulu.");
+    if (redeemCodes.length === 0) return alert("Stok kode habis.");
 
-  function kirimKode() {
-    const selectedUser = document.getElementById("userList").value;
-    const code = document.getElementById("codeToSend").value.trim();
-    if (selectedUser && code) {
-      users[selectedUser] = code;
-      alert("Code dikirim ke " + selectedUser);
-    }
+    const code = redeemCodes.shift();
+    users[manualUsername] = code;
+    alert("Code dikirim ke " + manualUsername);
+    updateCodeListUI();
   }
 
   function checkRedeem() {
@@ -196,7 +208,6 @@
     location.reload();
   }
 
-  // === AUTO LOGIN ===
   window.onload = () => {
     const savedUser = JSON.parse(localStorage.getItem("redeemUser"));
     if (savedUser) {
