@@ -144,7 +144,8 @@
     const userList = JSON.parse(localStorage.getItem("userList") || "[]");
 
     function loginUser() {
-      const user = document.getElementById("usernameInput").value.trim();
+      const userRaw = document.getElementById("usernameInput").value.trim();
+      const user = userRaw.toLowerCase();
       if (!user) return alert("Isi username dulu!");
 
       if (!userList.includes(user)) {
@@ -153,11 +154,11 @@
       }
 
       localStorage.setItem("username", user);
-      document.getElementById("userNameDisplay").innerText = user;
+      document.getElementById("userNameDisplay").innerText = userRaw;
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
 
-      if (user.toLowerCase() === "rozaq" || user.toLowerCase() === "rozak") {
+      if (user === "rozaq" || user === "rozak") {
         document.getElementById("adminPanel").style.display = "block";
         updateUserList();
       }
@@ -172,7 +173,8 @@
     }
 
     function beriKode() {
-      const user = document.getElementById("targetUser").value.trim();
+      const userRaw = document.getElementById("targetUser").value.trim();
+      const user = userRaw.toLowerCase();
       const pack = document.getElementById("packSelect").value;
       if (!user) return alert("Masukkan username!");
 
@@ -188,7 +190,7 @@
 
       localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
       localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-      localStorage.removeItem(`popupCode_${user}`); // agar popup muncul lagi
+      localStorage.removeItem(`popupCode_${user}`);
 
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
     }
