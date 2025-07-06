@@ -3,32 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Project Military - Redeem</title>
+  <title>Project Military - Redeem & Chat</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       padding: 20px;
     }
-    h1 {
-      margin-top: 40px;
-      text-align: center;
-    }
-    .container {
+
+    .container, #adminPanel {
       background: rgba(255, 255, 255, 0.05);
-      padding: 30px;
+      padding: 20px;
       border-radius: 14px;
       max-width: 420px;
-      width: 100%;
+      margin: 20px auto;
       box-shadow: 0 0 15px rgba(0,0,0,0.3);
       text-align: center;
-      margin-top: 20px;
     }
+
     input, select, button {
       padding: 10px;
       margin-top: 10px;
@@ -37,28 +31,19 @@
       border-radius: 8px;
       font-size: 16px;
     }
+
     input {
       background: rgba(255,255,255,0.1);
       color: white;
     }
+
     button {
       background: #00c853;
       color: white;
       font-weight: bold;
       cursor: pointer;
     }
-    button:hover {
-      background: #00a143;
-    }
-    #adminPanel {
-      display: none;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      margin-top: 30px;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 420px;
-    }
+
     .popup {
       position: fixed;
       top: 0; left: 0;
@@ -67,7 +52,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      z-index: 999;
     }
+
     .popup-content {
       background: white;
       color: black;
@@ -75,145 +62,293 @@
       border-radius: 12px;
       text-align: center;
     }
-    .hidden {
-      display: none;
+
+    .hidden { display: none; }
+
+    /* Chat Icon */
+    .chat-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff5e5e;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 50px;
+      font-size: 16px;
+      border: none;
+      z-index: 998;
     }
+
+    /* Chat Window */
+    .chat-container {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 320px;
+      height: 420px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 999;
+    }
+
+    .chat-header {
+      background: #203a43;
+      color: white;
+      padding: 10px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 14px;
+      background: #f4f4f4;
+      color: black;
+    }
+
+    .chat-input {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+    }
+
+    .chat-input input[type="text"],
+    .chat-input input[type="file"] {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .chat-input button {
+      padding: 8px;
+      background: #00c853;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+
+    .message { margin: 5px 0; padding: 6px 8px; border-radius: 6px; }
+    .admin { background: #e0e0e0; }
+    .user { background: #cdeffd; }
   </style>
 </head>
 <body>
-  <h1>🎮 Project Military - Redeem</h1>
 
-  <div class="container" id="loginSection">
-    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
-    <button onclick="loginUser()">Masuk</button>
+<h1 style="text-align:center;">🎮 Project Military - Redeem</h1>
+
+<div class="container" id="loginSection">
+  <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+  <button onclick="loginUser()">Masuk</button>
+</div>
+
+<div class="container hidden" id="mainSection">
+  <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
+  <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
+  <button onclick="logoutUser()">🔓 Logout</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="hidden">
+  <h3>👑 Admin Panel</h3>
+  <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
+  <select id="packSelect">
+    <option value="Reguler">Reguler</option>
+    <option value="Exclusive">Exclusive</option>
+    <option value="Super">Super Exclusive</option>
+  </select>
+  <button onclick="beriKode()">Kirim Kode</button>
+  <p id="adminStatus"></p>
+  <hr>
+  <h4>📋 Daftar Username</h4>
+  <div id="userListDisplay" style="text-align:left; max-height: 150px; overflow-y:auto;"></div>
+</div>
+
+<!-- POPUP -->
+<div id="popup" class="popup hidden">
+  <div class="popup-content">
+    <h2>🎉 Selamat dan terima kasih!</h2>
+    <p>Ini code Redeem anda, selamat bermain:</p>
+    <h3 id="popupKode"></h3>
+    <button onclick="closePopup()">Tutup</button>
   </div>
+</div>
 
-  <div class="container hidden" id="mainSection">
-    <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
-    <p>Klik tombol di bawah untuk membeli:</p>
-    <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
-    <button onclick="logout()">🔓 Logout</button>
+<!-- CHAT BUTTON -->
+<button class="chat-btn" onclick="openChat()">💬 Chat</button>
+
+<!-- CHAT SYSTEM -->
+<div id="chatBoxContainer" class="chat-container hidden">
+  <div class="chat-header">
+    Chat Admin
+    <span style="cursor:pointer;" onclick="closeChat()">×</span>
   </div>
-
-  <!-- ADMIN PANEL -->
-  <div id="adminPanel">
-    <h3>👑 Admin Panel</h3>
-    <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
-    <select id="packSelect">
-      <option value="Reguler">Reguler</option>
-      <option value="Exclusive">Exclusive</option>
-      <option value="Super">Super Exclusive</option>
-    </select>
-    <button onclick="beriKode()">Kirim Kode ke User</button>
-    <p id="adminStatus"></p>
-    <hr style="margin: 20px 0;">
-    <h4>📋 Daftar Username</h4>
-    <div id="userListDisplay" style="text-align:left; max-height: 150px; overflow-y:auto;"></div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="Ketik pesan...">
+    <input type="file" id="fileInput">
+    <button onclick="sendChat()">Kirim</button>
   </div>
+</div>
 
-  <!-- POPUP -->
-  <div id="popup" class="popup hidden">
-    <div class="popup-content">
-      <h2>🎉 Selamat dan terima kasih!</h2>
-      <p>Ini code Redeem anda, selamat bermain:</p>
-      <h3 id="popupKode"></h3>
-      <button onclick="closePopup()">Tutup</button>
-    </div>
-  </div>
+<script>
+  const codes = {
+    Reguler: ["PM-JGKDDK-HHGKDDJ-KGGKFFK", "PM-LV7KXE-QYZJ9F-B9SKGC"],
+    Exclusive: ["PM-JELR5Q-XF4PYB-RA6XNU"],
+    Super: ["PM-MWPJTY-Z86LUW-VBQN5R"]
+  };
 
-  <script>
-    const codes = {
-      Reguler: [
-        "PM-JGKDDK-HHGKDDJ-KGGKFFK", "PM-KJGWJJ-YTTKJKD-WJJJDKF", "PM-YUIEOD-KDJFJDK-WUIEODL"
-        // Tambah 147 lagi ya...
-      ],
-      Exclusive: [
-        "PM-ZKDKDK-PLMNDJS-PLMZJDJ", "PM-JDJWMD-DKDODMD-DODODOD", "PM-WJDKSK-SLSLSLS-KSKSLSL", "PM-FBNNFJNBF-DJKFBKGNKF-DRJGEJROIE"
-      ],
-      Super: [
-        "PM-BDKGL-FIKTORY-SKELLDJ", "PM-VINULDO-SUMANTEKLIK-HUNONINO", "PM-APABINUASILE-HJEKASLLEEMAH", "PM-GUNFJRHGJ-JHFGNNHGNJ-JFGBGJJF"
-      ]
-    };
+  const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
+  const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
+  const userList = JSON.parse(localStorage.getItem("userList") || "[]");
 
-    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
-    const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
-    const userList = JSON.parse(localStorage.getItem("userList") || "[]");
+  function loginUser() {
+    const user = document.getElementById("usernameInput").value.trim();
+    if (!user) return alert("Isi username dulu!");
 
-    function loginUser() {
-      const user = document.getElementById("usernameInput").value.trim();
-      if (!user) return alert("Isi username dulu!");
-
-      if (!userList.includes(user)) {
-        userList.push(user);
-        localStorage.setItem("userList", JSON.stringify(userList));
-      }
-
-      localStorage.setItem("username", user);
-      document.getElementById("userNameDisplay").innerText = user;
-      document.getElementById("loginSection").classList.add("hidden");
-      document.getElementById("mainSection").classList.remove("hidden");
-
-      if (["Rozaq", "Rozak"].includes(user)) {
-        document.getElementById("adminPanel").style.display = "block";
-        updateUserList();
-      }
-
-      const hasCode = assignedCodes[user];
-      const seen = localStorage.getItem(`popupSeen_${user}`);
-
-      if (hasCode && !seen) {
-        document.getElementById("popupKode").innerText = hasCode;
-        document.getElementById("popup").classList.remove("hidden");
-      }
+    localStorage.setItem("username", user);
+    if (!userList.includes(user)) {
+      userList.push(user);
+      localStorage.setItem("userList", JSON.stringify(userList));
     }
 
-    function beriKode() {
-      const user = document.getElementById("targetUser").value.trim();
-      const pack = document.getElementById("packSelect").value;
-      if (!user) return alert("Masukkan username!");
+    document.getElementById("userNameDisplay").innerText = user;
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("mainSection").classList.remove("hidden");
 
-      const available = codes[pack].filter(kode => !usedCodes[kode]);
-      if (available.length === 0) {
-        document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
-        return;
-      }
-
-      const kode = available[0]; // ambil kode pertama
-      usedCodes[kode] = true;
-      assignedCodes[user] = kode;
-
-      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
-      localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-      localStorage.removeItem(`popupSeen_${user}`);
-
-      document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
+    if (user === "Rozaq" || user === "Rozak") {
+      document.getElementById("adminPanel").classList.remove("hidden");
+      updateUserList();
     }
 
-    function closePopup() {
-      const user = localStorage.getItem("username");
-      if (user) {
-        localStorage.setItem(`popupSeen_${user}`, "true");
-      }
-      document.getElementById("popup").classList.add("hidden");
+    const hasCode = assignedCodes[user];
+    const lastCode = localStorage.getItem(`popupCode_${user}`);
+    if (hasCode && lastCode !== hasCode) {
+      document.getElementById("popupKode").innerText = hasCode;
+      document.getElementById("popup").classList.remove("hidden");
+      localStorage.setItem(`popupCode_${user}`, hasCode);
+    }
+  }
+
+  function logoutUser() {
+    localStorage.removeItem("username");
+    location.reload();
+  }
+
+  function beriKode() {
+    const user = document.getElementById("targetUser").value.trim();
+    const pack = document.getElementById("packSelect").value;
+    if (!user) return alert("Masukkan username!");
+
+    const available = codes[pack].filter(kode => !usedCodes[kode]);
+    if (available.length === 0) {
+      document.getElementById("adminStatus").innerText = "❌ Kode habis!";
+      return;
     }
 
-    function logout() {
-      localStorage.removeItem("username");
-      location.reload();
+    const kode = available[0];
+    usedCodes[kode] = true;
+    assignedCodes[user] = kode;
+
+    localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
+    localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+    localStorage.removeItem(`popupCode_${user}`);
+
+    document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
+  }
+
+  function closePopup() {
+    document.getElementById("popup").classList.add("hidden");
+  }
+
+  function updateUserList() {
+    const list = userList.map(name => `<li>${name}</li>`).join("");
+    document.getElementById("userListDisplay").innerHTML = `<ul>${list}</ul>`;
+  }
+
+  // CHAT SYSTEM
+  const chatData = JSON.parse(localStorage.getItem("chatMessages") || "{}");
+  const currentUser = localStorage.getItem("username");
+  const isAdmin = currentUser === "Rozaq" || currentUser === "Rozak";
+
+  function openChat() {
+    document.getElementById("chatBoxContainer").classList.remove("hidden");
+
+    if (!chatData[currentUser]) {
+      chatData[currentUser] = [{ from: "admin", text: "Akun admin asli, dilarang bertransaksi di luar Redeem" }];
+      localStorage.setItem("chatMessages", JSON.stringify(chatData));
+    }
+    renderChat();
+  }
+
+  function closeChat() {
+    document.getElementById("chatBoxContainer").classList.add("hidden");
+  }
+
+  function sendChat() {
+    const msg = document.getElementById("chatInput").value.trim();
+    const file = document.getElementById("fileInput").files[0];
+
+    if (!chatData[currentUser]) chatData[currentUser] = [];
+
+    if (msg) chatData[currentUser].push({ from: isAdmin ? "admin" : "user", text: msg });
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        chatData[currentUser].push({ from: isAdmin ? "admin" : "user", file: e.target.result, fileName: file.name });
+        localStorage.setItem("chatMessages", JSON.stringify(chatData));
+        renderChat();
+      };
+      reader.readAsDataURL(file);
     }
 
-    function updateUserList() {
-      const list = userList.map(name => `<li>${name}</li>`).join("");
-      document.getElementById("userListDisplay").innerHTML = `<ul>${list}</ul>`;
-    }
+    localStorage.setItem("chatMessages", JSON.stringify(chatData));
+    document.getElementById("chatInput").value = "";
+    document.getElementById("fileInput").value = "";
+    renderChat();
+  }
 
-    window.onload = () => {
-      const saved = localStorage.getItem("username");
-      if (saved) {
-        document.getElementById("usernameInput").value = saved;
-        loginUser();
-      }
-    };
-  </script>
+  function renderChat() {
+    const box = document.getElementById("chatMessages");
+    box.innerHTML = "";
+    const entries = isAdmin ? Object.entries(chatData) : [[currentUser, chatData[currentUser] || []]];
+
+    entries.forEach(([user, msgs]) => {
+      if (isAdmin) box.innerHTML += `<strong>👤 ${user}</strong><hr>`;
+      msgs.forEach(msg => {
+        const div = document.createElement("div");
+        div.className = "message " + (msg.from === "admin" ? "admin" : "user");
+        if (msg.text) div.innerText = `${msg.from === "admin" ? "Admin" : "User"}: ${msg.text}`;
+        if (msg.file) {
+          const fileLink = document.createElement("a");
+          fileLink.href = msg.file;
+          fileLink.innerText = msg.fileName;
+          fileLink.download = msg.fileName;
+          fileLink.style.display = "block";
+          div.appendChild(fileLink);
+        }
+        box.appendChild(div);
+      });
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+
+  window.onload = () => {
+    const saved = localStorage.getItem("username");
+    if (saved) {
+      document.getElementById("usernameInput").value = saved;
+      loginUser();
+    }
+  };
+</script>
 </body>
 </html>
