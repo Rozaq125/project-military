@@ -181,7 +181,7 @@
       updateCodeListUI();
     }
     checkRedeem();
-    checkPopup();
+    setTimeout(checkPopup, 500);
   }
 
   function beli() {
@@ -219,27 +219,24 @@
     const msg = document.getElementById("popupMessage").value.trim();
     const type = document.getElementById("popupType").value;
     if (!target || !msg) return alert("Isi username & pesan.");
-    const popups = JSON.parse(localStorage.getItem("pendingPopups")) || [];
-    popups.push({ target, msg, type });
-    localStorage.setItem("pendingPopups", JSON.stringify(popups));
+    let allPopups = JSON.parse(localStorage.getItem("pendingPopups")) || {};
+    if (!allPopups[target]) allPopups[target] = [];
+    allPopups[target].push({ msg, type });
+    localStorage.setItem("pendingPopups", JSON.stringify(allPopups));
     alert("Pop-up dikirim ke " + target);
   }
 
   function checkPopup() {
-    const popups = JSON.parse(localStorage.getItem("pendingPopups")) || [];
-    const remain = [];
-    popups.forEach(p => {
-      if (p.target === currentUser) {
-        const popup = document.getElementById("user-popup");
-        popup.className = "popup " + p.type;
-        popup.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
-        popup.style.display = "block";
-        setTimeout(() => popup.style.display = "none", 6000);
-      } else {
-        remain.push(p);
-      }
-    });
-    localStorage.setItem("pendingPopups", JSON.stringify(remain));
+    let allPopups = JSON.parse(localStorage.getItem("pendingPopups")) || {};
+    if (allPopups[currentUser] && allPopups[currentUser].length > 0) {
+      const p = allPopups[currentUser].shift();
+      const popup = document.getElementById("user-popup");
+      popup.className = "popup " + p.type;
+      popup.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
+      popup.style.display = "block";
+      setTimeout(() => popup.style.display = "none", 6000);
+      localStorage.setItem("pendingPopups", JSON.stringify(allPopups));
+    }
   }
 
   function checkRedeem() {
