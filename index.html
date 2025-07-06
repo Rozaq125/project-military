@@ -134,22 +134,18 @@
 
   <script>
     const codes = {
-      Reguler: ["PM-LV7KXE", "PM-QYZJ9F", "PM-B9SKGC"],
-      Exclusive: ["PM-JELR5Q", "PM-XF4PYB", "PM-RA6XNU"],
-      Super: ["PM-MWPJTY", "PM-Z86LUW", "PM-VBQN5R"]
+      Reguler: [ "PM-0AUK8-46HNO-11T41", "PM-0BOVP-0AEO0-2M8MJ", "PM-0FC3A-6NCIO-P04C7", "PM-0GR94-I5J6R-3QY59", "PM-0P6CS-X8QM8-M096H" ],
+      Exclusive: [ "PM-0PRFO-CMN2K-XFVLD", "PM-0Q47Y-JW59R-WXNLC", "PM-0QMTG-R6RF5-IS7AL", "PM-15I1M-9IZD1-N6TSV", "PM-1AH5Y-1AFM2-JTY5A" ],
+      Super: [ "PM-1G72B-ZR95Y-0HLU7", "PM-1PY3N-SAR8T-5JZFE", "PM-1SYAW-5WWMG-TGEVX", "PM-1TZU1-PV8J6-ZWR6X", "PM-1UHPW-1ONHX-GSUEC" ]
     };
 
     const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
     const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
     const userList = JSON.parse(localStorage.getItem("userList") || "[]");
 
-    let currentUsername = "";
-
     function loginUser() {
       const user = document.getElementById("usernameInput").value.trim();
       if (!user) return alert("Isi username dulu!");
-
-      currentUsername = user;
 
       if (!userList.includes(user)) {
         userList.push(user);
@@ -161,7 +157,7 @@
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
 
-      if (["rozaq", "rozak"].includes(user.toLowerCase())) {
+      if (user === "Rozaq" || user === "Rozak") {
         document.getElementById("adminPanel").style.display = "block";
         updateUserList();
       }
@@ -169,7 +165,8 @@
       const hasCode = assignedCodes[user];
       const lastCode = localStorage.getItem(`popupCode_${user}`);
       if (hasCode && lastCode !== hasCode) {
-        showPopup(hasCode);
+        document.getElementById("popupKode").innerText = hasCode;
+        document.getElementById("popup").classList.remove("hidden");
         localStorage.setItem(`popupCode_${user}`, hasCode);
       }
     }
@@ -177,7 +174,7 @@
     function beriKode() {
       const user = document.getElementById("targetUser").value.trim();
       const pack = document.getElementById("packSelect").value;
-      if (!user) return alert("Masukkan username pembeli!");
+      if (!user) return alert("Masukkan username!");
 
       const available = codes[pack].filter(kode => !usedCodes[kode]);
       if (available.length === 0) {
@@ -185,7 +182,7 @@
         return;
       }
 
-      const kode = available[Math.floor(Math.random() * available.length)];
+      const kode = available[0];
       usedCodes[kode] = true;
       assignedCodes[user] = kode;
 
@@ -194,16 +191,6 @@
       localStorage.removeItem(`popupCode_${user}`);
 
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
-
-      if (user === currentUsername) {
-        showPopup(kode);
-        localStorage.setItem(`popupCode_${user}`, kode);
-      }
-    }
-
-    function showPopup(kode) {
-      document.getElementById("popupKode").innerText = kode;
-      document.getElementById("popup").classList.remove("hidden");
     }
 
     function closePopup() {
