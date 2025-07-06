@@ -138,7 +138,7 @@
   </div>
 
   <div id="updatePopup">
-    <p><strong>📦 App redeem pc telah diperbarui! Download di sini untuk mendapatkan update</strong></p>
+    <p><strong>📦 App redeem pc telah diperbarui! Download versi terbaru:</strong></p>
     <button onclick="window.open('https://projectmilitary.netlify.app/file.exe')">Download File</button>
   </div>
 
@@ -212,7 +212,7 @@
       const k = assignedCodes[currentUser];
       if (k && !localStorage.getItem("popupCode_" + currentUser)) {
         popup.className = "popup green";
-        popupText.innerText = `🎉 Ini kode kamu (ikuti event untuk mendapatkan kode gratis):\n${k}`;
+        popupText.innerText = `🎉 Ini kode kamu (event):\n${k}`;
         popup.style.display = "block";
         localStorage.setItem("popupCode_" + currentUser, k);
       }
@@ -251,6 +251,7 @@
       titleInput.value = "";
     }
 
+    // Cek update file
     fetch("https://projectmilitary.netlify.app/version.json")
       .then(res => res.json())
       .then(data => {
