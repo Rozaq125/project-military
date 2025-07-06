@@ -67,6 +67,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      z-index: 1000;
     }
     .popup-content {
       background: white;
@@ -74,6 +75,7 @@
       padding: 30px;
       border-radius: 12px;
       text-align: center;
+      max-width: 90%;
     }
     .hidden {
       display: none;
@@ -105,15 +107,26 @@
     <hr style="margin: 20px 0;">
     <h4>📋 Daftar Username</h4>
     <div id="userListDisplay" style="text-align:left; max-height: 150px; overflow-y:auto;"></div>
+    
+    <hr style="margin: 20px 0;">
+    <h4>📢 Kirim Pop-up Manual</h4>
+    <input type="text" id="popupTargetUser" placeholder="Username Tujuan">
+    <input type="text" id="popupMessageInput" placeholder="Isi Pesan">
+    <select id="popupTypeSelect">
+      <option value="baik">Kabar Baik</option>
+      <option value="buruk">Kabar Buruk</option>
+    </select>
+    <button onclick="kirimPopupManual()">Kirim Pop-up</button>
   </div>
+
   <div id="popup" class="popup hidden">
     <div class="popup-content">
-      <h2>🎉 Selamat dan terima kasih!</h2>
-      <p>Ini code Redeem anda, selamat bermain:</p>
-      <h3 id="popupKode"></h3>
+      <h2>📢 Pesan untuk Anda:</h2>
+      <p id="popupKode"></p>
       <button onclick="closePopup()">Tutup</button>
     </div>
   </div>
+
   <script>
     const codes = {
       Reguler: ["PM-0AUK8-46HNO-11T41", "PM-0BOVP-0AEO0-2M8MJ"],
@@ -123,6 +136,7 @@
     const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
     const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
     const userList = JSON.parse(localStorage.getItem("userList") || "[]");
+    const pendingPopups = JSON.parse(localStorage.getItem("popupMessages") || "{}");
 
     function loginUser() {
       const user = document.getElementById("usernameInput").value.trim();
@@ -139,13 +153,7 @@
         document.getElementById("adminPanel").style.display = "block";
         updateUserList();
       }
-      const hasCode = assignedCodes[user];
-      const lastCode = localStorage.getItem(`popupCode_${user}`);
-      if (hasCode && lastCode !== hasCode) {
-        document.getElementById("popupKode").innerText = hasCode;
-        document.getElementById("popup").classList.remove("hidden");
-        localStorage.setItem(`popupCode_${user}`, hasCode);
-      }
+      handlePopupDisplay(user);
     }
 
     function beriKode() {
@@ -166,8 +174,47 @@
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
     }
 
+    function showAssignedPopup(user) {
+      const hasCode = assignedCodes[user];
+      const alreadySeen = localStorage.getItem(`popupCode_${user}`);
+      if (hasCode && alreadySeen !== hasCode) {
+        document.getElementById("popupKode").innerText = hasCode;
+        document.getElementById("popup").classList.remove("hidden");
+      }
+    }
+
+    function tampilkanManualPopup(user) {
+      if (pendingPopups[user]) {
+        const { pesan, jenis } = pendingPopups[user];
+        const warna = jenis === "baik" ? "green" : "red";
+        const ikon = jenis === "baik" ? "✅" : "❌";
+        document.getElementById("popupKode").innerHTML = `${ikon} <span style='color:${warna}; font-weight:bold;'>${pesan}</span>`;
+        document.getElementById("popup").classList.remove("hidden");
+      }
+    }
+
     function closePopup() {
+      const user = localStorage.getItem("username");
+      const code = assignedCodes[user];
+      if (code) localStorage.setItem(`popupCode_${user}`, code);
+      delete pendingPopups[user];
+      localStorage.setItem("popupMessages", JSON.stringify(pendingPopups));
       document.getElementById("popup").classList.add("hidden");
+    }
+
+    function kirimPopupManual() {
+      const user = document.getElementById("popupTargetUser").value.trim();
+      const pesan = document.getElementById("popupMessageInput").value.trim();
+      const jenis = document.getElementById("popupTypeSelect").value;
+      if (!user || !pesan) return alert("Isi lengkap semua data!");
+      pendingPopups[user] = { pesan, jenis };
+      localStorage.setItem("popupMessages", JSON.stringify(pendingPopups));
+      alert("Pop-up terkirim ke " + user);
+    }
+
+    function handlePopupDisplay(user) {
+      showAssignedPopup(user);
+      tampilkanManualPopup(user);
     }
 
     function updateUserList() {
