@@ -47,6 +47,7 @@
       border-radius: 10px;
       display: none;
       z-index: 9999;
+      min-width: 250px;
     }
     .popup.green { background: #d4edda; color: #155724; }
     .popup.red { background: #f8d7da; color: #721c24; }
@@ -131,19 +132,23 @@
     </div>
   </div>
 
-  <div id="user-popup" class="popup"></div>
+  <div id="user-popup" class="popup">
+    <span id="popup-text"></span><br><br>
+    <button onclick="closePopup()">Tutup</button>
+  </div>
+
   <div id="updatePopup">
-    <p><strong>📦 File telah diperbarui!</strong></p>
-    <button onclick="window.open('https://projectmilitary.netlify.app/ProjectLauncher.exe')">Download File</button>
+    <p><strong>📦 App redeem pc telah diperbarui!Download di sini untuk mendapatkan update</strong></p>
+    <button onclick="window.open('https://projectmilitary.netlify.app/file.exe')">Download File</button>
   </div>
 
   <script>
     let currentUser = "";
 
     const codes = {
-      Reguler: ["PM-AK123-ABCDE-GT789", "PM-BK456-XZTRE-PLM87"],
-      Exclusive: ["PM-EX123-ABCDF-RTQ89"],
-      Super: ["PM-SX456-WER12-QAZ99"]
+      Reguler: ["PM-KFFNE-ABCDE-GT789", "PM-BK456-HFKRR-PLM87"],
+      Exclusive: ["PM-EX123-ABCDF-BFHGJE"],
+      Super: ["PM-SX456-KGJRN-QAZ99", "PM-ROBJDH-SPSIAL-ABCDE]
     };
 
     const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
@@ -194,19 +199,20 @@
 
     function checkPopup() {
       const popupRaw = localStorage.getItem("popup_" + currentUser);
+      const popup = document.getElementById("user-popup");
+      const popupText = document.getElementById("popup-text");
+
       if (popupRaw) {
         const p = JSON.parse(popupRaw);
-        const popup = document.getElementById("user-popup");
         popup.className = "popup " + p.type;
-        popup.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
+        popupText.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
         popup.style.display = "block";
       }
 
       const k = assignedCodes[currentUser];
       if (k && !localStorage.getItem("popupCode_" + currentUser)) {
-        const popup = document.getElementById("user-popup");
         popup.className = "popup green";
-        popup.innerText = `🎉 Ini kode kamu:\n${k}`;
+        popupText.innerText = `🎉 Ini kode kamu ikuti event untuk mendapatkan kode gratis🎉:\n${k}`;
         popup.style.display = "block";
         localStorage.setItem("popupCode_" + currentUser, k);
       }
@@ -245,6 +251,7 @@
       titleInput.value = "";
     }
 
+    // Cek update file (ganti URL versimu di sini)
     fetch("https://projectmilitary.netlify.app/version.json")
       .then(res => res.json())
       .then(data => {
