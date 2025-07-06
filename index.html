@@ -1,265 +1,187 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redeem Code - Project Military</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Military - Redeem</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #1a1a1a;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 0;
-      color: #fff;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      margin-top: 40px;
+      text-align: center;
     }
     .container {
-      max-width: 500px;
-      margin: auto;
-      background: #2b2b2b;
-      padding: 20px;
-      margin-top: 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #ff0000;
-    }
-    h2, h3 { text-align: center; color: #ff4444; }
-    input, button, select {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 14px;
+      max-width: 420px;
       width: 100%;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      text-align: center;
+      margin-top: 20px;
+    }
+    input, select, button {
       padding: 10px;
       margin-top: 10px;
-      border-radius: 5px;
-      border: 1px solid #444;
-      background: #111;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input {
+      background: rgba(255,255,255,0.1);
       color: white;
     }
-    button { cursor: pointer; background-color: #ff4444; border: none; }
-    button:hover { background-color: #cc0000; }
-    .hidden { display: none; }
+    button {
+      background: #00c853;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #00a143;
+    }
+    #adminPanel {
+      display: none;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 420px;
+    }
     .popup {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ff4444;
-      color: white;
-      padding: 20px;
-      border-radius: 10px;
-      display: none;
-      z-index: 1000;
-      text-align: center;
-      max-width: 90%;
-    }
-    .popup.green { background: #4CAF50; }
-    .popup.red { background: #F44336; }
-    .admin-panel {
-      background: #111;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 10px;
-    }
-    .code-item {
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.7);
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      padding: 5px 0;
     }
-    .code-item span {
-      flex-grow: 1;
+    .popup-content {
+      background: white;
+      color: black;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
     }
-    .remove-btn {
-      background-color: red;
-      border: none;
-      color: white;
-      padding: 5px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-left: 10px;
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <h2>Redeem Code System</h2>
-
-  <div id="register-section">
-    <input type="text" id="reg-username" placeholder="Buat Username">
-    <input type="password" id="reg-password" placeholder="Buat Password">
-    <button onclick="register()">Register</button>
+  <h1>🎮 Project Military - Redeem</h1>
+  <div class="container" id="loginSection">
+    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+    <button onclick="loginUser()">Masuk</button>
   </div>
-
-  <div id="login-section">
-    <input type="text" id="username" placeholder="Masukkan Username">
-    <input type="password" id="password" placeholder="Masukkan Password">
-    <button onclick="login()">Login</button>
+  <div class="container hidden" id="mainSection">
+    <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
+    <p>Klik tombol di bawah untuk membeli:</p>
+    <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
   </div>
-
-  <div id="main-section" class="hidden">
-    <h3>Selamat datang, <span id="displayName"></span></h3>
-    <button onclick="beli()">Beli Code Redeem</button>
-    <button onclick="logout()" style="background-color: #555; color: white;">Logout</button>
-
-    <div id="admin-panel" class="admin-panel hidden">
-      <h3>Admin Panel</h3>
-
-      <input type="text" id="manualUsername" placeholder="Masukkan username pembeli">
-      <button onclick="kirimKodeManual()">Kirim Code ke User</button>
-
-      <input type="text" id="newStockCode" placeholder="Tambahkan Code ke Stok">
-      <button onclick="tambahKodeManual()">Tambah ke Stok</button>
-
-      <h4>Stok Code:</h4>
-      <ul id="codeList"></ul>
-
-      <hr>
-      <h4>Kirim Pop-up ke User</h4>
-      <input type="text" id="popupTarget" placeholder="Username Tujuan">
-      <input type="text" id="popupMessage" placeholder="Isi Pesan">
-      <select id="popupType">
-        <option value="green">Kabar Gembira</option>
-        <option value="red">Kabar Buruk</option>
-      </select>
-      <button onclick="kirimPopupKeUser()">Kirim Pop-up</button>
+  <div id="adminPanel">
+    <h3>👑 Admin Panel</h3>
+    <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
+    <select id="packSelect">
+      <option value="Reguler">Reguler (2K–10K)</option>
+      <option value="Exclusive">Exclusive (20K–50K)</option>
+      <option value="Super">Super Exclusive (60K–100K)</option>
+    </select>
+    <button onclick="beriKode()">Kirim Kode ke User</button>
+    <p id="adminStatus"></p>
+    <hr style="margin: 20px 0;">
+    <h4>📋 Daftar Username</h4>
+    <div id="userListDisplay" style="text-align:left; max-height: 150px; overflow-y:auto;"></div>
+  </div>
+  <div id="popup" class="popup hidden">
+    <div class="popup-content">
+      <h2>🎉 Selamat dan terima kasih!</h2>
+      <p>Ini code Redeem anda, selamat bermain:</p>
+      <h3 id="popupKode"></h3>
+      <button onclick="closePopup()">Tutup</button>
     </div>
   </div>
-</div>
+  <script>
+    const codes = {
+      Reguler: ["PM-0AUK8-46HNO-11T41", "PM-0BOVP-0AEO0-2M8MJ"],
+      Exclusive: ["PM-3PQUH-N58KL-ZTQKI", "PM-3SNEC-TJLZ5-JO93D"],
+      Super: ["PM-6Z4IQ-JFZDJ-7C7CQ", "PM-6Z8NS-QBTSP-Z8R3D"]
+    };
+    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
+    const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
+    const userList = JSON.parse(localStorage.getItem("userList") || "[]");
 
-<div id="user-popup" class="popup"></div>
-
-<script>
-  const users = {};
-  const accounts = { "RozaqSigma123": "akurozaknih123" };
-  let currentUser = null;
-  let isAdmin = false;
-  let redeemCodes = JSON.parse(localStorage.getItem("redeemStock")) || [];
-
-  function updateCodeListUI() {
-    const list = document.getElementById("codeList");
-    list.innerHTML = "";
-    redeemCodes.forEach((code, index) => {
-      const li = document.createElement("li");
-      li.className = "code-item";
-      li.innerHTML = `<span>${code}</span><button class='remove-btn' onclick='hapusKode(${index})'>X</button>`;
-      list.appendChild(li);
-    });
-    simpanStock();
-  }
-
-  function simpanStock() {
-    localStorage.setItem("redeemStock", JSON.stringify(redeemCodes));
-  }
-
-  function register() {
-    const u = document.getElementById("reg-username").value.trim();
-    const p = document.getElementById("reg-password").value.trim();
-    if (!u || !p) return alert("Isi username dan password!");
-    if (accounts[u]) return alert("Username sudah terdaftar.");
-    accounts[u] = p;
-    alert("Berhasil daftar!");
-  }
-
-  function login() {
-    const u = document.getElementById("username").value.trim();
-    const p = document.getElementById("password").value.trim();
-    if (!accounts[u] || accounts[u] !== p) return alert("Login gagal!");
-    currentUser = u;
-    isAdmin = (u === "RozaqSigma123");
-    localStorage.setItem("redeemUser", JSON.stringify({ username: u, password: p }));
-    showMainUI();
-  }
-
-  function logout() {
-    localStorage.removeItem("redeemUser");
-    location.reload();
-  }
-
-  function showMainUI() {
-    document.getElementById("register-section").classList.add("hidden");
-    document.getElementById("login-section").classList.add("hidden");
-    document.getElementById("main-section").classList.remove("hidden");
-    document.getElementById("displayName").innerText = currentUser;
-    if (isAdmin) {
-      document.getElementById("admin-panel").classList.remove("hidden");
-      updateCodeListUI();
+    function loginUser() {
+      const user = document.getElementById("usernameInput").value.trim();
+      if (!user) return alert("Isi username dulu!");
+      if (!userList.includes(user)) {
+        userList.push(user);
+        localStorage.setItem("userList", JSON.stringify(userList));
+      }
+      localStorage.setItem("username", user);
+      document.getElementById("userNameDisplay").innerText = user;
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("mainSection").classList.remove("hidden");
+      if (["rozaq", "rozak"].includes(user.toLowerCase())) {
+        document.getElementById("adminPanel").style.display = "block";
+        updateUserList();
+      }
+      const hasCode = assignedCodes[user];
+      const lastCode = localStorage.getItem(`popupCode_${user}`);
+      if (hasCode && lastCode !== hasCode) {
+        document.getElementById("popupKode").innerText = hasCode;
+        document.getElementById("popup").classList.remove("hidden");
+        localStorage.setItem(`popupCode_${user}`, hasCode);
+      }
     }
-    checkRedeem();
-    setTimeout(checkPopup, 500);
-  }
 
-  function beli() {
-    if (!users[currentUser]) {
-      users[currentUser] = null;
-      window.open("https://wa.me/6285282790834", "_blank");
+    function beriKode() {
+      const user = document.getElementById("targetUser").value.trim();
+      const pack = document.getElementById("packSelect").value;
+      if (!user) return alert("Masukkan username!");
+      const available = codes[pack].filter(k => !usedCodes[k]);
+      if (available.length === 0) {
+        document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
+        return;
+      }
+      const kode = available[0];
+      usedCodes[kode] = true;
+      assignedCodes[user] = kode;
+      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
+      localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+      localStorage.removeItem(`popupCode_${user}`);
+      document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
     }
-  }
 
-  function kirimKodeManual() {
-    const user = document.getElementById("manualUsername").value.trim();
-    if (!user || redeemCodes.length === 0) return alert("Isi username dan pastikan stok ada!");
-    const code = redeemCodes.shift();
-    users[user] = code;
-    updateCodeListUI();
-    alert("Code dikirim ke " + user);
-  }
-
-  function tambahKodeManual() {
-    const code = document.getElementById("newStockCode").value.trim();
-    if (code) {
-      redeemCodes.push(code);
-      updateCodeListUI();
-      document.getElementById("newStockCode").value = "";
+    function closePopup() {
+      document.getElementById("popup").classList.add("hidden");
     }
-  }
 
-  function hapusKode(index) {
-    redeemCodes.splice(index, 1);
-    updateCodeListUI();
-  }
-
-  function kirimPopupKeUser() {
-    const target = document.getElementById("popupTarget").value.trim();
-    const msg = document.getElementById("popupMessage").value.trim();
-    const type = document.getElementById("popupType").value;
-    if (!target || !msg) return alert("Isi username & pesan.");
-    const popupData = { msg, type };
-    localStorage.setItem("popup_" + target, JSON.stringify(popupData));
-    alert("Pop-up dikirim ke " + target);
-  }
-
-  function checkPopup() {
-    const popupRaw = localStorage.getItem("popup_" + currentUser);
-    if (popupRaw) {
-      const p = JSON.parse(popupRaw);
-      const popup = document.getElementById("user-popup");
-      popup.className = "popup " + p.type;
-      popup.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
-      popup.style.display = "block";
-      setTimeout(() => popup.style.display = "none", 6000);
-      localStorage.removeItem("popup_" + currentUser);
+    function updateUserList() {
+      const list = userList.map(name => `<li>${name}</li>`).join("");
+      document.getElementById("userListDisplay").innerHTML = `<ul>${list}</ul>`;
     }
-  }
 
-  function checkRedeem() {
-    const code = users[currentUser];
-    if (code) {
-      setTimeout(() => {
-        const popup = document.getElementById("user-popup");
-        popup.className = "popup green";
-        popup.innerText = `Pembayaran berhasil! Ini code kamu: ${code}`;
-        popup.style.display = "block";
-        setTimeout(() => popup.style.display = "none", 6000);
-        users[currentUser] = null;
-      }, 500);
-    }
-  }
-
-  window.onload = () => {
-    const saved = JSON.parse(localStorage.getItem("redeemUser"));
-    if (saved) {
-      document.getElementById("username").value = saved.username;
-      document.getElementById("password").value = saved.password;
-      accounts[saved.username] = saved.password;
-      login();
-    }
-  };
-</script>
+    window.onload = () => {
+      const saved = localStorage.getItem("username");
+      if (saved) {
+        document.getElementById("usernameInput").value = saved;
+        loginUser();
+      }
+    };
+  </script>
 </body>
 </html>
