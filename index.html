@@ -110,9 +110,9 @@
     <h3>👑 Admin Panel</h3>
     <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
     <select id="packSelect">
-      <option value="Reguler">Reguler (2K–10K)</option>
-      <option value="Exclusive">Exclusive (20K–50K)</option>
-      <option value="Super">Super Exclusive (60K–100K)</option>
+      <option value="reguler">Reguler (2K–10K)</option>
+      <option value="exclusive">Exclusive (20K–50K)</option>
+      <option value="super">Super Exclusive (60K–100K)</option>
     </select>
     <button onclick="beriKode()">Kirim Kode ke User</button>
     <p id="adminStatus"></p>
@@ -133,44 +133,11 @@
   </div>
 
   <script>
-const codePools = {
-  reguler: [
-    "PM-RG-1A3X9P", "PM-RG-2V7TML", "PM-RG-3J9QUR", "PM-RG-4K5DSF", "PM-RG-5L8HZM",
-    "PM-RG-6N3BGA", "PM-RG-7X5WPL", "PM-RG-8Y2KJQ", "PM-RG-9Z6MNB", "PM-RG-10PTWE",
-    "PM-RG-11KQWD", "PM-RG-12UVNX", "PM-RG-13LYRO", "PM-RG-14PMQZ", "PM-RG-15DSAE",
-    "PM-RG-16XCBW", "PM-RG-17MQTE", "PM-RG-18UPWO", "PM-RG-19EQDK", "PM-RG-20HTLM",
-    "PM-RG-21AGYR", "PM-RG-22WNXZ", "PM-RG-23MEKL", "PM-RG-24QLWN", "PM-RG-25QAZM",
-    "PM-RG-26PLKS", "PM-RG-27MIWZ", "PM-RG-28WERTY", "PM-RG-29KLMNB", "PM-RG-30VBNML",
-    "PM-RG-31YUTRE", "PM-RG-32OKMNB", "PM-RG-33LKJHG", "PM-RG-34POIUY", "PM-RG-35MNBVC",
-    "PM-RG-36AZXCV", "PM-RG-37QWERT", "PM-RG-38ZXCVB", "PM-RG-39HJGFD", "PM-RG-40PLKMN",
-    "PM-RG-41DSAQW", "PM-RG-42OLKIJ", "PM-RG-43NBVCX", "PM-RG-44QAZWS", "PM-RG-45EDCRF",
-    "PM-RG-46TGWSX", "PM-RG-47ZAQWS", "PM-RG-48XSWED", "PM-RG-49KJHGF", "PM-RG-50LPOIU"
-  ],
-  exclusive: [
-    "PM-EX-1RTGZ", "PM-EX-2QWEAS", "PM-EX-3TYUIK", "PM-EX-4ZXCVN", "PM-EX-5POIUY",
-    "PM-EX-6MNBVC", "PM-EX-7PLMOK", "PM-EX-8XCVBN", "PM-EX-9TREWD", "PM-EX-10OLKIJ",
-    "PM-EX-11NBVCA", "PM-EX-12ASDFG", "PM-EX-13UIOPO", "PM-EX-14KJHG", "PM-EX-15HGFD",
-    "PM-EX-16REWQ", "PM-EX-17OLKJM", "PM-EX-18ZXCV", "PM-EX-19YUIOP", "PM-EX-20POLKM",
-    "PM-EX-21QAZWS", "PM-EX-22LKJHG", "PM-EX-23ZXCVB", "PM-EX-24EDCFR", "PM-EX-25TYUIO",
-    "PM-EX-26BNMWE", "PM-EX-27LPOIU", "PM-EX-28KJHGF", "PM-EX-29QAZWE", "PM-EX-30MNBVC",
-    "PM-EX-31REWQZ", "PM-EX-32TGBNH", "PM-EX-33XSWAZ", "PM-EX-34UIOPK", "PM-EX-35HGFDS",
-    "PM-EX-36QWERF", "PM-EX-37ZXCVN", "PM-EX-38ASDFG", "PM-EX-39POLKI", "PM-EX-40OLKJU",
-    "PM-EX-41NBVCM", "PM-EX-42POIUJ", "PM-EX-43REWQA", "PM-EX-44MNBVC", "PM-EX-45AZSXE",
-    "PM-EX-46LKJHG", "PM-EX-47UIOPL", "PM-EX-48EDCRF", "PM-EX-49WSXZA", "PM-EX-50YHNBG"
-  ],
-  super: [
-    "PM-SP-1ZXCVB", "PM-SP-2ASDFG", "PM-SP-3QWERT", "PM-SP-4LKJHG", "PM-SP-5POLKM",
-    "PM-SP-6TREWQ", "PM-SP-7EDCFR", "PM-SP-8YUIOP", "PM-SP-9MNBVC", "PM-SP-10AZXSW",
-    "PM-SP-11PLKMN", "PM-SP-12OKMNB", "PM-SP-13QAZWS", "PM-SP-14XSWED", "PM-SP-15ZAQWE",
-    "PM-SP-16OLKJM", "PM-SP-17LKJHG", "PM-SP-18NBVCX", "PM-SP-19UIOPE", "PM-SP-20KJHGF",
-    "PM-SP-21HGFDS", "PM-SP-22YHNBG", "PM-SP-23MLOPK", "PM-SP-24PLMOK", "PM-SP-25EDCFR",
-    "PM-SP-26KLMNB", "PM-SP-27ZXCVB", "PM-SP-28POIUY", "PM-SP-29LKJHG", "PM-SP-30QAZWS",
-    "PM-SP-31ASDFG", "PM-SP-32MNBVC", "PM-SP-33UIOPK", "PM-SP-34PLKMN", "PM-SP-35ZXCVA",
-    "PM-SP-36REWQS", "PM-SP-37YUIOP", "PM-SP-38HGFDS", "PM-SP-39QAZXS", "PM-SP-40KLMNB",
-    "PM-SP-41ZXCVB", "PM-SP-42ASDFR", "PM-SP-43EDCFV", "PM-SP-44PLKMN", "PM-SP-45LKJHG",
-    "PM-SP-46MNBVC", "PM-SP-47QWERT", "PM-SP-48ZAQWS", "PM-SP-49LKJHD", "PM-SP-50XSWED"
-  ]
-};
+    const codePools = {
+      reguler: [...Array(50)].map((_, i) => `PM-RG-${i+1}`),
+      exclusive: [...Array(50)].map((_, i) => `PM-EX-${i+1}`),
+      super: [...Array(50)].map((_, i) => `PM-SP-${i+1}`)
+    };
 
     const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
     const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
@@ -190,12 +157,11 @@ const codePools = {
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
 
-      if (user === "Rozaq") {
+      if (user.toLowerCase() === "rozaq" || user.toLowerCase() === "rozak") {
         document.getElementById("adminPanel").style.display = "block";
         updateUserList();
       }
 
-      // 🔥 Tampilkan popup hanya 1x
       const hasCode = assignedCodes[user];
       const lastCode = localStorage.getItem(`popupCode_${user}`);
       if (hasCode && lastCode !== hasCode) {
@@ -210,7 +176,7 @@ const codePools = {
       const pack = document.getElementById("packSelect").value;
       if (!user) return alert("Masukkan username!");
 
-      const available = codes[pack].filter(kode => !usedCodes[kode]);
+      const available = codePools[pack].filter(kode => !usedCodes[kode]);
       if (available.length === 0) {
         document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
         return;
@@ -222,9 +188,7 @@ const codePools = {
 
       localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
       localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-
-      // Reset popup agar muncul lagi saat login
-      localStorage.removeItem(`popupCode_${user}`);
+      localStorage.removeItem(`popupCode_${user}`); // agar popup muncul lagi
 
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
     }
