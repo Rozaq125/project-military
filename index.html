@@ -134,7 +134,7 @@
   <div id="user-popup" class="popup"></div>
   <div id="updatePopup">
     <p><strong>📦 File telah diperbarui!</strong></p>
-    <button onclick="window.open('https://yourdomain.com/file.exe')">Download File</button>
+    <button onclick="window.open('https://projectmilitary.netlify.app/ProjectLauncher.exe')">Download File</button>
   </div>
 
   <script>
@@ -245,7 +245,7 @@
       titleInput.value = "";
     }
 
-    fetch("https://yourdomain.com/version.json")
+    fetch("https://projectmilitary.netlify.app/version.json")
       .then(res => res.json())
       .then(data => {
         if (data.version !== "1.0.0") {
