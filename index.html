@@ -10,48 +10,48 @@
       margin: 0;
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: white;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
+      padding: 0;
     }
     .container {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 14px;
       max-width: 420px;
-      margin: 20px auto;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
       box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      text-align: center;
     }
+    h1 { text-align: center; margin-top: 20px; }
     input, select, button {
-      width: 100%;
       padding: 10px;
       margin-top: 10px;
+      width: 100%;
       border: none;
       border-radius: 8px;
       font-size: 16px;
     }
-    input {
-      background: rgba(255,255,255,0.1);
-      color: white;
-    }
+    input { background: rgba(255,255,255,0.1); color: white; }
     button {
       background: #00c853;
       color: white;
       font-weight: bold;
       cursor: pointer;
     }
-    button:hover {
-      background: #00a143;
-    }
-    .hidden { display: none; }
+    button:hover { background: #00a143; }
 
-    /* Popup */
+    #adminPanel {
+      display: none;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 10px;
+    }
+
     .popup {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.7);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -64,287 +64,223 @@
       border-radius: 12px;
       text-align: center;
     }
+    .hidden { display: none; }
 
-    /* Chat button */
     #chatToggle {
       position: fixed;
-      top: 20px;
-      left: 20px;
+      top: 10px;
+      left: 10px;
       background: #00c853;
-      border: none;
-      color: white;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      font-size: 24px;
-      z-index: 1000;
-    }
-
-    /* Chat */
-    .chat-box {
-      position: fixed;
-      bottom: 0;
-      right: 20px;
-      width: 360px;
-      max-height: 80vh;
-      background: white;
-      color: black;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 20px #000;
+      border-radius: 100px;
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 40px;
+      cursor: pointer;
       z-index: 999;
     }
-    .chat-header {
-      background: #007bff;
-      color: white;
-      padding: 10px;
-      font-weight: bold;
-      text-align: center;
-    }
-    .chat-messages {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-    }
-    .chat-message {
-      margin-bottom: 10px;
-      padding: 8px;
-      border-radius: 8px;
-      max-width: 80%;
-    }
-    .from-user {
-      background: #007bff;
-      color: white;
-      align-self: flex-end;
-    }
-    .from-admin {
-      background: #e0e0e0;
-      align-self: flex-start;
-    }
-    .chat-input {
+
+    #chatBox {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      width: 300px;
+      height: 400px;
+      background: white;
+      color: black;
+      border-radius: 10px;
+      box-shadow: 0 0 10px black;
+      z-index: 999;
       display: flex;
       flex-direction: column;
+    }
+    #chatMessages {
+      flex: 1;
+      overflow-y: auto;
       padding: 10px;
+    }
+    .message { margin-bottom: 10px; padding: 5px 10px; border-radius: 8px; }
+    .admin { background: #eee; align-self: flex-start; }
+    .user { background: #00c853; color: white; align-self: flex-end; }
+
+    #chatInputArea {
+      display: flex;
+      gap: 5px;
+      padding: 5px;
       border-top: 1px solid #ccc;
     }
-    .chat-input input[type="text"] {
-      padding: 8px;
-      margin-bottom: 8px;
+    #chatInputArea input[type="text"] {
+      flex: 1;
+      padding: 5px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-    .chat-input input[type="file"] {
-      margin-bottom: 8px;
-    }
-    .chat-input button {
-      background: #007bff;
-    }
-
-    /* Admin panel */
-    #adminPanel {
+    #chatInputArea input[type="file"] {
       display: none;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 420px;
-      margin: 20px auto;
+    }
+    #chatInputArea label {
+      background: #eee;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
-    #userListDisplay li {
-      cursor: pointer;
+    .logout {
+      margin-top: 10px;
+      background: #f44336;
     }
   </style>
 </head>
 <body>
 
-  <h1>🎮 Project Military - Redeem</h1>
+<h1>🎮 Project Military - Redeem</h1>
 
-  <button id="chatToggle">💬</button>
+<div class="container" id="loginSection">
+  <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+  <button onclick="loginUser()">Masuk</button>
+</div>
 
-  <div class="container" id="loginSection">
-    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
-    <button onclick="loginUser()">Masuk</button>
+<div class="container hidden" id="mainSection">
+  <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
+  <p>Klik tombol di bawah untuk membeli:</p>
+  <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
+  <button class="logout" onclick="logoutUser()">Logout</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="container hidden" id="adminPanel">
+  <h3>👑 Admin Panel</h3>
+  <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
+  <select id="packSelect">
+    <option value="Reguler">Reguler</option>
+    <option value="Exclusive">Exclusive</option>
+    <option value="Super">Super Exclusive</option>
+  </select>
+  <button onclick="beriKode()">Kirim Kode</button>
+  <p id="adminStatus"></p>
+</div>
+
+<!-- POPUP -->
+<div id="popup" class="popup hidden">
+  <div class="popup-content">
+    <h2>🎉 Selamat dan terima kasih!</h2>
+    <p>Ini code Redeem anda, selamat bermain:</p>
+    <h3 id="popupKode"></h3>
+    <button onclick="closePopup()">Tutup</button>
   </div>
+</div>
 
-  <div class="container hidden" id="mainSection">
-    <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
-    <p>Klik tombol di bawah untuk membeli:</p>
-    <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
-    <button onclick="logoutUser()">Logout</button>
+<!-- CHAT -->
+<div id="chatToggle">💬</div>
+<div id="chatBox">
+  <div id="chatMessages"></div>
+  <div id="chatInputArea">
+    <input type="text" id="chatInput" placeholder="Ketik pesan..." />
+    <label for="fileUpload">📎</label>
+    <input type="file" id="fileUpload" />
+    <button onclick="sendMessage()">Kirim</button>
   </div>
+</div>
 
-  <!-- ADMIN PANEL -->
-  <div id="adminPanel">
-    <h3>👑 Admin Panel</h3>
-    <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
-    <select id="packSelect">
-      <option value="Reguler">Reguler (2K–10K)</option>
-      <option value="Exclusive">Exclusive (20K–50K)</option>
-      <option value="Super">Super Exclusive (60K–100K)</option>
-    </select>
-    <button onclick="beriKode()">Kirim Kode ke User</button>
-    <p id="adminStatus"></p>
-    <hr>
-    <h4>📋 Chat Pembeli</h4>
-    <ul id="userListDisplay"></ul>
-  </div>
+<script>
+  const codes = {
+    Reguler: ["PM-0001-AAAAA-00001", "PM-0002-BBBBB-00002"],
+    Exclusive: ["PM-EX-11111-XXXXX", "PM-EX-22222-YYYYY"],
+    Super: ["PM-SU-33333-ZZZZZ"]
+  };
 
-  <!-- POPUP -->
-  <div id="popup" class="popup hidden">
-    <div class="popup-content">
-      <h2>🎉 Selamat dan terima kasih!</h2>
-      <p>Ini code Redeem anda, selamat bermain:</p>
-      <h3 id="popupKode"></h3>
-      <button onclick="closePopup()">Tutup</button>
-    </div>
-  </div>
+  let usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
+  let assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
 
-  <!-- CHAT -->
-  <div id="chatBox" class="chat-box hidden">
-    <div class="chat-header">💬 Chat Admin</div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input">
-      <input type="text" id="chatInput" placeholder="Ketik pesan..." />
-      <input type="file" id="fileInput" />
-      <button onclick="sendMessage()">Kirim</button>
-    </div>
-  </div>
+  let currentUser = "";
 
-  <script>
-    const codes = {
-      Reguler: [ "PM-0AUK8-46HNO-11T41", "PM-0BOVP-0AEO0-2M8MJ", "PM-0FC3A-6NCIO-P04C7" ],
-      Exclusive: [ "PM-JELR5Q-00X-NEW-EX", "PM-EXCL2-EXCL2-EXCL2", "PM-EXCL3-EXCL3-EXCL3" ],
-      Super: [ "PM-SUPER-0001-CODEX", "PM-SUPER-0002-CODEY", "PM-SUPER-0003-CODEZ" ]
-    };
+  function loginUser() {
+    const user = document.getElementById("usernameInput").value.trim();
+    if (!user) return alert("Isi username dulu!");
 
-    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
-    const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
-    const userList = JSON.parse(localStorage.getItem("userList") || "[]");
-    const chatData = JSON.parse(localStorage.getItem("chatData") || "{}");
+    currentUser = user;
+    localStorage.setItem("username", user);
+    document.getElementById("userNameDisplay").innerText = user;
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("mainSection").classList.remove("hidden");
 
-    let currentUser = null;
-    let isAdmin = false;
-    let chatWith = null;
-
-    function loginUser() {
-      const user = document.getElementById("usernameInput").value.trim();
-      if (!user) return alert("Isi username dulu!");
-      currentUser = user;
-      localStorage.setItem("username", user);
-      document.getElementById("userNameDisplay").innerText = user;
-      document.getElementById("loginSection").classList.add("hidden");
-      document.getElementById("mainSection").classList.remove("hidden");
-
-      if (!userList.includes(user)) {
-        userList.push(user);
-        localStorage.setItem("userList", JSON.stringify(userList));
-      }
-
-      if (user === "Rozaq" || user === "Rozak") {
-        isAdmin = true;
-        document.getElementById("adminPanel").style.display = "block";
-        updateUserList();
-      }
-
-      const code = assignedCodes[user];
-      const shown = localStorage.getItem(`popupShown_${user}`);
-      if (code && !shown) {
-        document.getElementById("popupKode").innerText = code;
-        document.getElementById("popup").classList.remove("hidden");
-        localStorage.setItem(`popupShown_${user}`, true);
-      }
-
-      loadChat();
+    if (user === "Rozaq" || user === "Rozak") {
+      document.getElementById("adminPanel").classList.remove("hidden");
     }
 
-    function logoutUser() {
-      localStorage.removeItem("username");
-      location.reload();
+    // Show popup if new code assigned and not yet shown
+    const code = assignedCodes[user];
+    const shown = localStorage.getItem(`popupShown_${user}`);
+    if (code && !shown) {
+      document.getElementById("popupKode").innerText = code;
+      document.getElementById("popup").classList.remove("hidden");
+    }
+  }
+
+  function beriKode() {
+    const user = document.getElementById("targetUser").value.trim();
+    const pack = document.getElementById("packSelect").value;
+    if (!user) return alert("Masukkan username!");
+
+    const available = codes[pack].filter(kode => !usedCodes[kode]);
+    if (available.length === 0) {
+      document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
+      return;
     }
 
-    function beriKode() {
-      const user = document.getElementById("targetUser").value.trim();
-      const pack = document.getElementById("packSelect").value;
-      if (!user) return alert("Masukkan username!");
+    const kode = available[0];
+    usedCodes[kode] = true;
+    assignedCodes[user] = kode;
 
-      const available = codes[pack].filter(kode => !usedCodes[kode]);
-      if (available.length === 0) {
-        document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
-        return;
-      }
+    localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
+    localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+    localStorage.removeItem(`popupShown_${user}`); // Supaya muncul popup lagi
 
-      const kode = available.shift();
-      usedCodes[kode] = true;
-      assignedCodes[user] = kode;
+    document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
+  }
 
-      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
-      localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-      localStorage.removeItem(`popupShown_${user}`);
-      document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
+  function closePopup() {
+    localStorage.setItem(`popupShown_${currentUser}`, true);
+    document.getElementById("popup").classList.add("hidden");
+  }
+
+  function logoutUser() {
+    localStorage.removeItem("username");
+    location.reload();
+  }
+
+  // Chat system
+  document.getElementById("chatToggle").onclick = () => {
+    const chat = document.getElementById("chatBox");
+    chat.style.display = chat.style.display === "flex" ? "none" : "flex";
+  };
+
+  function sendMessage() {
+    const input = document.getElementById("chatInput");
+    const message = input.value.trim();
+    if (!message) return;
+
+    const chat = document.getElementById("chatMessages");
+    const msg = document.createElement("div");
+    msg.className = "message user";
+    msg.innerText = `${currentUser}: ${message}`;
+    chat.appendChild(msg);
+
+    input.value = "";
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // Auto-login
+  window.onload = () => {
+    const saved = localStorage.getItem("username");
+    if (saved) {
+      document.getElementById("usernameInput").value = saved;
+      loginUser();
     }
-
-    function closePopup() {
-      document.getElementById("popup").classList.add("hidden");
-    }
-
-    function updateUserList() {
-      document.getElementById("userListDisplay").innerHTML = userList.map(u => 
-        `<li onclick="selectChatUser('${u}')">${u}</li>`).join("");
-    }
-
-    function selectChatUser(u) {
-      chatWith = u;
-      loadChat();
-    }
-
-    function loadChat() {
-      const messages = chatData[chatWith || currentUser] || [];
-      const box = document.getElementById("chatMessages");
-      box.innerHTML = "";
-      messages.forEach(msg => {
-        const div = document.createElement("div");
-        div.className = "chat-message " + (msg.sender === currentUser ? "from-user" : "from-admin");
-        div.textContent = `${msg.sender}: ${msg.text}`;
-        box.appendChild(div);
-      });
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function sendMessage() {
-      const input = document.getElementById("chatInput");
-      const file = document.getElementById("fileInput").files[0];
-      let text = input.value.trim();
-
-      if (!text && !file) return;
-
-      const msg = {
-        sender: currentUser,
-        text: file ? `[File: ${file.name}]` : text,
-        time: Date.now()
-      };
-
-      const key = isAdmin && chatWith ? chatWith : currentUser;
-      if (!chatData[key]) chatData[key] = [];
-      chatData[key].push(msg);
-      localStorage.setItem("chatData", JSON.stringify(chatData));
-
-      input.value = "";
-      document.getElementById("fileInput").value = "";
-      loadChat();
-    }
-
-    document.getElementById("chatToggle").onclick = () => {
-      document.getElementById("chatBox").classList.toggle("hidden");
-    };
-
-    window.onload = () => {
-      const saved = localStorage.getItem("username");
-      if (saved) {
-        document.getElementById("usernameInput").value = saved;
-        loginUser();
-      }
-    };
-  </script>
+  };
+</script>
 </body>
 </html>
