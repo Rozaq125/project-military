@@ -16,11 +16,6 @@
       padding: 20px;
     }
 
-    h1 {
-      margin-top: 40px;
-      text-align: center;
-    }
-
     .container {
       background: rgba(255, 255, 255, 0.05);
       padding: 30px;
@@ -32,7 +27,7 @@
       margin-top: 20px;
     }
 
-    input, select, button {
+    input, select, button, textarea {
       padding: 10px;
       margin-top: 10px;
       width: 100%;
@@ -41,7 +36,7 @@
       font-size: 16px;
     }
 
-    input {
+    input, textarea {
       background: rgba(255,255,255,0.1);
       color: white;
     }
@@ -85,9 +80,67 @@
       text-align: center;
     }
 
-    .hidden {
-      display: none;
+    .hidden { display: none; }
+
+    #chatIcon {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #00c853;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
+
+    #chatBox {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 300px;
+      max-height: 400px;
+      background: white;
+      color: black;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      display: none;
+      flex-direction: column;
+    }
+
+    #chatMessages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    #chatInputArea {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+
+    #chatInputArea input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+    }
+
+    #chatInputArea button {
+      border: none;
+      background: #00c853;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-bottom: 10px;
+    }
+
+    .bot { font-weight: bold; color: #00c853; }
   </style>
 </head>
 <body>
@@ -101,25 +154,20 @@
 
   <div class="container hidden" id="mainSection">
     <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
-    <p>Klik tombol di bawah untuk membeli:</p>
     <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
+    <button onclick="logoutUser()" style="margin-top:15px;background:#e53935;">Logout</button>
   </div>
 
-  <!-- ADMIN PANEL -->
   <div id="adminPanel">
     <h3>👑 Admin Panel</h3>
     <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
     <select id="packSelect">
-      <option value="Reguler">Reguler (2K–10K)</option>
-      <option value="Exclusive">Exclusive (20K–50K)</option>
-      <option value="Super">Super Exclusive (60K–100K)</option>
+      <option value="Reguler">Reguler</option>
+      <option value="Exclusive">Exclusive</option>
+      <option value="Super">Super Exclusive</option>
     </select>
     <button onclick="beriKode()">Kirim Kode ke User</button>
     <p id="adminStatus"></p>
-
-    <hr style="margin: 20px 0;">
-    <h4>📋 Daftar Username</h4>
-    <div id="userListDisplay" style="text-align:left; max-height: 150px; overflow-y:auto;"></div>
   </div>
 
   <!-- POPUP -->
@@ -132,36 +180,37 @@
     </div>
   </div>
 
-  <script>
-    const codes = {
-      Reguler: [ "PM-0AUK8-46HNO-11T41", "PM-0BOVP-0AEO0-2M8MJ", "PM-0FC3A-6NCIO-P04C7", "PM-0GR94-I5J6R-3QY59", "PM-0P6CS-X8QM8-M096H" ],
-      Exclusive: [ "PM-0PRFO-CMN2K-XFVLD", "PM-0Q47Y-JW59R-WXNLC", "PM-0QMTG-R6RF5-IS7AL", "PM-15I1M-9IZD1-N6TSV", "PM-1AH5Y-1AFM2-JTY5A" ],
-      Super: [ "PM-1G72B-ZR95Y-0HLU7", "PM-1PY3N-SAR8T-5JZFE", "PM-1SYAW-5WWMG-TGEVX", "PM-1TZU1-PV8J6-ZWR6X", "PM-1UHPW-1ONHX-GSUEC" ]
-    };
+  <!-- CHAT SYSTEM -->
+  <button id="chatIcon" onclick="toggleChat()">💬</button>
+  <div id="chatBox">
+    <div id="chatMessages">
+      <div class="message bot">🤖 Akun admin asli, dilarang bertransaksi di luar Redeem</div>
+    </div>
+    <div id="chatInputArea">
+      <input type="text" id="chatInput" placeholder="Tulis pesan..."/>
+      <button onclick="sendMessage()">Kirim</button>
+    </div>
+  </div>
 
-    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
+  <script>
     const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
-    const userList = JSON.parse(localStorage.getItem("userList") || "[]");
+    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
+    const codes = {
+      Reguler: ["PM-0AUK8-46HNO-11T41", "PM-0BOVP-0AEO0-2M8MJ", "PM-0FC3A-6NCIO-P04C7"],
+      Exclusive: ["PM-A3ZKZ-TY4DI-DI2T9", "PM-A7Y09-JBLNB-Q8VY1", "PM-A9G25-RZTOE-MTCAR"],
+      Super: ["PM-J3DOR-XWMTZ-5A0VC", "PM-J4X7F-BILUG-G81DC", "PM-JGKDDK-HHGKDDJ-KGGKFFK"]
+    };
 
     function loginUser() {
       const user = document.getElementById("usernameInput").value.trim();
       if (!user) return alert("Isi username dulu!");
-
-      if (!userList.includes(user)) {
-        userList.push(user);
-        localStorage.setItem("userList", JSON.stringify(userList));
-      }
-
       localStorage.setItem("username", user);
       document.getElementById("userNameDisplay").innerText = user;
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
-
-      if (user === "Rozaq" || user === "Rozak") {
+      if (user === "Rozaq") {
         document.getElementById("adminPanel").style.display = "block";
-        updateUserList();
       }
-
       const hasCode = assignedCodes[user];
       const lastCode = localStorage.getItem(`popupCode_${user}`);
       if (hasCode && lastCode !== hasCode) {
@@ -174,32 +223,45 @@
     function beriKode() {
       const user = document.getElementById("targetUser").value.trim();
       const pack = document.getElementById("packSelect").value;
-      if (!user) return alert("Masukkan username!");
-
-      const available = codes[pack].filter(kode => !usedCodes[kode]);
+      const available = codes[pack].filter(k => !usedCodes[k]);
       if (available.length === 0) {
-        document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
+        document.getElementById("adminStatus").innerText = "❌ Kode habis!";
         return;
       }
-
-      const kode = available[0];
-      usedCodes[kode] = true;
-      assignedCodes[user] = kode;
-
-      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
+      const code = available[0];
+      assignedCodes[user] = code;
+      usedCodes[code] = true;
       localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
       localStorage.removeItem(`popupCode_${user}`);
+      document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${code}</b> dikirim ke <b>${user}</b>`;
+    }
 
-      document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
+    function logoutUser() {
+      localStorage.removeItem("username");
+      location.reload();
     }
 
     function closePopup() {
       document.getElementById("popup").classList.add("hidden");
     }
 
-    function updateUserList() {
-      const list = userList.map(name => `<li>${name}</li>`).join("");
-      document.getElementById("userListDisplay").innerHTML = `<ul>${list}</ul>`;
+    function toggleChat() {
+      const box = document.getElementById("chatBox");
+      box.style.display = box.style.display === "flex" ? "none" : "flex";
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const message = input.value.trim();
+      if (!message) return;
+      const chatMessages = document.getElementById("chatMessages");
+      const div = document.createElement("div");
+      div.className = "message";
+      div.textContent = "🧑 " + message;
+      chatMessages.appendChild(div);
+      input.value = "";
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     window.onload = () => {
