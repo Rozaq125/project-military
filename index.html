@@ -5,23 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Redeem Code - Project Military</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
     .container {
-      max-width: 500px; margin: auto; background: white; padding: 20px; margin-top: 40px;
-      border-radius: 10px; box-shadow: 0 0 10px #aaa;
+      max-width: 500px;
+      margin: auto;
+      background: #2b2b2b;
+      padding: 20px;
+      margin-top: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ff0000;
     }
-    h2 { text-align: center; }
+    h2, h3 { text-align: center; color: #ff4444; }
     input, button, select {
-      width: 100%; padding: 10px; margin-top: 10px;
-      border-radius: 5px; border: 1px solid #aaa;
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #444;
+      background: #111;
+      color: white;
     }
+    button { cursor: pointer; background-color: #ff4444; border: none; }
+    button:hover { background-color: #cc0000; }
     .hidden { display: none; }
     .popup {
-      position: fixed; top: 20px; right: 20px; background: #4caf50; color: white;
-      padding: 15px; border-radius: 10px; display: none; z-index: 1000;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ff4444;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      display: none;
+      z-index: 1000;
     }
     .admin-panel {
-      background: #eee; padding: 15px; margin-top: 20px; border-radius: 10px;
+      background: #111;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -29,6 +57,12 @@
 
 <div class="container">
   <h2>Redeem Code System</h2>
+
+  <div id="register-section">
+    <input type="text" id="reg-username" placeholder="Buat Username" />
+    <input type="password" id="reg-password" placeholder="Buat Password" />
+    <button onclick="register()">Register</button>
+  </div>
 
   <div id="login-section">
     <input type="text" id="username" placeholder="Masukkan Username" />
@@ -45,7 +79,7 @@
   <div id="main-section" class="hidden">
     <h3>Selamat datang, <span id="displayName"></span></h3>
     <button onclick="beli()">Beli Code Redeem</button>
-    <button onclick="logout()" style="background-color: #e74c3c; color: white;">Logout</button>
+    <button onclick="logout()" style="background-color: #555; color: white;">Logout</button>
     <div id="popup-buy" class="popup"></div>
 
     <div id="admin-panel" class="admin-panel hidden">
@@ -62,7 +96,7 @@
 
 <script>
   const users = {}; // Simpan data redeem
-  const passwordDatabase = {};
+  const accounts = {}; // Simpan user & password
   const MIN_LENGTH = 8;
   let currentUser = null;
   let isAdminVerified = false;
@@ -72,17 +106,34 @@
     return username.length >= MIN_LENGTH && password.length >= MIN_LENGTH;
   }
 
-  function login() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
+  function register() {
+    const username = document.getElementById("reg-username").value.trim();
+    const password = document.getElementById("reg-password").value.trim();
 
     if (!isValid(username, password)) {
       alert("Username dan password minimal 8 karakter.");
       return;
     }
+    if (accounts[username]) {
+      alert("Username sudah terdaftar.");
+      return;
+    }
+    accounts[username] = password;
+    alert("Registrasi berhasil! Silakan login.");
+    document.getElementById("reg-username").value = "";
+    document.getElementById("reg-password").value = "";
+  }
+
+  function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!accounts[username] || accounts[username] !== password) {
+      alert("Username atau password salah.");
+      return;
+    }
 
     currentUser = username;
-    passwordDatabase[username] = password;
     localStorage.setItem("redeemUser", JSON.stringify({ username, password }));
 
     if (username.toLowerCase() === "rozaq") {
@@ -107,6 +158,7 @@
   }
 
   function showMainUI() {
+    document.getElementById("register-section").classList.add("hidden");
     document.getElementById("login-section").classList.add("hidden");
     document.getElementById("verify-section").classList.add("hidden");
     document.getElementById("main-section").classList.remove("hidden");
@@ -153,7 +205,7 @@
     if (code) {
       setTimeout(() => {
         showPopup("user-popup", `Pembayaran berhasil! Ini code kamu: ${code}`);
-        users[currentUser] = null; // hanya sekali
+        users[currentUser] = null;
       }, 1000);
     }
   }
@@ -185,6 +237,7 @@
     if (savedUser) {
       document.getElementById("username").value = savedUser.username;
       document.getElementById("password").value = savedUser.password;
+      accounts[savedUser.username] = savedUser.password;
       login();
     }
   };
