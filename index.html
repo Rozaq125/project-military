@@ -6,210 +6,230 @@
   <title>Project Military - Redeem</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
     }
 
     h1 {
-      margin-top: 40px;
-      text-align: center;
+      font-size: 1.8em;
+      margin-bottom: 20px;
     }
 
-    .container {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 30px;
-      border-radius: 14px;
-      max-width: 420px;
+    input, button {
       width: 100%;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    input, select, button {
-      padding: 10px;
+      padding: 12px;
       margin-top: 10px;
-      width: 100%;
-      border: none;
-      border-radius: 8px;
       font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
     }
 
     input {
-      background: rgba(255,255,255,0.1);
-      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
     }
 
     button {
-      background: #00c853;
-      color: white;
+      background-color: #00c853;
+      color: #fff;
       font-weight: bold;
+      transition: background 0.2s;
       cursor: pointer;
     }
 
     button:hover {
-      background: #00a143;
+      background-color: #00b44b;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-size: 16px;
+    }
+
+    .section-title {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #00e676;
     }
 
     #adminPanel {
-      display: none;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
       margin-top: 30px;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 420px;
-    }
-
-    .popup {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .popup-content {
-      background: white;
-      color: black;
-      padding: 30px;
+      padding: 20px;
+      border: 2px solid #fff;
       border-radius: 12px;
-      text-align: center;
-    }
-
-    .hidden {
+      background-color: rgba(255, 255, 255, 0.1);
       display: none;
     }
   </style>
 </head>
 <body>
+  <div class="glass" id="app">
+    <h1>🎮 Project Military</h1>
 
-  <h1>🎮 Project Military - Redeem</h1>
+    <div id="loginSection">
+      <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+      <button onclick="login()">Masuk</button>
+    </div>
 
-  <div class="container" id="loginSection">
-    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
-    <button onclick="loginUser()">Masuk</button>
-  </div>
+    <div id="mainSection" style="display:none;">
+      <p id="welcomeText"></p>
 
-  <div class="container hidden" id="mainSection">
-    <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
-    <p>Klik tombol di bawah untuk membeli:</p>
-    <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
-  </div>
+      <div class="section-title">🔑 Masukkan Kode Redeem</div>
+      <input type="text" id="codeInput" placeholder="Kode Redeem" />
+      <button onclick="redeemCode()">Redeem</button>
 
-  <!-- ADMIN PANEL -->
-  <div id="adminPanel">
-    <h3>👑 Admin Panel</h3>
-    <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
-    <select id="packSelect">
-      <option value="Reguler">Reguler (2K–10K)</option>
-      <option value="Exclusive">Exclusive (20K–50K)</option>
-      <option value="Super">Super Exclusive (60K–100K)</option>
-    </select>
-    <button onclick="beriKode()">Kirim Kode ke User</button>
-    <p id="adminStatus"></p>
+      <div class="section-title">🎁 Claim Harian</div>
+      <button onclick="claimDaily()">Claim Sekarang</button>
 
-    <hr style="margin: 20px 0;">
-    <h4>📋 Daftar Username</h4>
-    <div id="userListDisplay" style="text-align:left; max-height: 150px; overflow-y:auto;"></div>
-  </div>
+      <p id="message"></p>
+    </div>
 
-  <!-- POPUP -->
-  <div id="popup" class="popup hidden">
-    <div class="popup-content">
-      <h2>🎉 Selamat dan terima kasih!</h2>
-      <p>Ini code Redeem anda, selamat bermain:</p>
-      <h3 id="popupKode"></h3>
-      <button onclick="closePopup()">Tutup</button>
+    <!-- Admin Panel -->
+    <div id="adminPanel">
+      <h3>🔒 Admin Panel</h3>
+      <p>Fitur admin akan ditambahkan di sini nanti!</p>
     </div>
   </div>
 
   <script>
-    const codes = {
-      Reguler: ["PM-LV7KXE", "PM-QYZJ9F", "PM-B9SKGC"],
-      Exclusive: ["PM-JELR5Q", "PM-XF4PYB", "PM-RA6XNU"],
-      Super: ["PM-MWPJTY", "PM-Z86LUW", "PM-VBQN5R"]
-    };
+    const kodeList = [
+      "PM-3U8RLA", "PM-XFN6YD", "PM-VJ4ZKQ", "PM-H29MEF", "PM-KTQWJX",
+      "PM-LDZV97", "PM-AQXKYM", "PM-MC4WNG", "PM-PX8QJE", "PM-YRNZL6",
+      "PM-UKHBQX", "PM-WTDN59", "PM-BLEMKJ", "PM-GZJY28", "PM-FUXWDR",
+      "PM-RS3LKP", "PM-ZTYUJM", "PM-NDA69C", "PM-HJWK3B", "PM-X9TRMA",
+      "PM-QKWJEL", "PM-LA7ZYB", "PM-V3MRNE", "PM-KYE6LJ", "PM-WRGHD9",
+      "PM-B9AYXF", "PM-GTPJQ2", "PM-ZJYFCA", "PM-XQ9UZL", "PM-2HPMWT",
+      "PM-AKR7DN", "PM-UEFLPK", "PM-YMZGCX", "PM-JT9BRQ", "PM-LH8VYK",
+      "PM-DG43ZW", "PM-VR5CMY", "PM-PM78XJ", "PM-FWJDEQ", "PM-ZXMB7R",
+      "PM-KYV9NE", "PM-XPT4QM", "PM-NMRGQX", "PM-AQ2BKL", "PM-TM6YRJ",
+      "PM-LM8ZYD", "PM-GBWREK", "PM-JDZVXY", "PM-HRNQCL", "PM-YKJE98",
+      "PM-WX2LRC", "PM-XRMG8T", "PM-FBUPZK", "PM-VQL8JD", "PM-ZU4KMF",
+      "PM-HT59BX", "PM-NXGYUJ", "PM-AWJ34M", "PM-P9LBQK", "PM-YGEKW3",
+      "PM-DRKLV9", "PM-KMCYAX", "PM-UXRBNE", "PM-MNF4QL", "PM-WGAZKD",
+      "PM-ZX7LMJ", "PM-PTBYUA", "PM-FLJRW8", "PM-YZPVNC", "PM-XGH2RM",
+      "PM-RMQBDJ", "PM-LFZWYC", "PM-KVJUX9", "PM-UEBRMZ", "PM-BKQXFA",
+      "PM-GHTYM7", "PM-MTCUJL", "PM-XWUGR3", "PM-NVLEPZ", "PM-WYMKTA",
+      "PM-DX7CFQ", "PM-JWAZKR", "PM-YTZBR6", "PM-PXQUFJ", "PM-VCRJME",
+      "PM-ZWG3YB", "PM-AJ59KU", "PM-HLFR8Q", "PM-M8PBTC", "PM-KEN6VX",
+      "PM-QYRBLA", "PM-LNK7WJ", "PM-UGVDZP", "PM-XTRBAF", "PM-NZYPKE",
+      "PM-BX2YLR", "PM-WMPXQZ", "PM-FTE94K", "PM-VUKGMC", "PM-YHQLE8",
+      "PM-ZX8BWL", "PM-AKTVJQ", "PM-GQ5LRP", "PM-HMU9EK", "PM-XZJTNF",
+      "PM-V3CAYL", "PM-LFQWJK", "PM-RN6DZB", "PM-YMBKXP", "PM-UG73QL",
+      "PM-WFYMKR", "PM-PQZNC8", "PM-KTBX7J", "PM-NZJYQM", "PM-DLFCUR",
+      "PM-XPWTZB", "PM-FYJMC3", "PM-VUNBGK", "PM-YRL5XD", "PM-BZHPKJ",
+      "PM-WUTQXA", "PM-HFJ9CY", "PM-KG4MLQ", "PM-AEYXBZ", "PM-ZTF8JQ",
+      "PM-JQLCV9", "PM-MNGWZT", "PM-PTFZXK", "PM-XLB93Q", "PM-RDQYMP",
+      "PM-UBM73X", "PM-YEX2WR", "PM-GHZJUL", "PM-CAWK9F", "PM-NPVXTB",
+      "PM-VLGXQY", "PM-TKUJRB", "PM-XRZMWL", "PM-KANH53", "PM-FZTPXY",
+      "PM-HJYRDW", "PM-ZQUEMX", "PM-YKB49T", "PM-PBLXMF", "PM-WJGFYU",
+      "PM-GTXYBR", "PM-LJRUZC", "PM-XKDBVQ", "PM-MYQF8K", "PM-NJCTWB",
+      "PM-AZTQRY", "PM-KRGLMU", "PM-FY28WL", "PM-XMZVHQ", "PM-WB3JLU",
+      "PM-HQRMYX", "PM-YTWUKF", "PM-VULKJM", "PM-DZXMYN", "PM-LQ9KTF",
+      "PM-NFGYUB", "PM-URPKXA", "PM-JVKMEZ", "PM-BQZCXY", "PM-WMHTGA",
+      "PM-AXV4RM", "PM-XTRJYQ", "PM-HNGM5L", "PM-YKQCBX", "PM-GJLWTE",
+      "PM-ZPFKYX", "PM-FX3MLU", "PM-MJWBTR", "PM-RXUZYQ", "PM-DCVJMP",
+      "PM-KLBXJY", "PM-WGZNKT", "PM-YPRM8F", "PM-BWUXAK", "PM-XN5QUY",
+      "PM-HYFTPR", "PM-ZMXKTY", "PM-GK8WBJ", "PM-AQKFRZ", "PM-NMWGYC",
+      "PM-VRJLYP", "PM-PUXKMA", "PM-XWGMBQ", "PM-YFCQEZ", "PM-KJP37W",
+      "PM-ULBYRM", "PM-MZKWTA", "PM-HVZGRF", "PM-NTBLXE", "PM-WAQMUY",
+      "PM-LFQVHX", "PM-JTKGZM", "PM-XUYNRD", "PM-VMCJ8K", "PM-YF3LPR"
+    ];
 
-    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
-    const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
-    const userList = JSON.parse(localStorage.getItem("userList") || "[]");
+    const redeemCodes = {};
+    kodeList.forEach(code => {
+      redeemCodes[code] = { reward: `💰 ${Math.floor(Math.random() * 5000) + 10000} Uang`, used: false };
+    });
 
-    function loginUser() {
-      const user = document.getElementById("usernameInput").value.trim();
-      if (!user) return alert("Isi username dulu!");
-
-      if (!userList.includes(user)) {
-        userList.push(user);
-        localStorage.setItem("userList", JSON.stringify(userList));
-      }
-
-      localStorage.setItem("username", user);
-      document.getElementById("userNameDisplay").innerText = user;
-      document.getElementById("loginSection").classList.add("hidden");
-      document.getElementById("mainSection").classList.remove("hidden");
-
-      if (user === "Rozaq") {
-        document.getElementById("adminPanel").style.display = "block";
-        updateUserList();
-      }
-
-      // 🔥 Tampilkan popup hanya 1x
-      const hasCode = assignedCodes[user];
-      const lastCode = localStorage.getItem(`popupCode_${user}`);
-      if (hasCode && lastCode !== hasCode) {
-        document.getElementById("popupKode").innerText = hasCode;
-        document.getElementById("popup").classList.remove("hidden");
-        localStorage.setItem(`popupCode_${user}`, hasCode);
-      }
-    }
-
-    function beriKode() {
-      const user = document.getElementById("targetUser").value.trim();
-      const pack = document.getElementById("packSelect").value;
-      if (!user) return alert("Masukkan username!");
-
-      const available = codes[pack].filter(kode => !usedCodes[kode]);
-      if (available.length === 0) {
-        document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
+    function login() {
+      const username = document.getElementById("usernameInput").value.trim();
+      if (username === "") {
+        alert("Masukkan username terlebih dahulu.");
         return;
       }
 
-      const kode = available[Math.floor(Math.random() * available.length)];
-      usedCodes[kode] = true;
-      assignedCodes[user] = kode;
+      localStorage.setItem("username", username);
+      document.getElementById("welcomeText").innerHTML = `👋 Selamat datang, <b>${username}</b>`;
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("mainSection").style.display = "block";
 
-      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
-      localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-
-      // Reset popup agar muncul lagi saat login
-      localStorage.removeItem(`popupCode_${user}`);
-
-      document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
+      if (["Rozaq", "Rozak"].includes(username)) {
+        document.getElementById("adminPanel").style.display = "block";
+      }
     }
 
-    function closePopup() {
-      document.getElementById("popup").classList.add("hidden");
+    function redeemCode() {
+      const codeInput = document.getElementById("codeInput").value.trim().toUpperCase();
+      const message = document.getElementById("message");
+
+      if (!localStorage.getItem("username")) {
+        message.innerHTML = "❌ Login terlebih dahulu!";
+        message.style.color = "red";
+        return;
+      }
+
+      if (redeemCodes[codeInput]) {
+        if (redeemCodes[codeInput].used) {
+          message.innerHTML = "❌ Kode ini sudah digunakan!";
+          message.style.color = "orange";
+        } else {
+          message.innerHTML = `✅ Berhasil! Kamu mendapatkan: <b>${redeemCodes[codeInput].reward}</b>`;
+          message.style.color = "#00e676";
+          redeemCodes[codeInput].used = true;
+        }
+      } else {
+        message.innerHTML = "❌ Kode tidak valid.";
+        message.style.color = "red";
+      }
     }
 
-    function updateUserList() {
-      const list = userList.map(name => `<li>${name}</li>`).join("");
-      document.getElementById("userListDisplay").innerHTML = `<ul>${list}</ul>`;
+    function claimDaily() {
+      const username = localStorage.getItem("username");
+      const message = document.getElementById("message");
+      const today = new Date().toDateString();
+      const lastClaim = localStorage.getItem(`lastClaim_${username}`);
+
+      if (!username) {
+        message.innerHTML = "❌ Login terlebih dahulu!";
+        message.style.color = "red";
+        return;
+      }
+
+      if (lastClaim === today) {
+        message.innerHTML = "❌ Kamu sudah claim hari ini!";
+        message.style.color = "orange";
+      } else {
+        const amount = Math.floor(Math.random() * 3000) + 5000;
+        message.innerHTML = `🎉 Kamu claim harian dan dapat 💰 <b>${amount}</b>`;
+        message.style.color = "#00e676";
+        localStorage.setItem(`lastClaim_${username}`, today);
+      }
     }
 
-    window.onload = () => {
-      const saved = localStorage.getItem("username");
-      if (saved) {
-        document.getElementById("usernameInput").value = saved;
-        loginUser();
+    window.onload = function () {
+      const savedUsername = localStorage.getItem("username");
+      if (savedUsername) {
+        document.getElementById("usernameInput").value = savedUsername;
+        login();
       }
     };
   </script>
