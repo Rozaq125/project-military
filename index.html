@@ -1,10 +1,193 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Situs sedang diperbaiki</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Redeem Code - Project Military</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; padding: 0; }
+    .container {
+      max-width: 500px; margin: auto; background: white; padding: 20px; margin-top: 40px;
+      border-radius: 10px; box-shadow: 0 0 10px #aaa;
+    }
+    h2 { text-align: center; }
+    input, button, select {
+      width: 100%; padding: 10px; margin-top: 10px;
+      border-radius: 5px; border: 1px solid #aaa;
+    }
+    .hidden { display: none; }
+    .popup {
+      position: fixed; top: 20px; right: 20px; background: #4caf50; color: white;
+      padding: 15px; border-radius: 10px; display: none; z-index: 1000;
+    }
+    .admin-panel {
+      background: #eee; padding: 15px; margin-top: 20px; border-radius: 10px;
+    }
+  </style>
 </head>
-<body style="background:#111;color:white;text-align:center;padding:100px;font-family:sans-serif;">
-  <h1>🚧 Situs Sedang Dalam perbaikan Code,Silahkan Tunggu,Perkiraan Selesai 03.20 Pagi</h1>
-  <p>Kami sedang mengganti situs menjadi lebih baik,tunggu dan stand by.</p>
+<body>
+
+<div class="container">
+  <h2>Redeem Code System</h2>
+
+  <div id="login-section">
+    <input type="text" id="username" placeholder="Masukkan Username" />
+    <input type="password" id="password" placeholder="Masukkan Password" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="verify-section" class="hidden">
+    <p>Masukkan kode verifikasi dari <strong>ReedemCode.Gmail.com</strong></p>
+    <input type="text" id="verify-code" placeholder="Kode 10 Digit"/>
+    <button onclick="verifyAdmin()">Verifikasi</button>
+  </div>
+
+  <div id="main-section" class="hidden">
+    <h3>Selamat datang, <span id="displayName"></span></h3>
+    <button onclick="beli()">Beli Code Redeem</button>
+    <button onclick="logout()" style="background-color: #e74c3c; color: white;">Logout</button>
+    <div id="popup-buy" class="popup"></div>
+
+    <div id="admin-panel" class="admin-panel hidden">
+      <h3>Admin Panel</h3>
+      <p><strong>Pembelian oleh:</strong></p>
+      <select id="userList"></select>
+      <input type="text" id="codeToSend" placeholder="Masukkan Code Redeem" />
+      <button onclick="kirimKode()">Kirim Code</button>
+    </div>
+  </div>
+</div>
+
+<div id="user-popup" class="popup"></div>
+
+<script>
+  const users = {}; // Simpan data redeem
+  const passwordDatabase = {};
+  const MIN_LENGTH = 8;
+  let currentUser = null;
+  let isAdminVerified = false;
+  let adminCode = "";
+
+  function isValid(username, password) {
+    return username.length >= MIN_LENGTH && password.length >= MIN_LENGTH;
+  }
+
+  function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!isValid(username, password)) {
+      alert("Username dan password minimal 8 karakter.");
+      return;
+    }
+
+    currentUser = username;
+    passwordDatabase[username] = password;
+    localStorage.setItem("redeemUser", JSON.stringify({ username, password }));
+
+    if (username.toLowerCase() === "rozaq") {
+      adminCode = generateCode(10);
+      alert("Kode verifikasi dikirim ke ReedemCode.Gmail.com:\n\nKode: " + adminCode);
+      document.getElementById("login-section").classList.add("hidden");
+      document.getElementById("verify-section").classList.remove("hidden");
+    } else {
+      showMainUI();
+    }
+  }
+
+  function verifyAdmin() {
+    const inputCode = document.getElementById("verify-code").value.trim();
+    if (inputCode === adminCode) {
+      isAdminVerified = true;
+      showMainUI();
+      document.getElementById("admin-panel").classList.remove("hidden");
+    } else {
+      alert("Kode verifikasi salah.");
+    }
+  }
+
+  function showMainUI() {
+    document.getElementById("login-section").classList.add("hidden");
+    document.getElementById("verify-section").classList.add("hidden");
+    document.getElementById("main-section").classList.remove("hidden");
+    document.getElementById("displayName").innerText = currentUser;
+    checkRedeem();
+  }
+
+  function beli() {
+    if (!users[currentUser]) {
+      users[currentUser] = null;
+      showPopup("popup-buy", `Pembelian tercatat atas nama: ${currentUser}`);
+      window.open("https://wa.me/6285282790834", "_blank");
+
+      if (isAdminVerified) updateUserList();
+    } else {
+      showPopup("popup-buy", "Kamu sudah melakukan pembelian.");
+    }
+  }
+
+  function updateUserList() {
+    const select = document.getElementById("userList");
+    select.innerHTML = "";
+    Object.keys(users).forEach(u => {
+      if (!users[u]) {
+        const option = document.createElement("option");
+        option.value = u;
+        option.text = u;
+        select.appendChild(option);
+      }
+    });
+  }
+
+  function kirimKode() {
+    const selectedUser = document.getElementById("userList").value;
+    const code = document.getElementById("codeToSend").value.trim();
+    if (selectedUser && code) {
+      users[selectedUser] = code;
+      alert("Code dikirim ke " + selectedUser);
+    }
+  }
+
+  function checkRedeem() {
+    const code = users[currentUser];
+    if (code) {
+      setTimeout(() => {
+        showPopup("user-popup", `Pembayaran berhasil! Ini code kamu: ${code}`);
+        users[currentUser] = null; // hanya sekali
+      }, 1000);
+    }
+  }
+
+  function showPopup(id, message) {
+    const popup = document.getElementById(id);
+    popup.innerText = message;
+    popup.style.display = "block";
+    setTimeout(() => popup.style.display = "none", 5000);
+  }
+
+  function generateCode(length) {
+    let result = "";
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  function logout() {
+    localStorage.removeItem("redeemUser");
+    location.reload();
+  }
+
+  // === AUTO LOGIN ===
+  window.onload = () => {
+    const savedUser = JSON.parse(localStorage.getItem("redeemUser"));
+    if (savedUser) {
+      document.getElementById("username").value = savedUser.username;
+      document.getElementById("password").value = savedUser.password;
+      login();
+    }
+  };
+</script>
 </body>
 </html>
