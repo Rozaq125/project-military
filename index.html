@@ -143,9 +143,13 @@
     const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
     const userList = JSON.parse(localStorage.getItem("userList") || "[]");
 
+    let currentUsername = "";
+
     function loginUser() {
       const user = document.getElementById("usernameInput").value.trim();
       if (!user) return alert("Isi username dulu!");
+
+      currentUsername = user;
 
       if (!userList.includes(user)) {
         userList.push(user);
@@ -173,7 +177,7 @@
     function beriKode() {
       const user = document.getElementById("targetUser").value.trim();
       const pack = document.getElementById("packSelect").value;
-      if (!user) return alert("Masukkan username!");
+      if (!user) return alert("Masukkan username pembeli!");
 
       const available = codes[pack].filter(kode => !usedCodes[kode]);
       if (available.length === 0) {
@@ -191,9 +195,7 @@
 
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
 
-      // ❗Jika yang dikirim adalah user yang sedang login, langsung tampilkan popup
-      const currentUser = localStorage.getItem("username");
-      if (currentUser === user) {
+      if (user === currentUsername) {
         showPopup(kode);
         localStorage.setItem(`popupCode_${user}`, kode);
       }
