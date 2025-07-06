@@ -12,49 +12,51 @@
       color: white;
       padding: 20px;
     }
-
-    .container, #adminPanel {
+    h1 {
+      text-align: center;
+    }
+    .container {
       background: rgba(255, 255, 255, 0.05);
       padding: 20px;
       border-radius: 14px;
       max-width: 420px;
       margin: 20px auto;
       box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      text-align: center;
     }
-
     input, select, button {
+      width: 100%;
       padding: 10px;
       margin-top: 10px;
-      width: 100%;
       border: none;
       border-radius: 8px;
       font-size: 16px;
     }
-
     input {
       background: rgba(255,255,255,0.1);
       color: white;
     }
-
     button {
       background: #00c853;
       color: white;
       font-weight: bold;
       cursor: pointer;
     }
+    button:hover {
+      background: #00a143;
+    }
+    .hidden { display: none; }
 
+    /* Popup */
     .popup {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.8);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 999;
     }
-
     .popup-content {
       background: white;
       color: black;
@@ -63,292 +65,286 @@
       text-align: center;
     }
 
-    .hidden { display: none; }
-
-    /* Chat Icon */
-    .chat-btn {
+    /* Chat button */
+    #chatToggle {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #ff5e5e;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 50px;
-      font-size: 16px;
+      top: 20px;
+      left: 20px;
+      background: #00c853;
       border: none;
-      z-index: 998;
+      color: white;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      z-index: 1000;
     }
 
-    /* Chat Window */
-    .chat-container {
+    /* Chat */
+    .chat-box {
       position: fixed;
-      bottom: 80px;
+      bottom: 0;
       right: 20px;
-      width: 320px;
-      height: 420px;
+      width: 360px;
+      max-height: 80vh;
       background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      color: black;
+      border-radius: 12px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      box-shadow: 0 0 20px #000;
       z-index: 999;
     }
-
     .chat-header {
-      background: #203a43;
+      background: #007bff;
       color: white;
       padding: 10px;
       font-weight: bold;
-      display: flex;
-      justify-content: space-between;
+      text-align: center;
     }
-
     .chat-messages {
       flex: 1;
       padding: 10px;
       overflow-y: auto;
-      font-size: 14px;
-      background: #f4f4f4;
-      color: black;
     }
-
+    .chat-message {
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 8px;
+      max-width: 80%;
+    }
+    .from-user {
+      background: #007bff;
+      color: white;
+      align-self: flex-end;
+    }
+    .from-admin {
+      background: #e0e0e0;
+      align-self: flex-start;
+    }
     .chat-input {
       display: flex;
       flex-direction: column;
-      gap: 5px;
       padding: 10px;
       border-top: 1px solid #ccc;
     }
-
-    .chat-input input[type="text"],
-    .chat-input input[type="file"] {
+    .chat-input input[type="text"] {
       padding: 8px;
+      margin-bottom: 8px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-
+    .chat-input input[type="file"] {
+      margin-bottom: 8px;
+    }
     .chat-input button {
-      padding: 8px;
-      background: #00c853;
-      color: white;
-      border: none;
-      border-radius: 6px;
+      background: #007bff;
     }
 
-    .message { margin: 5px 0; padding: 6px 8px; border-radius: 6px; }
-    .admin { background: #e0e0e0; }
-    .user { background: #cdeffd; }
+    /* Admin panel */
+    #adminPanel {
+      display: none;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 420px;
+      margin: 20px auto;
+    }
+
+    #userListDisplay li {
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-<h1 style="text-align:center;">🎮 Project Military - Redeem</h1>
+  <h1>🎮 Project Military - Redeem</h1>
 
-<div class="container" id="loginSection">
-  <input type="text" id="usernameInput" placeholder="Masukkan Username" />
-  <button onclick="loginUser()">Masuk</button>
-</div>
+  <button id="chatToggle">💬</button>
 
-<div class="container hidden" id="mainSection">
-  <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
-  <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
-  <button onclick="logoutUser()">🔓 Logout</button>
-</div>
-
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="hidden">
-  <h3>👑 Admin Panel</h3>
-  <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
-  <select id="packSelect">
-    <option value="Reguler">Reguler</option>
-    <option value="Exclusive">Exclusive</option>
-    <option value="Super">Super Exclusive</option>
-  </select>
-  <button onclick="beriKode()">Kirim Kode</button>
-  <p id="adminStatus"></p>
-  <hr>
-  <h4>📋 Daftar Username</h4>
-  <div id="userListDisplay" style="text-align:left; max-height: 150px; overflow-y:auto;"></div>
-</div>
-
-<!-- POPUP -->
-<div id="popup" class="popup hidden">
-  <div class="popup-content">
-    <h2>🎉 Selamat dan terima kasih!</h2>
-    <p>Ini code Redeem anda, selamat bermain:</p>
-    <h3 id="popupKode"></h3>
-    <button onclick="closePopup()">Tutup</button>
+  <div class="container" id="loginSection">
+    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+    <button onclick="loginUser()">Masuk</button>
   </div>
-</div>
 
-<!-- CHAT BUTTON -->
-<button class="chat-btn" onclick="openChat()">💬 Chat</button>
-
-<!-- CHAT SYSTEM -->
-<div id="chatBoxContainer" class="chat-container hidden">
-  <div class="chat-header">
-    Chat Admin
-    <span style="cursor:pointer;" onclick="closeChat()">×</span>
+  <div class="container hidden" id="mainSection">
+    <h2>Selamat datang, <span id="userNameDisplay"></span></h2>
+    <p>Klik tombol di bawah untuk membeli:</p>
+    <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
+    <button onclick="logoutUser()">Logout</button>
   </div>
-  <div class="chat-messages" id="chatMessages"></div>
-  <div class="chat-input">
-    <input type="text" id="chatInput" placeholder="Ketik pesan...">
-    <input type="file" id="fileInput">
-    <button onclick="sendChat()">Kirim</button>
+
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel">
+    <h3>👑 Admin Panel</h3>
+    <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
+    <select id="packSelect">
+      <option value="Reguler">Reguler (2K–10K)</option>
+      <option value="Exclusive">Exclusive (20K–50K)</option>
+      <option value="Super">Super Exclusive (60K–100K)</option>
+    </select>
+    <button onclick="beriKode()">Kirim Kode ke User</button>
+    <p id="adminStatus"></p>
+    <hr>
+    <h4>📋 Chat Pembeli</h4>
+    <ul id="userListDisplay"></ul>
   </div>
-</div>
 
-<script>
-  const codes = {
-    Reguler: ["PM-JGKDDK-HHGKDDJ-KGGKFFK", "PM-LV7KXE-QYZJ9F-B9SKGC"],
-    Exclusive: ["PM-JELR5Q-XF4PYB-RA6XNU"],
-    Super: ["PM-MWPJTY-Z86LUW-VBQN5R"]
-  };
+  <!-- POPUP -->
+  <div id="popup" class="popup hidden">
+    <div class="popup-content">
+      <h2>🎉 Selamat dan terima kasih!</h2>
+      <p>Ini code Redeem anda, selamat bermain:</p>
+      <h3 id="popupKode"></h3>
+      <button onclick="closePopup()">Tutup</button>
+    </div>
+  </div>
 
-  const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
-  const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
-  const userList = JSON.parse(localStorage.getItem("userList") || "[]");
+  <!-- CHAT -->
+  <div id="chatBox" class="chat-box hidden">
+    <div class="chat-header">💬 Chat Admin</div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Ketik pesan..." />
+      <input type="file" id="fileInput" />
+      <button onclick="sendMessage()">Kirim</button>
+    </div>
+  </div>
 
-  function loginUser() {
-    const user = document.getElementById("usernameInput").value.trim();
-    if (!user) return alert("Isi username dulu!");
+  <script>
+    const codes = {
+      Reguler: [ "PM-0AUK8-46HNO-11T41", "PM-0BOVP-0AEO0-2M8MJ", "PM-0FC3A-6NCIO-P04C7" ],
+      Exclusive: [ "PM-JELR5Q-00X-NEW-EX", "PM-EXCL2-EXCL2-EXCL2", "PM-EXCL3-EXCL3-EXCL3" ],
+      Super: [ "PM-SUPER-0001-CODEX", "PM-SUPER-0002-CODEY", "PM-SUPER-0003-CODEZ" ]
+    };
 
-    localStorage.setItem("username", user);
-    if (!userList.includes(user)) {
-      userList.push(user);
-      localStorage.setItem("userList", JSON.stringify(userList));
+    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
+    const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
+    const userList = JSON.parse(localStorage.getItem("userList") || "[]");
+    const chatData = JSON.parse(localStorage.getItem("chatData") || "{}");
+
+    let currentUser = null;
+    let isAdmin = false;
+    let chatWith = null;
+
+    function loginUser() {
+      const user = document.getElementById("usernameInput").value.trim();
+      if (!user) return alert("Isi username dulu!");
+      currentUser = user;
+      localStorage.setItem("username", user);
+      document.getElementById("userNameDisplay").innerText = user;
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("mainSection").classList.remove("hidden");
+
+      if (!userList.includes(user)) {
+        userList.push(user);
+        localStorage.setItem("userList", JSON.stringify(userList));
+      }
+
+      if (user === "Rozaq" || user === "Rozak") {
+        isAdmin = true;
+        document.getElementById("adminPanel").style.display = "block";
+        updateUserList();
+      }
+
+      const code = assignedCodes[user];
+      const shown = localStorage.getItem(`popupShown_${user}`);
+      if (code && !shown) {
+        document.getElementById("popupKode").innerText = code;
+        document.getElementById("popup").classList.remove("hidden");
+        localStorage.setItem(`popupShown_${user}`, true);
+      }
+
+      loadChat();
     }
 
-    document.getElementById("userNameDisplay").innerText = user;
-    document.getElementById("loginSection").classList.add("hidden");
-    document.getElementById("mainSection").classList.remove("hidden");
-
-    if (user === "Rozaq" || user === "Rozak") {
-      document.getElementById("adminPanel").classList.remove("hidden");
-      updateUserList();
+    function logoutUser() {
+      localStorage.removeItem("username");
+      location.reload();
     }
 
-    const hasCode = assignedCodes[user];
-    const lastCode = localStorage.getItem(`popupCode_${user}`);
-    if (hasCode && lastCode !== hasCode) {
-      document.getElementById("popupKode").innerText = hasCode;
-      document.getElementById("popup").classList.remove("hidden");
-      localStorage.setItem(`popupCode_${user}`, hasCode);
-    }
-  }
+    function beriKode() {
+      const user = document.getElementById("targetUser").value.trim();
+      const pack = document.getElementById("packSelect").value;
+      if (!user) return alert("Masukkan username!");
 
-  function logoutUser() {
-    localStorage.removeItem("username");
-    location.reload();
-  }
+      const available = codes[pack].filter(kode => !usedCodes[kode]);
+      if (available.length === 0) {
+        document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
+        return;
+      }
 
-  function beriKode() {
-    const user = document.getElementById("targetUser").value.trim();
-    const pack = document.getElementById("packSelect").value;
-    if (!user) return alert("Masukkan username!");
+      const kode = available.shift();
+      usedCodes[kode] = true;
+      assignedCodes[user] = kode;
 
-    const available = codes[pack].filter(kode => !usedCodes[kode]);
-    if (available.length === 0) {
-      document.getElementById("adminStatus").innerText = "❌ Kode habis!";
-      return;
+      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
+      localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+      localStorage.removeItem(`popupShown_${user}`);
+      document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
     }
 
-    const kode = available[0];
-    usedCodes[kode] = true;
-    assignedCodes[user] = kode;
-
-    localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
-    localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-    localStorage.removeItem(`popupCode_${user}`);
-
-    document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
-  }
-
-  function closePopup() {
-    document.getElementById("popup").classList.add("hidden");
-  }
-
-  function updateUserList() {
-    const list = userList.map(name => `<li>${name}</li>`).join("");
-    document.getElementById("userListDisplay").innerHTML = `<ul>${list}</ul>`;
-  }
-
-  // CHAT SYSTEM
-  const chatData = JSON.parse(localStorage.getItem("chatMessages") || "{}");
-  const currentUser = localStorage.getItem("username");
-  const isAdmin = currentUser === "Rozaq" || currentUser === "Rozak";
-
-  function openChat() {
-    document.getElementById("chatBoxContainer").classList.remove("hidden");
-
-    if (!chatData[currentUser]) {
-      chatData[currentUser] = [{ from: "admin", text: "Akun admin asli, dilarang bertransaksi di luar Redeem" }];
-      localStorage.setItem("chatMessages", JSON.stringify(chatData));
-    }
-    renderChat();
-  }
-
-  function closeChat() {
-    document.getElementById("chatBoxContainer").classList.add("hidden");
-  }
-
-  function sendChat() {
-    const msg = document.getElementById("chatInput").value.trim();
-    const file = document.getElementById("fileInput").files[0];
-
-    if (!chatData[currentUser]) chatData[currentUser] = [];
-
-    if (msg) chatData[currentUser].push({ from: isAdmin ? "admin" : "user", text: msg });
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        chatData[currentUser].push({ from: isAdmin ? "admin" : "user", file: e.target.result, fileName: file.name });
-        localStorage.setItem("chatMessages", JSON.stringify(chatData));
-        renderChat();
-      };
-      reader.readAsDataURL(file);
+    function closePopup() {
+      document.getElementById("popup").classList.add("hidden");
     }
 
-    localStorage.setItem("chatMessages", JSON.stringify(chatData));
-    document.getElementById("chatInput").value = "";
-    document.getElementById("fileInput").value = "";
-    renderChat();
-  }
+    function updateUserList() {
+      document.getElementById("userListDisplay").innerHTML = userList.map(u => 
+        `<li onclick="selectChatUser('${u}')">${u}</li>`).join("");
+    }
 
-  function renderChat() {
-    const box = document.getElementById("chatMessages");
-    box.innerHTML = "";
-    const entries = isAdmin ? Object.entries(chatData) : [[currentUser, chatData[currentUser] || []]];
+    function selectChatUser(u) {
+      chatWith = u;
+      loadChat();
+    }
 
-    entries.forEach(([user, msgs]) => {
-      if (isAdmin) box.innerHTML += `<strong>👤 ${user}</strong><hr>`;
-      msgs.forEach(msg => {
+    function loadChat() {
+      const messages = chatData[chatWith || currentUser] || [];
+      const box = document.getElementById("chatMessages");
+      box.innerHTML = "";
+      messages.forEach(msg => {
         const div = document.createElement("div");
-        div.className = "message " + (msg.from === "admin" ? "admin" : "user");
-        if (msg.text) div.innerText = `${msg.from === "admin" ? "Admin" : "User"}: ${msg.text}`;
-        if (msg.file) {
-          const fileLink = document.createElement("a");
-          fileLink.href = msg.file;
-          fileLink.innerText = msg.fileName;
-          fileLink.download = msg.fileName;
-          fileLink.style.display = "block";
-          div.appendChild(fileLink);
-        }
+        div.className = "chat-message " + (msg.sender === currentUser ? "from-user" : "from-admin");
+        div.textContent = `${msg.sender}: ${msg.text}`;
         box.appendChild(div);
       });
-    });
-    box.scrollTop = box.scrollHeight;
-  }
-
-  window.onload = () => {
-    const saved = localStorage.getItem("username");
-    if (saved) {
-      document.getElementById("usernameInput").value = saved;
-      loginUser();
+      box.scrollTop = box.scrollHeight;
     }
-  };
-</script>
+
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const file = document.getElementById("fileInput").files[0];
+      let text = input.value.trim();
+
+      if (!text && !file) return;
+
+      const msg = {
+        sender: currentUser,
+        text: file ? `[File: ${file.name}]` : text,
+        time: Date.now()
+      };
+
+      const key = isAdmin && chatWith ? chatWith : currentUser;
+      if (!chatData[key]) chatData[key] = [];
+      chatData[key].push(msg);
+      localStorage.setItem("chatData", JSON.stringify(chatData));
+
+      input.value = "";
+      document.getElementById("fileInput").value = "";
+      loadChat();
+    }
+
+    document.getElementById("chatToggle").onclick = () => {
+      document.getElementById("chatBox").classList.toggle("hidden");
+    };
+
+    window.onload = () => {
+      const saved = localStorage.getItem("username");
+      if (saved) {
+        document.getElementById("usernameInput").value = saved;
+        loginUser();
+      }
+    };
+  </script>
 </body>
 </html>
