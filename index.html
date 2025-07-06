@@ -7,30 +7,25 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      margin: 0;
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: white;
       padding: 20px;
+      text-align: center;
     }
-    .container {
-      background: rgba(255, 255, 255, 0.05);
+    .container, #adminPanel {
+      background: rgba(255,255,255,0.05);
       padding: 20px;
-      border-radius: 14px;
-      max-width: 420px;
+      border-radius: 12px;
+      max-width: 500px;
       margin: 20px auto;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
     }
     input, select, button {
+      width: 100%;
       padding: 10px;
       margin-top: 10px;
-      width: 100%;
+      border-radius: 6px;
       border: none;
-      border-radius: 8px;
       font-size: 16px;
-    }
-    input {
-      background: rgba(255,255,255,0.1);
-      color: white;
     }
     button {
       background: #00c853;
@@ -39,187 +34,233 @@
       cursor: pointer;
     }
     button:hover {
-      background: #00a143;
+      background: #009624;
     }
-    .hidden { display: none; }
-    .popup {
+    #user-popup {
       position: fixed;
-      top: 30px; left: 50%;
-      transform: translateX(-50%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      color: black;
       padding: 20px;
       border-radius: 10px;
-      color: white;
-      font-weight: bold;
-      z-index: 9999;
       display: none;
+      z-index: 9999;
     }
-    .green { background-color: #4caf50; }
-    .red { background-color: #f44336; }
+    .popup.green { background: #d4edda; color: #155724; }
+    .popup.red { background: #f8d7da; color: #721c24; }
+    .admin-section { margin-top: 20px; text-align: left; }
+    a { color: lightblue; }
+    #updatePopup {
+      display: none;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #272727;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.7);
+      z-index: 9999;
+      animation: slideUp 0.3s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    #updatePopup p {
+      margin: 0 0 10px 0;
+      color: #fff;
+    }
+    #updatePopup button {
+      padding: 10px 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <h1>🎮 Project Military - Redeem</h1>
 
-<h2 style="text-align:center;">🎮 Project Military - Redeem</h2>
+  <div class="container" id="loginSection">
+    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
+    <button onclick="loginUser()">Masuk</button>
+  </div>
 
-<div class="container" id="loginContainer">
-  <input type="text" id="usernameInput" placeholder="Masukkan Username" />
-  <button onclick="loginUser()">Login</button>
-</div>
+  <div class="container" id="mainSection" style="display:none;">
+    <h2>Selamat datang, <span id="userDisplay"></span></h2>
+    <button onclick="window.open('https://wa.me/6285282790834')">💰 Beli Sekarang</button>
+    <button onclick="logoutUser()">Logout</button>
+  </div>
 
-<div class="container hidden" id="mainContainer">
-  <h3>Selamat datang, <span id="userName"></span></h3>
-  <button onclick="window.open('https://wa.me/6285282790834','_blank')">💰 Beli Sekarang</button>
-</div>
+  <div id="adminPanel" style="display:none;">
+    <h2>👑 Admin Panel</h2>
 
-<div class="container hidden" id="adminPanel">
-  <h3>👑 Admin Panel</h3>
+    <div class="admin-section">
+      <h4>Kirim Kode Redeem</h4>
+      <input type="text" id="targetUser" placeholder="Username Pembeli">
+      <select id="packSelect">
+        <option value="Reguler">Reguler</option>
+        <option value="Exclusive">Exclusive</option>
+        <option value="Super">Super Exclusive</option>
+      </select>
+      <button onclick="beriKode()">Kirim Kode</button>
+      <p id="adminStatus"></p>
+    </div>
 
-  <h4>Kirim Kode Redeem</h4>
-  <input type="text" id="targetUser" placeholder="Masukkan Username Pembeli">
-  <select id="packSelect">
-    <option value="Reguler">Reguler</option>
-    <option value="Exclusive">Exclusive</option>
-    <option value="Super">Super Exclusive</option>
-  </select>
-  <button onclick="beriKode()">Kirim Kode</button>
-  <p id="adminStatus"></p>
+    <div class="admin-section">
+      <h4>Kirim Pop-up ke User</h4>
+      <input type="text" id="popupTarget" placeholder="Username Tujuan">
+      <select id="popupType">
+        <option value="green">Kabar Baik ✅</option>
+        <option value="red">Kabar Buruk ❌</option>
+      </select>
+      <input type="text" id="popupMessage" placeholder="Isi Pesan">
+      <button onclick="kirimPopupKeUser()">Kirim Pop-up</button>
+    </div>
 
-  <hr/>
-  <h4>Kirim Pop-up ke User</h4>
-  <input type="text" id="popupTarget" placeholder="Username">
-  <input type="text" id="popupMessage" placeholder="Pesan Pop-up">
-  <select id="popupType">
-    <option value="green">Kabar Baik</option>
-    <option value="red">Kabar Buruk</option>
-  </select>
-  <button onclick="kirimPopupKeUser()">Kirim Pop-up</button>
+    <div class="admin-section">
+      <h4>📦 Upload File Download</h4>
+      <input type="file" id="fileInput" />
+      <input type="text" id="fileTitleInput" placeholder="Judul File (misal: Download App Promi)" />
+      <button onclick="tambahFileDownload()">Tambah File</button>
+      <div id="fileDownloadList"></div>
+    </div>
+  </div>
 
-  <hr/>
-  <h4>📥 Upload File untuk Didownload</h4>
-  <input type="file" id="fileInput">
-  <input type="text" id="fileTitleInput" placeholder="Judul File">
-  <button onclick="tambahFileDownload()">Tambah Download</button>
-  <div id="fileDownloadList" style="margin-top:10px;"></div>
-</div>
+  <div id="user-popup" class="popup"></div>
+  <div id="updatePopup">
+    <p><strong>📦 File telah diperbarui!</strong></p>
+    <button onclick="window.open('https://yourdomain.com/file.exe')">Download File</button>
+  </div>
 
-<!-- Popup Notifikasi User -->
-<div id="user-popup" class="popup"></div>
+  <script>
+    let currentUser = "";
 
-<!-- Tombol Download App PC -->
-<div id="downloadButton"
-     style="position: fixed; top: 20px; right: 20px; background-color: #00c853; color: white; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; z-index: 999;">
-  ⬇️ Download App PC
-</div>
+    const codes = {
+      Reguler: ["PM-AK123-ABCDE-GT789", "PM-BK456-XZTRE-PLM87"],
+      Exclusive: ["PM-EX123-ABCDF-RTQ89"],
+      Super: ["PM-SX456-WER12-QAZ99"]
+    };
 
-<script>
-  let currentUser = null;
+    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
+    const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
 
-  const codes = {
-    Reguler: ["PM-0AUK8-46HNO-11T41", "PM-0BOVP-0AEO0-2M8MJ"],
-    Exclusive: ["PM-3PQUH-N58KL-ZTQKI", "PM-3SNEC-TJLZ5-JO93D"],
-    Super: ["PM-6Z4IQ-JFZDJ-7C7CQ", "PM-6Z8NS-QBTSP-Z8R3D"]
-  };
+    function loginUser() {
+      const u = document.getElementById("usernameInput").value.trim();
+      if (!u) return alert("Isi username dulu!");
+      currentUser = u;
+      localStorage.setItem("username", u);
+      document.getElementById("userDisplay").innerText = u;
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("mainSection").style.display = "block";
 
-  const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
-  const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
+      if (u === "Rozaq") {
+        document.getElementById("adminPanel").style.display = "block";
+      }
 
-  function loginUser() {
-    const u = document.getElementById("usernameInput").value.trim();
-    if (!u) return alert("Masukkan username");
-    localStorage.setItem("username", u);
-    currentUser = u;
-    document.getElementById("userName").innerText = u;
-    document.getElementById("loginContainer").classList.add("hidden");
-    document.getElementById("mainContainer").classList.remove("hidden");
-
-    if (u === "Rozaq") {
-      document.getElementById("adminPanel").classList.remove("hidden");
-      document.getElementById("downloadButton").style.display = "block";
+      checkPopup();
     }
 
-    checkPopup();
-  }
-
-  function beriKode() {
-    const user = document.getElementById("targetUser").value.trim();
-    const pack = document.getElementById("packSelect").value;
-    if (!user) return alert("Masukkan username!");
-    const available = codes[pack].filter(k => !usedCodes[k]);
-    if (available.length === 0) {
-      document.getElementById("adminStatus").innerText = "❌ Kode habis untuk pack ini!";
-      return;
-    }
-    const kode = available[0];
-    usedCodes[kode] = true;
-    assignedCodes[user] = kode;
-    localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
-    localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-    localStorage.removeItem("popup_" + user); // reset popup supaya tampil lagi
-    document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
-  }
-
-  function checkPopup() {
-    const popupRaw = localStorage.getItem("popup_" + currentUser);
-    if (popupRaw) {
-      const p = JSON.parse(popupRaw);
-      const popup = document.getElementById("user-popup");
-      popup.className = "popup " + p.type;
-      popup.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
-      popup.style.display = "block";
+    function logoutUser() {
+      localStorage.removeItem("username");
+      location.reload();
     }
 
-    const code = assignedCodes[currentUser];
-    if (code && !localStorage.getItem("popupCode_" + currentUser)) {
-      const popup = document.getElementById("user-popup");
-      popup.className = "popup green";
-      popup.innerHTML = `✅ Pembayaran berhasil! Ini code kamu:<br><b>${code}</b>`;
-      popup.style.display = "block";
-      localStorage.setItem("popupCode_" + currentUser, code);
+    function beriKode() {
+      const user = document.getElementById("targetUser").value.trim();
+      const pack = document.getElementById("packSelect").value;
+      const available = codes[pack].filter(code => !usedCodes[code]);
+
+      if (!user) return alert("Isi username!");
+      if (available.length === 0) {
+        document.getElementById("adminStatus").innerText = "❌ Stok kode habis.";
+        return;
+      }
+
+      const code = available[0];
+      usedCodes[code] = true;
+      assignedCodes[user] = code;
+
+      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
+      localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
+      localStorage.removeItem("popupCode_" + user);
+
+      document.getElementById("adminStatus").innerText = `✅ Kode ${code} dikirim ke ${user}`;
     }
-  }
 
-  function closePopup() {
-    document.getElementById("user-popup").style.display = "none";
-    localStorage.removeItem("popup_" + currentUser);
-  }
+    function checkPopup() {
+      const popupRaw = localStorage.getItem("popup_" + currentUser);
+      if (popupRaw) {
+        const p = JSON.parse(popupRaw);
+        const popup = document.getElementById("user-popup");
+        popup.className = "popup " + p.type;
+        popup.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
+        popup.style.display = "block";
+      }
 
-  function kirimPopupKeUser() {
-    const target = document.getElementById("popupTarget").value.trim();
-    const msg = document.getElementById("popupMessage").value.trim();
-    const type = document.getElementById("popupType").value;
-    if (!target || !msg) return alert("Isi username & pesan.");
-    const popupData = { msg, type };
-    localStorage.setItem("popup_" + target, JSON.stringify(popupData));
-    alert("Pop-up dikirim ke " + target);
-  }
-
-  function tambahFileDownload() {
-    const list = document.getElementById("fileDownloadList");
-    const fileInput = document.getElementById("fileInput");
-    const titleInput = document.getElementById("fileTitleInput");
-    if (!fileInput.files[0] || !titleInput.value.trim()) {
-      return alert("Pilih file dan isi judul terlebih dahulu.");
+      const k = assignedCodes[currentUser];
+      if (k && !localStorage.getItem("popupCode_" + currentUser)) {
+        const popup = document.getElementById("user-popup");
+        popup.className = "popup green";
+        popup.innerText = `🎉 Ini kode kamu:\n${k}`;
+        popup.style.display = "block";
+        localStorage.setItem("popupCode_" + currentUser, k);
+      }
     }
-    const fileURL = URL.createObjectURL(fileInput.files[0]);
-    const item = document.createElement("div");
-    item.innerHTML = `<a href="${fileURL}" download style="color:lightblue;">⬇️ ${titleInput.value.trim()}</a>`;
-    list.appendChild(item);
-    fileInput.value = "";
-    titleInput.value = "";
-  }
 
-  document.getElementById("downloadButton").addEventListener("click", () => {
-    window.open("https://drive.google.com/file/d/1_Cw_DNgn6-TeL4lg53F0rF-8myuDo2_R/view?usp=sharing", "_blank");
-  });
-
-  window.onload = () => {
-    const saved = localStorage.getItem("username");
-    if (saved) {
-      document.getElementById("usernameInput").value = saved;
-      loginUser();
+    function closePopup() {
+      document.getElementById("user-popup").style.display = "none";
+      localStorage.removeItem("popup_" + currentUser);
     }
-  };
-</script>
 
+    function kirimPopupKeUser() {
+      const target = document.getElementById("popupTarget").value.trim();
+      const msg = document.getElementById("popupMessage").value.trim();
+      const type = document.getElementById("popupType").value;
+      if (!target || !msg) return alert("Isi username & pesan.");
+      const popupData = { msg, type };
+      localStorage.setItem("popup_" + target, JSON.stringify(popupData));
+      alert("Pop-up dikirim ke " + target);
+    }
+
+    function tambahFileDownload() {
+      const list = document.getElementById("fileDownloadList");
+      const fileInput = document.getElementById("fileInput");
+      const titleInput = document.getElementById("fileTitleInput");
+
+      if (!fileInput.files[0] || !titleInput.value.trim()) {
+        return alert("Pilih file dan isi judul terlebih dahulu.");
+      }
+
+      const fileURL = URL.createObjectURL(fileInput.files[0]);
+      const item = document.createElement("div");
+      item.innerHTML = `<a href="${fileURL}" download>⬇️ ${titleInput.value.trim()}</a>`;
+      list.appendChild(item);
+
+      fileInput.value = "";
+      titleInput.value = "";
+    }
+
+    fetch("https://yourdomain.com/version.json")
+      .then(res => res.json())
+      .then(data => {
+        if (data.version !== "1.0.0") {
+          document.getElementById("updatePopup").style.display = "block";
+        }
+      })
+      .catch(err => console.error("Gagal cek versi:", err));
+
+    window.onload = () => {
+      const saved = localStorage.getItem("username");
+      if (saved) {
+        document.getElementById("usernameInput").value = saved;
+        loginUser();
+      }
+    };
+  </script>
 </body>
 </html>
