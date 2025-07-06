@@ -219,23 +219,21 @@
     const msg = document.getElementById("popupMessage").value.trim();
     const type = document.getElementById("popupType").value;
     if (!target || !msg) return alert("Isi username & pesan.");
-    let allPopups = JSON.parse(localStorage.getItem("pendingPopups")) || {};
-    if (!allPopups[target]) allPopups[target] = [];
-    allPopups[target].push({ msg, type });
-    localStorage.setItem("pendingPopups", JSON.stringify(allPopups));
+    const popupData = { msg, type };
+    localStorage.setItem("popup_" + target, JSON.stringify(popupData));
     alert("Pop-up dikirim ke " + target);
   }
 
   function checkPopup() {
-    let allPopups = JSON.parse(localStorage.getItem("pendingPopups")) || {};
-    if (allPopups[currentUser] && allPopups[currentUser].length > 0) {
-      const p = allPopups[currentUser].shift();
+    const popupRaw = localStorage.getItem("popup_" + currentUser);
+    if (popupRaw) {
+      const p = JSON.parse(popupRaw);
       const popup = document.getElementById("user-popup");
       popup.className = "popup " + p.type;
       popup.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
       popup.style.display = "block";
       setTimeout(() => popup.style.display = "none", 6000);
-      localStorage.setItem("pendingPopups", JSON.stringify(allPopups));
+      localStorage.removeItem("popup_" + currentUser);
     }
   }
 
