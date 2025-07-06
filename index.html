@@ -134,9 +134,9 @@
 
   <script>
     const codePools = {
-      reguler: [...Array(50)].map((_, i) => `PM-RG-${i+1}`),
-      exclusive: [...Array(50)].map((_, i) => `PM-EX-${i+1}`),
-      super: [...Array(50)].map((_, i) => `PM-SP-${i+1}`)
+      reguler: [...Array(50)].map((_, i) => `PM-RG-${i+1}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`),
+      exclusive: [...Array(50)].map((_, i) => `PM-EX-${i+1}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`),
+      super: [...Array(50)].map((_, i) => `PM-SP-${i+1}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`)
     };
 
     const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
@@ -144,8 +144,7 @@
     const userList = JSON.parse(localStorage.getItem("userList") || "[]");
 
     function loginUser() {
-      const userRaw = document.getElementById("usernameInput").value.trim();
-      const user = userRaw.toLowerCase();
+      const user = document.getElementById("usernameInput").value.trim();
       if (!user) return alert("Isi username dulu!");
 
       if (!userList.includes(user)) {
@@ -154,11 +153,11 @@
       }
 
       localStorage.setItem("username", user);
-      document.getElementById("userNameDisplay").innerText = userRaw;
+      document.getElementById("userNameDisplay").innerText = user;
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
 
-      if (user === "rozaq" || user === "rozak") {
+      if (["rozaq", "rozak"].includes(user.toLowerCase())) {
         document.getElementById("adminPanel").style.display = "block";
         updateUserList();
       }
@@ -174,7 +173,7 @@
 
     function beriKode() {
       const userRaw = document.getElementById("targetUser").value.trim();
-      const user = userRaw.toLowerCase();
+      const user = userRaw;
       const pack = document.getElementById("packSelect").value;
       if (!user) return alert("Masukkan username!");
 
@@ -193,6 +192,13 @@
       localStorage.removeItem(`popupCode_${user}`);
 
       document.getElementById("adminStatus").innerHTML = `✅ Kode <b>${kode}</b> dikirim ke <b>${user}</b>`;
+
+      const currentUser = localStorage.getItem("username");
+      if (currentUser === user) {
+        localStorage.setItem(`popupCode_${user}`, kode);
+        document.getElementById("popupKode").innerText = kode;
+        document.getElementById("popup").classList.remove("hidden");
+      }
     }
 
     function closePopup() {
