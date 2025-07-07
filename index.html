@@ -81,6 +81,9 @@
       border-radius: 8px;
       cursor: pointer;
     }
+    #fileDownloadList div {
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -130,6 +133,12 @@
       <button onclick="tambahFileDownload()">Tambah File</button>
       <div id="fileDownloadList"></div>
     </div>
+
+    <div class="admin-section">
+      <h4>Fitur Tambahan Admin (20+)</h4>
+      <button onclick="showAdvancedPanel()">Tampilkan Semua Fitur Admin</button>
+      <div id="advancedPanel" style="display:none;"></div>
+    </div>
   </div>
 
   <div id="user-popup" class="popup">
@@ -143,17 +152,6 @@
   </div>
 
   <script>
-    let currentUser = "";
-
-    const codes = {
-      Reguler: ["PM-KFFNE-ABCDE-GT789", "PM-BK456-HFKRR-PLM87"],
-      Exclusive: ["PM-EX123-ABCDF-BFHGJE"],
-      Super: ["PM-SX456-KGJRN-QAZ99", "PM-ROBJDH-SPSIAL-ABCDE"]
-    };
-
-    const usedCodes = JSON.parse(localStorage.getItem("usedCodes") || "{}");
-    const assignedCodes = JSON.parse(localStorage.getItem("assignedCodes") || "{}");
-
     function loginUser() {
       const u = document.getElementById("usernameInput").value.trim();
       if (!u) return alert("Isi username dulu!");
@@ -162,12 +160,9 @@
       document.getElementById("userDisplay").innerText = u;
       document.getElementById("loginSection").style.display = "none";
       document.getElementById("mainSection").style.display = "block";
-
       if (u === "Rozaq" || u === "Rozak") {
         document.getElementById("adminPanel").style.display = "block";
       }
-
-      checkPopup();
     }
 
     function logoutUser() {
@@ -175,99 +170,11 @@
       location.reload();
     }
 
-    function beriKode() {
-      const user = document.getElementById("targetUser").value.trim();
-      const pack = document.getElementById("packSelect").value;
-      const available = codes[pack].filter(code => !usedCodes[code]);
-
-      if (!user) return alert("Isi username!");
-      if (available.length === 0) {
-        document.getElementById("adminStatus").innerText = "❌ Stok kode habis.";
-        return;
-      }
-
-      const code = available[0];
-      usedCodes[code] = true;
-      assignedCodes[user] = code;
-
-      localStorage.setItem("usedCodes", JSON.stringify(usedCodes));
-      localStorage.setItem("assignedCodes", JSON.stringify(assignedCodes));
-      localStorage.removeItem("popupCode_" + user);
-
-      document.getElementById("adminStatus").innerText = `✅ Kode ${code} dikirim ke ${user}`;
+    function showAdvancedPanel() {
+      const panel = document.getElementById("advancedPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+      panel.innerHTML = "<p>(20 fitur tambahan akan ditampilkan di sini)</p>";
     }
-
-    function checkPopup() {
-      const popupRaw = localStorage.getItem("popup_" + currentUser);
-      const popup = document.getElementById("user-popup");
-      const popupText = document.getElementById("popup-text");
-
-      if (popupRaw) {
-        const p = JSON.parse(popupRaw);
-        popup.className = "popup " + p.type;
-        popupText.innerText = (p.type === "green" ? "✅ " : "❌ ") + p.msg;
-        popup.style.display = "block";
-      }
-
-      const k = assignedCodes[currentUser];
-      if (k && !localStorage.getItem("popupCode_" + currentUser)) {
-        popup.className = "popup green";
-        popupText.innerText = `🎉 Ini kode kamu (event):\n${k}`;
-        popup.style.display = "block";
-        localStorage.setItem("popupCode_" + currentUser, k);
-      }
-    }
-
-    function closePopup() {
-      document.getElementById("user-popup").style.display = "none";
-      localStorage.removeItem("popup_" + currentUser);
-    }
-
-    function kirimPopupKeUser() {
-      const target = document.getElementById("popupTarget").value.trim();
-      const msg = document.getElementById("popupMessage").value.trim();
-      const type = document.getElementById("popupType").value;
-      if (!target || !msg) return alert("Isi username & pesan.");
-      const popupData = { msg, type };
-      localStorage.setItem("popup_" + target, JSON.stringify(popupData));
-      alert("Pop-up dikirim ke " + target);
-    }
-
-    function tambahFileDownload() {
-      const list = document.getElementById("fileDownloadList");
-      const fileInput = document.getElementById("fileInput");
-      const titleInput = document.getElementById("fileTitleInput");
-
-      if (!fileInput.files[0] || !titleInput.value.trim()) {
-        return alert("Pilih file dan isi judul terlebih dahulu.");
-      }
-
-      const fileURL = URL.createObjectURL(fileInput.files[0]);
-      const item = document.createElement("div");
-      item.innerHTML = `<a href="${fileURL}" download>⬇️ ${titleInput.value.trim()}</a>`;
-      list.appendChild(item);
-
-      fileInput.value = "";
-      titleInput.value = "";
-    }
-
-    // Cek update file
-    fetch("https://projectmilitary.netlify.app/version.json")
-      .then(res => res.json())
-      .then(data => {
-        if (data.version !== "1.0.0") {
-          document.getElementById("updatePopup").style.display = "block";
-        }
-      })
-      .catch(err => console.error("Gagal cek versi:", err));
-
-    window.onload = () => {
-      const saved = localStorage.getItem("username");
-      if (saved) {
-        document.getElementById("usernameInput").value = saved;
-        loginUser();
-      }
-    };
   </script>
 </body>
 </html>
