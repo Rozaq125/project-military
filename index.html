@@ -135,6 +135,24 @@
     </div>
 
     <div class="admin-section">
+      <h4>🎟️ Tambahkan Kode Redeem Manual</h4>
+      <select id="kodeKategori">
+        <option value="Reguler">Reguler</option>
+        <option value="Exclusive">Exclusive</option>
+        <option value="Super">Super Exclusive</option>
+      </select>
+      <input type="text" id="kodeInput" placeholder="Contoh: PM-XXXXX-XXXXX-XXXXX" />
+      <button onclick="tambahKodeManual()">Tambah Kode</button>
+      <p id="kodeStatus"></p>
+    </div>
+
+    <div class="admin-section">
+      <h4>📦 Cek Stok Kode Redeem</h4>
+      <button onclick="tampilkanStok()">Lihat Stok Tersedia</button>
+      <div id="stokList"></div>
+    </div>
+
+    <div class="admin-section">
       <h4>Fitur Tambahan Admin (20+)</h4>
       <button onclick="showAdvancedPanel()">Tampilkan Semua Fitur Admin</button>
       <div id="advancedPanel" style="display:none;"></div>
@@ -152,6 +170,18 @@
   </div>
 
   <script>
+    let currentUser = "";
+
+    // Inisialisasi
+    if (!localStorage.getItem("redeemCodes")) {
+      const initCodes = {
+        Reguler: [],
+        Exclusive: [],
+        Super: []
+      };
+      localStorage.setItem("redeemCodes", JSON.stringify(initCodes));
+    }
+
     function loginUser() {
       const u = document.getElementById("usernameInput").value.trim();
       if (!u) return alert("Isi username dulu!");
@@ -174,6 +204,85 @@
       const panel = document.getElementById("advancedPanel");
       panel.style.display = panel.style.display === "none" ? "block" : "none";
       panel.innerHTML = "<p>(20 fitur tambahan akan ditampilkan di sini)</p>";
+    }
+
+    function tambahKodeManual() {
+      const tipe = document.getElementById("kodeKategori").value;
+      const kode = document.getElementById("kodeInput").value.trim();
+      if (!kode.startsWith("PM-") || kode.length < 10) {
+        document.getElementById("kodeStatus").innerText = "❌ Format kode salah atau terlalu pendek!";
+        return;
+      }
+      let codes = JSON.parse(localStorage.getItem("redeemCodes"));
+      if (codes[tipe].includes(kode)) {
+        document.getElementById("kodeStatus").innerText = "❌ Kode sudah ada!";
+        return;
+      }
+      codes[tipe].push(kode);
+      localStorage.setItem("redeemCodes", JSON.stringify(codes));
+      document.getElementById("kodeStatus").innerText = `✅ Kode ${kode} berhasil ditambahkan ke kategori ${tipe}.`;
+      document.getElementById("kodeInput").value = "";
+    }
+
+    function tampilkanStok() {
+      const codes = JSON.parse(localStorage.getItem("redeemCodes"));
+      let html = "<ul>";
+      for (let tipe in codes) {
+        html += `<li><strong>${tipe}:</strong> ${codes[tipe].length} kode</li>`;
+      }
+      html += "</ul>";
+      document.getElementById("stokList").innerHTML = html;
+    }
+
+    function closePopup() {
+      document.getElementById("user-popup").style.display = "none";
+    }
+
+    function tambahFileDownload() {
+      const fileTitle = document.getElementById("fileTitleInput").value;
+      if (!fileTitle) return alert("Masukkan judul file!");
+      const fileList = document.getElementById("fileDownloadList");
+      const fileElement = document.createElement("div");
+      fileElement.innerHTML = `📄 <a href="#">${fileTitle}</a>`;
+      fileList.appendChild(fileElement);
+      document.getElementById("fileTitleInput").value = "";
+    }
+
+    function kirimPopupKeUser() {
+      const target = document.getElementById("popupTarget").value.trim();
+      const tipe = document.getElementById("popupType").value;
+      const pesan = document.getElementById("popupMessage").value;
+      if (currentUser === target) {
+        const popup = document.getElementById("user-popup");
+        popup.className = `popup ${tipe}`;
+        document.getElementById("popup-text").innerText = pesan;
+        popup.style.display = "block";
+      } else {
+        alert("Popup dikirim (simulasi hanya tampil di user yang sama)");
+      }
+    }
+
+    function beriKode() {
+      const user = document.getElementById("targetUser").value.trim();
+      const tipe = document.getElementById("packSelect").value;
+      const codes = JSON.parse(localStorage.getItem("redeemCodes"));
+      if (!codes[tipe] || codes[tipe].length === 0) {
+        document.getElementById("adminStatus").innerText = "❌ Stok kode habis!";
+        return;
+      }
+      const kode = codes[tipe].shift();
+      localStorage.setItem("redeemCodes", JSON.stringify(codes));
+      alert(`Kode ${kode} telah diberikan ke ${user} (simulasi manual)`);
+      document.getElementById("adminStatus").innerText = `✅ Kode ${kode} diberikan ke ${user}`;
+    }
+
+    // Auto-login user jika sudah login sebelumnya
+    window.onload = function() {
+      const saved = localStorage.getItem("username");
+      if (saved) {
+        document.getElementById("usernameInput").value = saved;
+        loginUser();
+      }
     }
   </script>
 </body>
