@@ -151,12 +151,6 @@
       <button onclick="tampilkanStok()">Lihat Stok Tersedia</button>
       <div id="stokList"></div>
     </div>
-
-    <div class="admin-section">
-      <h4>Fitur Tambahan Admin (20+)</h4>
-      <button onclick="showAdvancedPanel()">Tampilkan Semua Fitur Admin</button>
-      <div id="advancedPanel" style="display:none;"></div>
-    </div>
   </div>
 
   <div id="user-popup" class="popup">
@@ -172,7 +166,6 @@
   <script>
     let currentUser = "";
 
-    // Inisialisasi
     if (!localStorage.getItem("redeemCodes")) {
       const initCodes = {
         Reguler: [],
@@ -193,17 +186,12 @@
       if (u === "Rozaq" || u === "Rozak") {
         document.getElementById("adminPanel").style.display = "block";
       }
+      cekKodeUntukUser(u);
     }
 
     function logoutUser() {
       localStorage.removeItem("username");
       location.reload();
-    }
-
-    function showAdvancedPanel() {
-      const panel = document.getElementById("advancedPanel");
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-      panel.innerHTML = "<p>(20 fitur tambahan akan ditampilkan di sini)</p>";
     }
 
     function tambahKodeManual() {
@@ -272,11 +260,30 @@
       }
       const kode = codes[tipe].shift();
       localStorage.setItem("redeemCodes", JSON.stringify(codes));
-      alert(`Kode ${kode} telah diberikan ke ${user} (simulasi manual)`);
+
+      // Simpan kode ke pendingCodes
+      let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
+      pending[user] = {
+        kode: kode,
+        pesan: `Pembayaran berhasil ✅\nIni kode kamu:\n${kode}`
+      };
+      localStorage.setItem("pendingCodes", JSON.stringify(pending));
+
       document.getElementById("adminStatus").innerText = `✅ Kode ${kode} diberikan ke ${user}`;
     }
 
-    // Auto-login user jika sudah login sebelumnya
+    function cekKodeUntukUser(username) {
+      let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
+      if (pending[username]) {
+        const popup = document.getElementById("user-popup");
+        popup.className = "popup green";
+        document.getElementById("popup-text").innerText = pending[username].pesan;
+        popup.style.display = "block";
+        delete pending[username];
+        localStorage.setItem("pendingCodes", JSON.stringify(pending));
+      }
+    }
+
     window.onload = function() {
       const saved = localStorage.getItem("username");
       if (saved) {
