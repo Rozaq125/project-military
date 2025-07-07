@@ -53,36 +53,12 @@
     .popup.red { background: #f8d7da; color: #721c24; }
     .admin-section { margin-top: 20px; text-align: left; }
     a { color: lightblue; }
-    #updatePopup {
-      display: none;
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background-color: #272727;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.7);
-      z-index: 9999;
-      animation: slideUp 0.3s ease-out;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    #updatePopup p {
-      margin: 0 0 10px 0;
-      color: #fff;
-    }
-    #updatePopup button {
-      padding: 10px 18px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    #fileDownloadList div {
-      margin-top: 5px;
+    #fileDownloadList div { margin-top: 5px; }
+    #historyList, #purchaseStatus, #dailyRewardStatus {
+      margin-top: 20px;
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 10px;
     }
   </style>
 </head>
@@ -98,11 +74,16 @@
     <h2>Selamat datang, <span id="userDisplay"></span></h2>
     <button onclick="window.open('https://wa.me/6285282790834')">💰 Beli Sekarang</button>
     <button onclick="logoutUser()">Logout</button>
+
+    <div id="purchaseStatus">Status Pembelian: Belum ada transaksi.</div>
+    <div id="dailyRewardStatus">
+      <button onclick="klaimHarian()">🎁 Klaim Hadiah Harian</button>
+    </div>
+    <div id="historyList"><strong>Riwayat Kode:</strong><ul id="historyUl"></ul></div>
   </div>
 
   <div id="adminPanel" style="display:none;">
     <h2>👑 Admin Panel</h2>
-
     <div class="admin-section">
       <h4>Kirim Kode Redeem</h4>
       <input type="text" id="targetUser" placeholder="Username Pembeli">
@@ -116,63 +97,47 @@
     </div>
 
     <div class="admin-section">
-      <h4>Kirim Pop-up ke User</h4>
-      <input type="text" id="popupTarget" placeholder="Username Tujuan">
-      <select id="popupType">
-        <option value="green">Kabar Baik ✅</option>
-        <option value="red">Kabar Buruk ❌</option>
-      </select>
-      <input type="text" id="popupMessage" placeholder="Isi Pesan">
-      <button onclick="kirimPopupKeUser()">Kirim Pop-up</button>
-    </div>
-
-    <div class="admin-section">
-      <h4>📦 Upload File Download</h4>
-      <input type="file" id="fileInput" />
-      <input type="text" id="fileTitleInput" placeholder="Judul File (misal: Download App Promi)" />
-      <button onclick="tambahFileDownload()">Tambah File</button>
-      <div id="fileDownloadList"></div>
-    </div>
-
-    <div class="admin-section">
-      <h4>🎟️ Tambahkan Kode Redeem Manual</h4>
+      <h4>Tambah Kode Manual</h4>
       <select id="kodeKategori">
         <option value="Reguler">Reguler</option>
         <option value="Exclusive">Exclusive</option>
         <option value="Super">Super Exclusive</option>
       </select>
-      <input type="text" id="kodeInput" placeholder="Contoh: PM-XXXXX-XXXXX-XXXXX" />
+      <input type="text" id="kodeInput" placeholder="PM-XXXXX-XXXXX-XXXXX" />
       <button onclick="tambahKodeManual()">Tambah Kode</button>
       <p id="kodeStatus"></p>
     </div>
 
     <div class="admin-section">
-      <h4>📦 Cek Stok Kode Redeem</h4>
-      <button onclick="tampilkanStok()">Lihat Stok Tersedia</button>
+      <h4>📦 Cek Stok Kode</h4>
+      <button onclick="tampilkanStok()">Lihat Stok</button>
       <div id="stokList"></div>
+    </div>
+
+    <div class="admin-section">
+      <h4>📁 Upload File</h4>
+      <input type="file" id="fileInput" />
+      <input type="text" id="fileTitleInput" placeholder="Judul File (misal: App Promi)" />
+      <button onclick="tambahFileDownload()">Tambah File</button>
+      <div id="fileDownloadList"></div>
     </div>
   </div>
 
   <div id="user-popup" class="popup">
     <span id="popup-text"></span><br><br>
+    <button onclick="window.open(redeemLink)">Masuki dan Redeem Game</button>
+    <button onclick="window.open(panduanLink)">Langkah-langkah Redeem</button><br><br>
     <button onclick="closePopup()">Tutup</button>
-  </div>
-
-  <div id="updatePopup">
-    <p><strong>📦 App redeem pc telah diperbarui! Download versi terbaru:</strong></p>
-    <button onclick="window.open('https://projectmilitary.netlify.app/Project Military Setup 1.0.0.exe')">Download File</button>
   </div>
 
   <script>
     let currentUser = "";
+    const redeemLink = "https://www.roblox.com/games/1234567890/Project-Military"; // GANTI LINK
+    const panduanLink = "https://yourwebsite.com/panduan-redeem"; // GANTI LINK
 
     if (!localStorage.getItem("redeemCodes")) {
-      const initCodes = {
-        Reguler: [],
-        Exclusive: [],
-        Super: []
-      };
-      localStorage.setItem("redeemCodes", JSON.stringify(initCodes));
+      const init = { Reguler: [], Exclusive: [], Super: [] };
+      localStorage.setItem("redeemCodes", JSON.stringify(init));
     }
 
     function loginUser() {
@@ -187,6 +152,8 @@
         document.getElementById("adminPanel").style.display = "block";
       }
       cekKodeUntukUser(u);
+      updateHistory();
+      updatePembelian();
     }
 
     function logoutUser() {
@@ -198,7 +165,7 @@
       const tipe = document.getElementById("kodeKategori").value;
       const kode = document.getElementById("kodeInput").value.trim();
       if (!kode.startsWith("PM-") || kode.length < 10) {
-        document.getElementById("kodeStatus").innerText = "❌ Format kode salah atau terlalu pendek!";
+        document.getElementById("kodeStatus").innerText = "❌ Format kode salah!";
         return;
       }
       let codes = JSON.parse(localStorage.getItem("redeemCodes"));
@@ -208,7 +175,7 @@
       }
       codes[tipe].push(kode);
       localStorage.setItem("redeemCodes", JSON.stringify(codes));
-      document.getElementById("kodeStatus").innerText = `✅ Kode ${kode} berhasil ditambahkan ke kategori ${tipe}.`;
+      document.getElementById("kodeStatus").innerText = `✅ Kode ${kode} ditambahkan ke ${tipe}`;
       document.getElementById("kodeInput").value = "";
     }
 
@@ -222,32 +189,12 @@
       document.getElementById("stokList").innerHTML = html;
     }
 
-    function closePopup() {
-      document.getElementById("user-popup").style.display = "none";
-    }
-
     function tambahFileDownload() {
-      const fileTitle = document.getElementById("fileTitleInput").value;
-      if (!fileTitle) return alert("Masukkan judul file!");
-      const fileList = document.getElementById("fileDownloadList");
-      const fileElement = document.createElement("div");
-      fileElement.innerHTML = `📄 <a href="#">${fileTitle}</a>`;
-      fileList.appendChild(fileElement);
+      const title = document.getElementById("fileTitleInput").value;
+      const div = document.createElement("div");
+      div.innerHTML = `📁 <a href="#">${title}</a>`;
+      document.getElementById("fileDownloadList").appendChild(div);
       document.getElementById("fileTitleInput").value = "";
-    }
-
-    function kirimPopupKeUser() {
-      const target = document.getElementById("popupTarget").value.trim();
-      const tipe = document.getElementById("popupType").value;
-      const pesan = document.getElementById("popupMessage").value;
-      if (currentUser === target) {
-        const popup = document.getElementById("user-popup");
-        popup.className = `popup ${tipe}`;
-        document.getElementById("popup-text").innerText = pesan;
-        popup.style.display = "block";
-      } else {
-        alert("Popup dikirim (simulasi hanya tampil di user yang sama)");
-      }
     }
 
     function beriKode() {
@@ -260,8 +207,6 @@
       }
       const kode = codes[tipe].shift();
       localStorage.setItem("redeemCodes", JSON.stringify(codes));
-
-      // Simpan kode ke pendingCodes
       let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
       pending[user] = {
         kode: kode,
@@ -269,22 +214,65 @@
       };
       localStorage.setItem("pendingCodes", JSON.stringify(pending));
 
-      document.getElementById("adminStatus").innerText = `✅ Kode ${kode} diberikan ke ${user}`;
+      let riwayat = JSON.parse(localStorage.getItem("historyCodes") || "{}");
+      if (!riwayat[user]) riwayat[user] = [];
+      riwayat[user].push(kode);
+      localStorage.setItem("historyCodes", JSON.stringify(riwayat));
+
+      let beli = JSON.parse(localStorage.getItem("purchases") || "{}");
+      beli[user] = `Terakhir beli: ${tipe}`;
+      localStorage.setItem("purchases", JSON.stringify(beli));
+
+      document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
     }
 
-    function cekKodeUntukUser(username) {
+    function cekKodeUntukUser(user) {
       let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-      if (pending[username]) {
+      if (pending[user]) {
         const popup = document.getElementById("user-popup");
         popup.className = "popup green";
-        document.getElementById("popup-text").innerText = pending[username].pesan;
+        document.getElementById("popup-text").innerText = pending[user].pesan;
         popup.style.display = "block";
-        delete pending[username];
+        delete pending[user];
         localStorage.setItem("pendingCodes", JSON.stringify(pending));
       }
     }
 
-    window.onload = function() {
+    function updateHistory() {
+      const list = JSON.parse(localStorage.getItem("historyCodes") || "{}");
+      const ul = document.getElementById("historyUl");
+      ul.innerHTML = "";
+      if (list[currentUser]) {
+        list[currentUser].forEach(code => {
+          ul.innerHTML += `<li>${code}</li>`;
+        });
+      } else {
+        ul.innerHTML = "<li>Belum ada kode.</li>";
+      }
+    }
+
+    function updatePembelian() {
+      const data = JSON.parse(localStorage.getItem("purchases") || "{}");
+      document.getElementById("purchaseStatus").innerText = data[currentUser] || "Status Pembelian: Belum ada transaksi.";
+    }
+
+    function klaimHarian() {
+      const today = new Date().toISOString().split("T")[0];
+      const claimed = JSON.parse(localStorage.getItem("dailyClaim") || "{}");
+      if (claimed[currentUser] === today) {
+        alert("❌ Kamu sudah klaim hari ini!");
+      } else {
+        claimed[currentUser] = today;
+        localStorage.setItem("dailyClaim", JSON.stringify(claimed));
+        alert("✅ Kamu mendapat hadiah harian!");
+      }
+    }
+
+    function closePopup() {
+      document.getElementById("user-popup").style.display = "none";
+    }
+
+    window.onload = () => {
       const saved = localStorage.getItem("username");
       if (saved) {
         document.getElementById("usernameInput").value = saved;
