@@ -1,89 +1,52 @@
+<!-- Full updated script with admin add & stock code system -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Project Military - Redeem</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    .container, #adminPanel {
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 500px;
-      margin: 20px auto;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: 16px;
-    }
-    button {
-      background: #00c853;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #009624;
-    }
-    #user-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      color: black;
-      padding: 20px;
-      border-radius: 10px;
-      display: none;
-      z-index: 9999;
-      min-width: 250px;
-    }
+    * { scrollbar-width: thin; scrollbar-color: #00c853 #0f2027; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0f2027; }
+    ::-webkit-scrollbar-thumb { background: #00c853; border-radius: 10px; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(to right, #0f2027, #203a43, #2c5364); color: white; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .container { padding: 20px; max-width: 600px; margin: 30px auto; background: rgba(255,255,255,0.05); border-radius: 12px; }
+    .section { margin-bottom: 40px; }
+    input, select, button, textarea { width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; border: none; font-size: 16px; }
+    button { background: #00c853; color: white; font-weight: bold; cursor: pointer; }
+    button:hover { background: #009624; }
+    #adminToggle { background: none; color: white; border: 1px solid white; padding: 8px 16px; border-radius: 8px; font-weight: bold; }
+    #adminPanel { display: none; }
     .popup.green { background: #d4edda; color: #155724; }
-    .popup.red { background: #f8d7da; color: #721c24; }
-    .admin-section { margin-top: 20px; text-align: left; }
-    a { color: lightblue; }
-    #fileDownloadList div { margin-top: 5px; }
-    #historyList, #purchaseStatus, #dailyRewardStatus {
-      margin-top: 20px;
-      background: rgba(0,0,0,0.3);
-      padding: 15px;
-      border-radius: 10px;
-    }
+    #user-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: black; padding: 20px; border-radius: 10px; display: none; z-index: 9999; min-width: 300px; text-align: center; }
+    .admin-section { margin-top: 30px; }
   </style>
 </head>
 <body>
-  <h1>🎮 Project Military - Redeem</h1>
+  <header>
+    <h2 style="margin:0;">🎮 Project Military</h2>
+    <button id="adminToggle" style="display:none;" onclick="toggleAdminPanel()">⚙️ Admin Panel</button>
+  </header>
 
-  <div class="container" id="loginSection">
+  <div class="container section" id="loginSection">
     <input type="text" id="usernameInput" placeholder="Masukkan Username" />
     <button onclick="loginUser()">Masuk</button>
   </div>
 
-  <div class="container" id="mainSection" style="display:none;">
-    <h2>Selamat datang, <span id="userDisplay"></span></h2>
+  <div class="container section" id="mainSection" style="display:none;">
+    <h3>Selamat datang, <span id="userDisplay"></span></h3>
     <button onclick="window.open('https://wa.me/6285282790834')">💰 Beli Sekarang</button>
     <button onclick="logoutUser()">Logout</button>
-
     <div id="purchaseStatus">Status Pembelian: Belum ada transaksi.</div>
-    <div id="dailyRewardStatus">
-      <button onclick="klaimHarian()">🎁 Klaim Hadiah Harian</button>
-    </div>
+    <div id="dailyRewardStatus"><button onclick="klaimHarian()">🎁 Klaim Hadiah Harian</button></div>
     <div id="historyList"><strong>Riwayat Kode:</strong><ul id="historyUl"></ul></div>
   </div>
 
-  <div id="adminPanel" style="display:none;">
-    <h2>👑 Admin Panel</h2>
+  <div class="container section" id="adminPanel">
+    <h3>👑 Admin Panel</h3>
+
     <div class="admin-section">
       <h4>Kirim Kode Redeem</h4>
       <input type="text" id="targetUser" placeholder="Username Pembeli">
@@ -97,29 +60,22 @@
     </div>
 
     <div class="admin-section">
-      <h4>Tambah Kode Manual</h4>
-      <select id="kodeKategori">
+      <h4>Tambah Stok Kode Manual</h4>
+      <textarea id="kodeManual" placeholder="Satu kode per baris.
+Contoh:
+PM-ABCDE-XYZ123
+PM-FGHIJ-KLM456"></textarea>
+      <select id="kodeTipe">
         <option value="Reguler">Reguler</option>
         <option value="Exclusive">Exclusive</option>
         <option value="Super">Super Exclusive</option>
       </select>
-      <input type="text" id="kodeInput" placeholder="PM-XXXXX-XXXXX-XXXXX" />
-      <button onclick="tambahKodeManual()">Tambah Kode</button>
-      <p id="kodeStatus"></p>
+      <button onclick="tambahKodeManual()">➕ Tambah ke Stok</button>
     </div>
 
     <div class="admin-section">
-      <h4>📦 Cek Stok Kode</h4>
-      <button onclick="tampilkanStok()">Lihat Stok</button>
-      <div id="stokList"></div>
-    </div>
-
-    <div class="admin-section">
-      <h4>📁 Upload File</h4>
-      <input type="file" id="fileInput" />
-      <input type="text" id="fileTitleInput" placeholder="Judul File (misal: App Promi)" />
-      <button onclick="tambahFileDownload()">Tambah File</button>
-      <div id="fileDownloadList"></div>
+      <h4>Lihat Stok Kode</h4>
+      <pre id="stokList" style="white-space: pre-wrap; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px;"></pre>
     </div>
   </div>
 
@@ -132,13 +88,8 @@
 
   <script>
     let currentUser = "";
-    const redeemLink = "https://www.roblox.com/games/1234567890/Project-Military"; // GANTI LINK
-    const panduanLink = "https://yourwebsite.com/panduan-redeem"; // GANTI LINK
-
-    if (!localStorage.getItem("redeemCodes")) {
-      const init = { Reguler: [], Exclusive: [], Super: [] };
-      localStorage.setItem("redeemCodes", JSON.stringify(init));
-    }
+    const redeemLink = "https://www.roblox.com/games/1234567890/Project-Military";
+    const panduanLink = "https://yourwebsite.com/panduan-redeem";
 
     function loginUser() {
       const u = document.getElementById("usernameInput").value.trim();
@@ -149,11 +100,12 @@
       document.getElementById("loginSection").style.display = "none";
       document.getElementById("mainSection").style.display = "block";
       if (u === "Rozaq" || u === "Rozak") {
-        document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("adminToggle").style.display = "inline-block";
       }
       cekKodeUntukUser(u);
       updateHistory();
       updatePembelian();
+      tampilkanStok();
     }
 
     function logoutUser() {
@@ -161,57 +113,21 @@
       location.reload();
     }
 
-    function tambahKodeManual() {
-      const tipe = document.getElementById("kodeKategori").value;
-      const kode = document.getElementById("kodeInput").value.trim();
-      if (!kode.startsWith("PM-") || kode.length < 10) {
-        document.getElementById("kodeStatus").innerText = "❌ Format kode salah!";
-        return;
-      }
-      let codes = JSON.parse(localStorage.getItem("redeemCodes"));
-      if (codes[tipe].includes(kode)) {
-        document.getElementById("kodeStatus").innerText = "❌ Kode sudah ada!";
-        return;
-      }
-      codes[tipe].push(kode);
-      localStorage.setItem("redeemCodes", JSON.stringify(codes));
-      document.getElementById("kodeStatus").innerText = `✅ Kode ${kode} ditambahkan ke ${tipe}`;
-      document.getElementById("kodeInput").value = "";
-    }
-
-    function tampilkanStok() {
-      const codes = JSON.parse(localStorage.getItem("redeemCodes"));
-      let html = "<ul>";
-      for (let tipe in codes) {
-        html += `<li><strong>${tipe}:</strong> ${codes[tipe].length} kode</li>`;
-      }
-      html += "</ul>";
-      document.getElementById("stokList").innerHTML = html;
-    }
-
-    function tambahFileDownload() {
-      const title = document.getElementById("fileTitleInput").value;
-      const div = document.createElement("div");
-      div.innerHTML = `📁 <a href="#">${title}</a>`;
-      document.getElementById("fileDownloadList").appendChild(div);
-      document.getElementById("fileTitleInput").value = "";
+    function toggleAdminPanel() {
+      const panel = document.getElementById("adminPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
     }
 
     function beriKode() {
       const user = document.getElementById("targetUser").value.trim();
       const tipe = document.getElementById("packSelect").value;
-      const codes = JSON.parse(localStorage.getItem("redeemCodes"));
-      if (!codes[tipe] || codes[tipe].length === 0) {
-        document.getElementById("adminStatus").innerText = "❌ Stok kode habis!";
-        return;
-      }
-      const kode = codes[tipe].shift();
-      localStorage.setItem("redeemCodes", JSON.stringify(codes));
+      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+      if (!stok[tipe] || stok[tipe].length === 0) return alert("❌ Stok kosong untuk " + tipe);
+      const kode = stok[tipe].shift();
+      localStorage.setItem("stokKode", JSON.stringify(stok));
+
       let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-      pending[user] = {
-        kode: kode,
-        pesan: `Pembayaran berhasil ✅\nIni kode kamu:\n${kode}`
-      };
+      pending[user] = { kode: kode, pesan: `Pembayaran berhasil ✅\nIni kode kamu:\n${kode}` };
       localStorage.setItem("pendingCodes", JSON.stringify(pending));
 
       let riwayat = JSON.parse(localStorage.getItem("historyCodes") || "{}");
@@ -224,6 +140,43 @@
       localStorage.setItem("purchases", JSON.stringify(beli));
 
       document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
+      tampilkanStok();
+    }
+
+    function tambahKodeManual() {
+      const text = document.getElementById("kodeManual").value.trim();
+      const tipe = document.getElementById("kodeTipe").value;
+      if (!text) return;
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+      stok[tipe] = stok[tipe] || [];
+      stok[tipe].push(...lines);
+      localStorage.setItem("stokKode", JSON.stringify(stok));
+      document.getElementById("kodeManual").value = "";
+      tampilkanStok();
+      alert("✅ Kode berhasil ditambahkan!");
+    }
+
+    function tampilkanStok() {
+      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+      let out = "";
+      ["Reguler", "Exclusive", "Super"].forEach(tipe => {
+        out += `\n${tipe}: ${stok[tipe] ? stok[tipe].length : 0} kode`;
+        if (stok[tipe]) stok[tipe].forEach(k => out += `\n- ${k}`);
+        out += "\n";
+      });
+      document.getElementById("stokList").innerText = out.trim();
+    }
+
+    function klaimHarian() {
+      const today = new Date().toISOString().split("T")[0];
+      const claimed = JSON.parse(localStorage.getItem("dailyClaim") || "{}");
+      if (claimed[currentUser] === today) alert("❌ Kamu sudah klaim hari ini!");
+      else {
+        claimed[currentUser] = today;
+        localStorage.setItem("dailyClaim", JSON.stringify(claimed));
+        alert("✅ Kamu mendapat hadiah harian!");
+      }
     }
 
     function cekKodeUntukUser(user) {
@@ -242,30 +195,13 @@
       const list = JSON.parse(localStorage.getItem("historyCodes") || "{}");
       const ul = document.getElementById("historyUl");
       ul.innerHTML = "";
-      if (list[currentUser]) {
-        list[currentUser].forEach(code => {
-          ul.innerHTML += `<li>${code}</li>`;
-        });
-      } else {
-        ul.innerHTML = "<li>Belum ada kode.</li>";
-      }
+      if (list[currentUser]) list[currentUser].forEach(code => ul.innerHTML += `<li>${code}</li>`);
+      else ul.innerHTML = "<li>Belum ada kode.</li>";
     }
 
     function updatePembelian() {
       const data = JSON.parse(localStorage.getItem("purchases") || "{}");
       document.getElementById("purchaseStatus").innerText = data[currentUser] || "Status Pembelian: Belum ada transaksi.";
-    }
-
-    function klaimHarian() {
-      const today = new Date().toISOString().split("T")[0];
-      const claimed = JSON.parse(localStorage.getItem("dailyClaim") || "{}");
-      if (claimed[currentUser] === today) {
-        alert("❌ Kamu sudah klaim hari ini!");
-      } else {
-        claimed[currentUser] = today;
-        localStorage.setItem("dailyClaim", JSON.stringify(claimed));
-        alert("✅ Kamu mendapat hadiah harian!");
-      }
     }
 
     function closePopup() {
