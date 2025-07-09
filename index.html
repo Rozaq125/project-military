@@ -479,4 +479,31 @@
             showChapterMessage(0); // Mulai dari Intro lagi
         }
 
-     
+        // Game Loop Utama
+        let lastFrameTime = 0;
+        function gameLoop(timestamp) {
+            if (!gameOver) {
+                const deltaTime = timestamp - lastFrameTime;
+                lastFrameTime = timestamp;
+
+                // Adjust game speed based on deltaTime if needed for consistency,
+                // but for simple game like this, direct update is often fine.
+                // Or you can make all speeds relative to a fixed framerate (e.g., 60fps)
+                // and multiply by (deltaTime / (1000 / 60))
+                
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // Mulai Game saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            resetGame(); // Panggil reset untuk menampilkan intro cerita
+            gameLoop(0); // Mulai game loop
+        });
+
+    </script>
+
+</body>
+</html>
