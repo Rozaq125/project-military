@@ -1,310 +1,482 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Military - Redeem</title>
-  <style>
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: #00c853 #0f2027;
-      cursor: url('https://i.imgur.com/hkYxnbw.png'), auto;
-    }
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #0f2027; }
-    ::-webkit-scrollbar-thumb { background: #00c853; border-radius: 10px; }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: white;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      background: rgba(255,255,255,0.05);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .container {
-      padding: 20px;
-      max-width: 600px;
-      margin: 30px auto;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-    }
-    input, select, button, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: 16px;
-    }
-    button {
-      background: #00c853;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover { background: #009624; }
-    #adminToggle {
-      background: none;
-      color: white;
-      border: 1px solid white;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: bold;
-    }
-    #adminPanel { display: none; }
-    #user-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      color: black;
-      padding: 20px;
-      border-radius: 10px;
-      display: none;
-      z-index: 9999;
-      min-width: 300px;
-      text-align: center;
-    }
-    .popup.green { background: #d4edda; color: #155724; }
-    .admin-section { margin-top: 30px; }
-    a { color: lightblue; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echoes of the Void - Game 2D Inline</title>
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a1a2e; /* Darker background */
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #e0e0e0;
+            flex-direction: column;
+            overflow: hidden; /* Prevent scrollbar */
+        }
+        canvas {
+            background-color: #000;
+            border: 3px solid #0f0;
+            display: block;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); /* Glowing border */
+        }
+        .game-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        h1 {
+            color: #00f0ff; /* Cyan title */
+            text-shadow: 0 0 5px #00f0ff;
+            margin-bottom: 10px;
+        }
+        .instructions {
+            font-size: 0.9em;
+            color: #a0a0a0;
+            margin-bottom: 15px;
+        }
+        #scoreDisplay {
+            color: #ffcc00; /* Gold score */
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .message-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); /* Semi-transparent black */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: #eee;
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+            z-index: 100;
+        }
+        .message-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-overlay button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .message-overlay button:hover {
+            background-color: #0056b3;
+        }
+        .dialog-text {
+            font-size: 1.1em;
+            max-width: 700px;
+            margin: 10px auto;
+            line-height: 1.6;
+        }
+        .dialog-title {
+            color: #ff00ff; /* Magenta for titles */
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h2 style="margin:0;">🎮 Project Military</h2>
-    <button id="adminToggle" style="display:none;" onclick="toggleAdminPanel()">⚙️ Admin Panel</button>
-  </header>
 
-  <div class="container" id="loginSection">
-    <input type="text" id="loginUsername" placeholder="Masukkan Username" />
-    <input type="password" id="loginPassword" placeholder="Masukkan Password" />
-    <button onclick="loginUser()">Masuk</button>
-    <p><a onclick="showResetForm()">Lupa Password?</a> | <a onclick="showRegisterForm()">Daftar Baru</a></p>
-  </div>
-
-  <div class="container" id="registerSection" style="display:none;">
-    <h3>📋 Daftar Akun</h3>
-    <input type="text" id="regUsername" placeholder="Buat Username" />
-    <input type="password" id="regPassword" placeholder="Buat Password" />
-    <button onclick="registerUser()">Daftar</button>
-    <p><a onclick="showLoginForm()">Kembali ke Login</a></p>
-  </div>
-
-  <div class="container" id="resetSection" style="display:none;">
-    <h3>🔐 Reset Password</h3>
-    <input type="email" id="resetEmail" placeholder="Masukkan Email Anda" />
-    <button onclick="kirimKodeReset()">Kirim Kode Verifikasi</button>
-    <div id="kodeSection" style="display:none;">
-      <input type="text" id="kodeOTP" placeholder="Masukkan Kode Verifikasi" />
-      <input type="password" id="newPass" placeholder="Password Baru" />
-      <button onclick="verifikasiKode()">Verifikasi & Ganti Password</button>
-    </div>
-    <p id="resetStatus"></p>
-  </div>
-
-  <div class="container" id="mainSection" style="display:none;">
-    <h3>Selamat datang, <span id="userDisplay"></span></h3>
-    <button onclick="window.open('https://wa.me/6285282790834')">💰 Beli Sekarang</button>
-    <button onclick="logoutUser()">Logout</button>
-  </div>
-
-  <div class="container" id="adminPanel">
-    <h3>👑 Admin Panel</h3>
-
-    <div class="admin-section">
-      <h4>Kirim Kode Redeem</h4>
-      <input type="text" id="targetUser" placeholder="Username Pembeli">
-      <select id="packSelect">
-        <option value="Reguler">Reguler</option>
-        <option value="Exclusive">Exclusive</option>
-        <option value="Super">Super Exclusive</option>
-      </select>
-      <button onclick="beriKode()">Kirim Kode</button>
-      <p id="adminStatus"></p>
+    <div class="game-container">
+        <h1>Echoes of the Void</h1>
+        <p class="instructions">Gerakkan pesawat dengan &larr; &rarr; (panah kiri/kanan). Tembak dengan [Spasi].</p>
+        <p>Skor: <span id="scoreDisplay">0</span></p>
     </div>
 
-    <div class="admin-section">
-      <h4>Tambah Stok Kode Manual</h4>
-      <textarea id="kodeManual" placeholder="Satu kode per baris."></textarea>
-      <select id="kodeTipe">
-        <option value="Reguler">Reguler</option>
-        <option value="Exclusive">Exclusive</option>
-        <option value="Super">Super Exclusive</option>
-      </select>
-      <button onclick="tambahKodeManual()">➕ Tambah ke Stok</button>
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+    <div id="messageOverlay" class="message-overlay">
+        <h2 class="dialog-title" id="dialogTitle"></h2>
+        <p class="dialog-text" id="dialogText"></p>
+        <button id="nextBtn">Lanjutkan</button>
     </div>
 
-    <div class="admin-section">
-      <h4>Lihat Stok Kode</h4>
-      <pre id="stokList" style="white-space: pre-wrap; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px;"></pre>
-    </div>
-  </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const messageOverlay = document.getElementById('messageOverlay');
+        const dialogTitle = document.getElementById('dialogTitle');
+        const dialogText = document.getElementById('dialogText');
+        const nextBtn = document.getElementById('nextBtn');
 
-  <div id="user-popup" class="popup green">
-    <span id="popup-text"></span><br><br>
-    <button onclick="copyCode()">📋 Copy Code</button><br><br>
-    <button onclick="window.open('https://www.roblox.com/games/1234567890/Project-Military')">Masuki dan Redeem Game</button>
-    <button onclick="window.open('https://yourwebsite.com/panduan-redeem')">Langkah-langkah Redeem</button><br><br>
-    <button onclick="closePopup()">Tutup</button>
-  </div>
+        // --- Game State Variables ---
+        let player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 70,
+            width: 50,
+            height: 50,
+            color: 'lime',
+            speed: 7,
+            isShooting: false,
+            invulnerable: 0 // Waktu kebal setelah kena, dalam frame
+        };
 
-  <script>
-    let currentUser = "";
-    let otpKode = "";
-    let emailTerkirim = "";
-    let kodeTerakhir = "";
+        let bullets = [];
+        let bulletSpeed = 10;
+        let bulletWidth = 6;
+        let bulletHeight = 18;
+        let bulletColor = 'yellow';
 
-    function showLoginForm() {
-      document.getElementById("registerSection").style.display = "none";
-      document.getElementById("resetSection").style.display = "none";
-      document.getElementById("loginSection").style.display = "block";
-    }
+        let enemies = []; // Akan berisi Void-Corrupted atau Mining Cores
+        let enemyType = 'voidCorrupted'; // 'voidCorrupted' atau 'miningCore'
+        let enemySpeed = 1.5;
+        let enemyWidth = 45;
+        let enemyHeight = 45;
+        let enemyColor = 'red';
+        let enemySpawnInterval = 1200; // spawn setiap 1.2 detik
+        let lastEnemySpawnTime = 0;
+        let enemiesToSpawn = 10; // Jumlah musuh per gelombang
+        let enemiesSpawned = 0;
 
-    function showRegisterForm() {
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("registerSection").style.display = "block";
-    }
+        let score = 0;
+        let gameOver = false;
+        let gamePaused = true; // Game dimulai dalam keadaan paused untuk narasi
+        let currentChapter = 0; // 0: Intro, 1: Babak 1, 2: Babak 2, 3: Plot Twist, 4: Babak Akhir, 5: Epilog
 
-    function registerUser() {
-      const u = document.getElementById("regUsername").value.trim();
-      const p = document.getElementById("regPassword").value.trim();
-      if (!u || !p) return alert("Isi semua kolom!");
-      let users = JSON.parse(localStorage.getItem("users") || "{}");
-      if (users[u]) return alert("❌ Username sudah digunakan!");
-      users[u] = { password: p };
-      localStorage.setItem("users", JSON.stringify(users));
-      alert("✅ Akun berhasil dibuat, silakan login.");
-      showLoginForm();
-    }
+        // --- Input Keyboard ---
+        let keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (gamePaused && e.code === 'Space') { // Allow space to advance dialog
+                nextBtn.click();
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
 
-    function loginUser() {
-      const u = document.getElementById("loginUsername").value.trim();
-      const p = document.getElementById("loginPassword").value.trim();
-      if (!u || !p) return alert("Isi semua kolom!");
-      let users = JSON.parse(localStorage.getItem("users") || "{}");
-      if (!users[u] || users[u].password !== p) return alert("❌ Username atau password salah!");
-      currentUser = u;
-      localStorage.setItem("username", u);
-      document.getElementById("userDisplay").innerText = u;
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("mainSection").style.display = "block";
-      if (u === "Rozaq" && p === "akurozaknih") {
-        document.getElementById("adminToggle").style.display = "inline-block";
-      }
-      cekKodeUntukUser(u);
-    }
+        // --- Cerita dan Narasi ---
+        const chapters = [
+            {
+                title: "Echoes of the Void: Prolog",
+                text: "Kamu adalah Ace, pilot terakhir skuadron Starfall. Misi patroli rutin di Sektor Nexus yang kini sunyi. 5 tahun setelah 'Great Silence', tak ada yang datang, tak ada yang pergi...",
+                action: () => { startGameChapter(1); }
+            },
+            {
+                title: "Babak 1: Gelombang Pertama",
+                text: "Sensor pesawatmu mendeteksi anomali! Makhluk asing mulai muncul dari Void. Tujuan mereka tidak jelas, tapi mereka bukan kawan. Hancurkan mereka!",
+                action: () => { gamePaused = false; enemyType = 'voidCorrupted'; enemiesToSpawn = 20; enemySpawnInterval = 1200; enemySpeed = 1.5; }
+            },
+            {
+                title: "Babak 2: Jejak Cahaya Kuno",
+                text: "Musuh semakin banyak. Namun, ada sumber energi kuat di depan: sebuah Pilar Cahaya Kuno! Sinyalnya aneh... Dekati dan lindungi pesawatmu untuk memecahkan kode!",
+                action: () => { gamePaused = false; enemiesToSpawn = 30; enemySpawnInterval = 1000; enemySpeed = 2; }
+            },
+            {
+                title: "PLOT TWIST: Kebenaran Terungkap",
+                text: "Rekaman dari Pilar terurai... Musuh yang kamu lawan BUKAN alien penjajah! Mereka adalah Void-Corrupted, mantan penduduk Sektor Nexus, termasuk Dr. Lyra Vaan! Mereka diubah oleh 'Energi Void' yang ditambang Galactic Council secara rahasia. Kamu selama ini melindungi sistem penambangan yang menghancurkan mereka! Suara bisikan itu peringatan mereka! Sekarang, misi barumu: Hancurkan titik-titik penambangan!",
+                action: () => { startGameChapter(4); }
+            },
+            {
+                title: "Babak Akhir: Pilihan Terakhir",
+                text: "Saatnya menghentikan kehancuran. Hancurkan Core Penambangan Utama! Lindungi dirimu dari sisa-sisa Void-Corrupted yang akan mencoba menghentikanmu!",
+                action: () => { gamePaused = false; enemyType = 'miningCore'; enemiesToSpawn = 1; // Only 1 final core
+                                enemyColor = 'darkblue'; enemyWidth = 80; enemyHeight = 80; // Make core bigger
+                                enemySpeed = 0.5; // Core moves slower
+                                // Also spawn some void corrupted as support
+                                lastEnemySpawnTime = Date.now(); // Reset spawn timer for support enemies
+                                spawnSupportEnemies(); // Start spawning support enemies
+                            }
+            },
+            {
+                title: "Epilog: Harapan Baru",
+                text: "Kamu berhasil! Core Penambangan Utama hancur. Sektor Nexus perlahan mulai pulih. Sebuah pesan terakhir dari Lyra Vaan bergema: 'Terima kasih, Ace. Semoga masa depan lebih baik...'. Kemanusiaan menemukan jalannya.",
+                action: () => { showGameOver('SELAMAT! Kemenangan!', 'green'); }
+            },
+            {
+                title: "Epilog: The Silence Deepens",
+                text: "Kegagalan... Sektor Nexus runtuh sepenuhnya, dilahap Energi Void tak terkendali. Pesawatmu hancur. Kegelapan menelan semua...",
+                action: () => { showGameOver('GAME OVER! Kegagalan Misi!', 'red'); }
+            }
+        ];
 
-    function logoutUser() {
-      localStorage.removeItem("username");
-      location.reload();
-    }
+        // --- Fungsi Kontrol Cerita ---
+        function showChapterMessage(chapterIndex) {
+            const chapter = chapters[chapterIndex];
+            dialogTitle.textContent = chapter.title;
+            dialogText.textContent = chapter.text;
+            messageOverlay.classList.add('active');
+            gamePaused = true;
+            nextBtn.onclick = () => {
+                messageOverlay.classList.remove('active');
+                chapter.action();
+            };
+        }
 
-    function toggleAdminPanel() {
-      const panel = document.getElementById("adminPanel");
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-    }
+        function startGameChapter(chapterNum) {
+            currentChapter = chapterNum;
+            enemies = []; // Clear any existing enemies
+            enemiesSpawned = 0;
+            lastEnemySpawnTime = Date.now(); // Reset timer
+            gamePaused = false;
+        }
 
-    function beriKode() {
-      const user = document.getElementById("targetUser").value.trim();
-      const tipe = document.getElementById("packSelect").value;
-      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-      if (!stok[tipe] || stok[tipe].length === 0) return alert("❌ Stok kosong untuk " + tipe);
-      const kode = stok[tipe].shift();
-      localStorage.setItem("stokKode", JSON.stringify(stok));
-      let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-      pending[user] = { kode: kode, pesan: `Pembayaran berhasil ✅\nIni kode kamu:\n${kode}` };
-      localStorage.setItem("pendingCodes", JSON.stringify(pending));
-      document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
-      tampilkanStok();
-    }
+        function showGameOver(title, color) {
+            gameOver = true;
+            gamePaused = true;
+            dialogTitle.textContent = title;
+            dialogTitle.style.color = color;
+            dialogText.textContent = `Skor Akhir Anda: ${score}.`;
+            messageOverlay.classList.add('active');
+            nextBtn.textContent = "Mulai Ulang";
+            nextBtn.onclick = resetGame;
+        }
 
-    function tambahKodeManual() {
-      const text = document.getElementById("kodeManual").value.trim();
-      const tipe = document.getElementById("kodeTipe").value;
-      if (!text) return;
-      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-      stok[tipe] = stok[tipe] || [];
-      stok[tipe].push(...lines);
-      localStorage.setItem("stokKode", JSON.stringify(stok));
-      document.getElementById("kodeManual").value = "";
-      tampilkanStok();
-    }
+        // --- Game Logic Functions ---
 
-    function tampilkanStok() {
-      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-      let out = "";
-      ["Reguler", "Exclusive", "Super"].forEach(tipe => {
-        out += `\n${tipe}: ${stok[tipe] ? stok[tipe].length : 0} kode`;
-        if (stok[tipe]) stok[tipe].forEach(k => out += `\n- ${k}`);
-        out += "\n";
-      });
-      document.getElementById("stokList").innerText = out.trim();
-    }
+        // Fungsi untuk menggambar objek
+        function drawRect(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+        }
 
-    function cekKodeUntukUser(user) {
-      let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-      if (pending[user]) {
-        kodeTerakhir = pending[user].kode;
-        const popup = document.getElementById("user-popup");
-        document.getElementById("popup-text").innerText = pending[user].pesan;
-        popup.style.display = "block";
-        delete pending[user];
-        localStorage.setItem("pendingCodes", JSON.stringify(pending));
-      }
-    }
+        // Update posisi dan logika game
+        function update() {
+            if (gamePaused) return;
 
-    function copyCode() {
-      navigator.clipboard.writeText(kodeTerakhir);
-      alert("✅ Kode berhasil disalin!");
-    }
+            // Gerakan Pemain
+            if (keys['ArrowLeft'] && player.x > 0) {
+                player.x -= player.speed;
+            }
+            if (keys['ArrowRight'] && player.x + player.width < canvas.width) {
+                player.x += player.speed;
+            }
 
-    function closePopup() {
-      document.getElementById("user-popup").style.display = "none";
-    }
+            // Tembak Peluru
+            if (keys['Space'] && !player.isShooting) {
+                bullets.push({
+                    x: player.x + player.width / 2 - bulletWidth / 2,
+                    y: player.y,
+                    width: bulletWidth,
+                    height: bulletHeight,
+                    color: bulletColor
+                });
+                player.isShooting = true;
+            }
+            if (!keys['Space']) {
+                player.isShooting = false;
+            }
 
-    function showResetForm() {
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("resetSection").style.display = "block";
-    }
+            // Update Peluru
+            for (let i = 0; i < bullets.length; i++) {
+                bullets[i].y -= bulletSpeed;
+                if (bullets[i].y < 0) {
+                    bullets.splice(i, 1);
+                    i--;
+                }
+            }
 
-    function kirimKodeReset() {
-      const email = document.getElementById("resetEmail").value.trim();
-      if (!email) return alert("Masukkan email dulu!");
-      otpKode = Math.floor(100000 + Math.random() * 900000).toString();
-      emailTerkirim = email;
-      alert(`📧 Kode verifikasi dikirim ke ${email}\n\nDari: ProjectMiliterIndonesia@gmail.com\nKode: ${otpKode}`);
-      document.getElementById("kodeSection").style.display = "block";
-      document.getElementById("resetStatus").innerText = "Silakan masukkan kode verifikasi.";
-    }
+            // Spawn Musuh/Core (berdasarkan chapter)
+            const currentTime = Date.now();
+            if (currentChapter === 1 || currentChapter === 2) { // Babak 1 & 2: Spawn Void-Corrupted
+                if (enemiesSpawned < enemiesToSpawn && currentTime - lastEnemySpawnTime > enemySpawnInterval) {
+                    enemies.push({
+                        x: Math.random() * (canvas.width - enemyWidth),
+                        y: -enemyHeight,
+                        width: enemyWidth,
+                        height: enemyHeight,
+                        color: enemyColor,
+                        health: (currentChapter === 1 ? 1 : 2) // Musuh babak 2 lebih kuat
+                    });
+                    lastEnemySpawnTime = currentTime;
+                    enemiesSpawned++;
+                    // Percepat spawn dan kecepatan musuh sedikit seiring waktu
+                    if (enemySpawnInterval > 300) enemySpawnInterval -= 5;
+                    enemySpeed += 0.005;
+                }
+                // Jika sudah spawn semua musuh, pindah chapter
+                if (enemiesSpawned >= enemiesToSpawn && enemies.length === 0) {
+                    if (currentChapter === 1) showChapterMessage(2); // Ke Babak 2
+                    else if (currentChapter === 2) showChapterMessage(3); // Ke Plot Twist
+                }
+            } else if (currentChapter === 4) { // Babak Akhir: Core Penambangan & Support
+                if (enemies.length === 0 && enemiesSpawned === 0) { // Hanya spawn Core satu kali
+                    enemies.push({
+                        x: canvas.width / 2 - enemyWidth / 2,
+                        y: 50,
+                        width: enemyWidth,
+                        height: enemyHeight,
+                        color: enemyColor,
+                        health: 50 // Core memiliki HP banyak
+                    });
+                    enemiesSpawned = 1; // Tandai core sudah spawn
+                }
+                // Spawn support enemies for the core
+                if (currentTime - lastEnemySpawnTime > 2000) { // Spawn setiap 2 detik
+                    spawnSupportEnemies();
+                    lastEnemySpawnTime = currentTime;
+                }
+            }
 
-    function verifikasiKode() {
-      const kode = document.getElementById("kodeOTP").value.trim();
-      const newPass = document.getElementById("newPass").value.trim();
-      if (kode !== otpKode) return alert("❌ Kode salah!");
-      if (newPass.length < 6) return alert("❌ Password minimal 6 karakter!");
-      alert("✅ Password berhasil diganti!");
-      document.getElementById("resetStatus").innerText = "Password berhasil diganti!";
-      otpKode = "";
-      emailTerkirim = "";
-      document.getElementById("kodeSection").style.display = "none";
-    }
+            // Update Musuh/Core
+            for (let i = 0; i < enemies.length; i++) {
+                enemies[i].y += enemies[i].speed || enemySpeed; // Gunakan speed individu jika ada, atau default
 
-    window.onload = () => {
-      const saved = localStorage.getItem("username");
-      if (saved) {
-        document.getElementById("loginUsername").value = saved;
-      }
-      tampilkanStok();
-    }
-  </script>
-</body>
-</html>
+                // Jika musuh/core lewat dari bawah
+                if (enemies[i].y > canvas.height) {
+                    if (enemyType === 'voidCorrupted') {
+                        // Jika musuh Void-Corrupted lewat, game over (terlalu banyak lolos)
+                        // Untuk contoh ini kita biarkan lewat saja, game over hanya jika tertabrak
+                        // atau untuk core, jika core lewat atau kamu yang kena
+                    } else if (enemyType === 'miningCore') {
+                         // Jika Core penambangan melewati batas, berarti gagal melindunginya
+                         showChapterMessage(6); // Epilog Gagal
+                         return;
+                    }
+                    enemies.splice(i, 1);
+                    i--;
+                }
+            }
+
+            // Deteksi Tabrakan (Peluru vs Musuh/Core)
+            for (let b = 0; b < bullets.length; b++) {
+                for (let e = 0; e < enemies.length; e++) {
+                    if (bullets[b] && enemies[e] &&
+                        bullets[b].x < enemies[e].x + enemies[e].width &&
+                        bullets[b].x + bullets[b].width > enemies[e].x &&
+                        bullets[b].y < enemies[e].y + enemies[e].height &&
+                        bullets[b].y + bullets[b].height > enemies[e].y) {
+
+                        bullets.splice(b, 1);
+                        b--; // Adjust index
+
+                        enemies[e].health--; // Kurangi HP musuh/core
+                        if (enemies[e].health <= 0) {
+                            enemies.splice(e, 1);
+                            e--; // Adjust index
+                            score += (enemyType === 'voidCorrupted' ? 10 : 100); // Skor lebih besar untuk Core
+                            scoreDisplay.textContent = score;
+
+                            if (enemyType === 'miningCore' && enemies.length === 0 && enemiesSpawned > 0) {
+                                // Jika semua core utama hancur
+                                showChapterMessage(5); // Epilog Berhasil
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Deteksi Tabrakan (Pemain vs Musuh/Core)
+            if (player.invulnerable <= 0) { // Hanya jika tidak dalam mode kebal
+                for (let i = 0; i < enemies.length; i++) {
+                    if (
+                        player.x < enemies[i].x + enemies[i].width &&
+                        player.x + player.width > enemies[i].x &&
+                        player.y < enemies[i].y + enemies[i].height &&
+                        player.y + player.height > enemies[i].y
+                    ) {
+                        player.invulnerable = 120; // Kebal selama 2 detik (60fps * 2)
+                        player.color = 'gray'; // Indikator kebal
+                        score = Math.max(0, score - 50); // Kurangi skor jika tertabrak
+                        scoreDisplay.textContent = score;
+
+                        if (enemyType === 'miningCore') {
+                            // Jika pemain menabrak core, game over
+                            showChapterMessage(6); // Epilog Gagal
+                            return;
+                        }
+                    }
+                }
+            } else {
+                player.invulnerable--;
+                if (player.invulnerable % 10 < 5) { // Efek kedip saat kebal
+                     player.color = 'lightgray';
+                } else {
+                     player.color = 'lime';
+                }
+                if (player.invulnerable <= 0) {
+                    player.color = 'lime'; // Kembali ke warna normal
+                }
+            }
+        }
+
+        // Fungsi bantu untuk spawn musuh support (untuk babak Core)
+        function spawnSupportEnemies() {
+            for(let i = 0; i < 3; i++) { // Spawn 3 musuh kecil sebagai support
+                enemies.push({
+                    x: Math.random() * (canvas.width - 40),
+                    y: -40,
+                    width: 30,
+                    height: 30,
+                    color: 'purple',
+                    speed: enemySpeed * 1.5, // Lebih cepat
+                    health: 1
+                });
+            }
+        }
+
+        // Gambar semua elemen ke canvas
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Bersihkan canvas
+
+            drawRect(player.x, player.y, player.width, player.height, player.color); // Gambar pemain
+
+            bullets.forEach(bullet => {
+                drawRect(bullet.x, bullet.y, bullet.width, bullet.height, bullet.color);
+            });
+
+            enemies.forEach(enemy => {
+                drawRect(enemy.x, enemy.y, enemy.width, enemy.height, enemy.color);
+                // Tampilkan HP musuh/core jika ada
+                if (enemy.health > 1) {
+                    ctx.fillStyle = 'white';
+                    ctx.font = '12px Arial';
+                    ctx.fillText(enemy.health, enemy.x + enemy.width / 2 - 5, enemy.y + enemy.height / 2 + 5);
+                }
+            });
+        }
+
+        // Reset Game
+        function resetGame() {
+            player = {
+                x: canvas.width / 2 - 25,
+                y: canvas.height - 70,
+                width: 50,
+                height: 50,
+                color: 'lime',
+                speed: 7,
+                isShooting: false,
+                invulnerable: 0
+            };
+            bullets = [];
+            enemies = [];
+            score = 0;
+            scoreDisplay.textContent = score;
+            gameOver = false;
+            gamePaused = true;
+            currentChapter = 0;
+            enemyType = 'voidCorrupted';
+            enemySpeed = 1.5;
+            enemySpawnInterval = 1200;
+            enemiesToSpawn = 10;
+            enemiesSpawned = 0;
+            lastEnemySpawnTime = 0;
+            dialogTitle.style.color = '#ff00ff'; // Reset dialog title color
+            nextBtn.textContent = "Lanjutkan";
+            showChapterMessage(0); // Mulai dari Intro lagi
+        }
+
+     
