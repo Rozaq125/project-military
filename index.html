@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nusantara Jaya: Pahlawan Kemerdekaan</title>
+    <title>Arus Sejarah: Titik Balik Bangsa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* --- CSS Internal untuk Tampilan Game --- */
+        /* --- CSS Internal untuk Tampilan Game (Diperbarui) --- */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(to right, #0a0a20, #222244); /* Latar belakang gelap */
-            color: #eee; /* Warna teks terang */
+            font-family: 'Merriweather', serif; /* Font dengan nuansa historis */
+            background: linear-gradient(to bottom, #1a1a2e, #0f0f1d); /* Latar belakang gelap dan dramatis */
+            color: #e0e0e0; /* Warna teks terang */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -17,235 +18,508 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            overflow-y: auto; /* Memungkinkan scrolling jika konten panjang */
         }
 
         #game-container {
-            background-color: rgba(30, 30, 60, 0.9); /* Kotak game semi-transparan */
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-            width: 90%;
-            max-width: 800px;
-            padding: 30px;
+            background-color: rgba(20, 20, 40, 0.95); /* Kotak game semi-transparan lebih gelap */
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            width: 95%;
+            max-width: 900px;
+            padding: 35px;
             text-align: center;
-            border: 2px solid #555;
+            border: 2px solid #5a5a70; /* Border abu-abu kebiruan */
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
+            animation: fadeIn 1.5s ease-out; /* Animasi fade-in */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         h1 {
-            color: #ffcc00; /* Warna judul emas */
-            font-size: 2.5em;
+            font-family: 'Playfair Display', serif; /* Font judul yang elegan */
+            color: #ffd700; /* Warna judul emas */
+            font-size: 3em;
+            margin-bottom: 25px;
+            text-shadow: 3px 3px 7px rgba(0,0,0,0.6);
+            letter-spacing: 1.5px;
+        }
+
+        #character-creation {
+            background-color: rgba(30, 30, 60, 0.7);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid #444;
+        }
+
+        #character-creation h2 {
+            color: #ffe4b5; /* Warna krem */
             margin-bottom: 20px;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            font-size: 1.8em;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 1.1em;
+            color: #ccc;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="number"],
+        .input-group select {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid #666;
+            border-radius: 5px;
+            background-color: #333;
+            color: #eee;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input[type="text"]:focus,
+        .input-group input[type="number"]:focus,
+        .input-group select:focus {
+            border-color: #ffd700;
+        }
+
+        #start-game-button {
+            background-color: #28a745; /* Tombol hijau untuk mulai */
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 20px;
+        }
+
+        #start-game-button:hover {
+            background-color: #218838;
+            transform: translateY(-3px);
+        }
+
+        #game-content {
+            display: none; /* Sembunyikan konten game sampai karakter dibuat */
+            text-align: left;
         }
 
         #game-image {
             width: 100%;
-            max-height: 350px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.4);
+            max-height: 400px;
+            object-fit: cover; /* Memastikan gambar mengisi area tanpa distorsi */
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
             border: 1px solid #777;
+            transition: opacity 1s ease-in-out; /* Transisi gambar */
         }
 
         #story-text {
-            font-size: 1.2em;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            text-align: left;
+            font-size: 1.15em;
+            line-height: 1.7;
+            margin-bottom: 35px;
             background-color: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 5px solid #ffcc00;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 6px solid #ffd700;
+            min-height: 150px; /* Agar tidak terlalu 'loncat' saat teks pendek */
+            transition: opacity 0.8s ease-in-out; /* Transisi teks */
         }
 
         #choices {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 15px;
+            gap: 18px;
         }
 
         .choice-button {
-            background-color: #007bff; /* Warna tombol biru */
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            flex: 1 1 auto;
+            min-width: 200px;
+            max-width: 48%; /* Untuk dua kolom */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .choice-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+
+        .choice-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Ending Screen */
+        #ending-screen {
+            display: none;
+            background-color: rgba(30, 30, 60, 0.98);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+            border: 3px solid #ffd700;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        #ending-screen h2 {
+            font-family: 'Playfair Display', serif;
+            color: #ffd700;
+            font-size: 2.8em;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        #ending-text {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        #ending-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #aaa;
+        }
+
+        #restart-button {
+            background-color: #dc3545; /* Merah untuk restart */
             color: white;
             border: none;
             padding: 12px 25px;
             font-size: 1.1em;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            flex: 1 1 auto; /* Mengatur fleksibilitas tombol */
-            min-width: 180px;
-            max-width: 45%;
+            transition: background-color 0.3s ease;
         }
 
-        .choice-button:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
+        #restart-button:hover {
+            background-color: #c82333;
         }
 
-        .choice-button:active {
-            transform: translateY(0);
-        }
 
         /* Responsive adjustments */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+            .choice-button {
+                max-width: 100%; /* Satu kolom di layar kecil */
+            }
+            #ending-screen h2 {
+                font-size: 2em;
+            }
+        }
+
+        @media (max-width: 480px) {
             #game-container {
                 padding: 20px;
+                gap: 15px;
             }
             h1 {
                 font-size: 2em;
+                margin-bottom: 15px;
             }
             #story-text {
                 font-size: 1em;
+                padding: 15px;
             }
             .choice-button {
-                min-width: 100%;
-                max-width: 100%;
+                padding: 10px 20px;
+                font-size: 1em;
             }
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <h1>Nusantara Jaya: Pahlawan Kemerdekaan</h1>
-        <img id="game-image" src="https://via.placeholder.com/700x350?text=Gerbang+Waktu" alt="Gambar Latar Game">
-        <p id="story-text">Anda tiba-tiba terbangun di tengah hutan yang asing, suara riuh pepohonan dan bau tanah basah memenuhi indra Anda. Di kejauhan, terlihat kobaran api dan terdengar teriakan. Sebuah gulungan kertas tua tergeletak di samping Anda...</p>
-        <div id="choices">
-            <button class="choice-button" onclick="makeChoice(1)">Ambil gulungan kertas itu</button>
-            <button class="choice-button" onclick="makeChoice(2)">Bersembunyi dan mengamati situasi</button>
+        <h1>Arus Sejarah: Titik Balik Bangsa</h1>
+
+        <div id="character-creation">
+            <h2>Ciptakan Pahlawanmu</h2>
+            <div class="input-group">
+                <label for="playerName">Nama:</label>
+                <input type="text" id="playerName" placeholder="Nama Pahlawanmu" required>
+            </div>
+            <div class="input-group">
+                <label for="playerGender">Jenis Kelamin:</label>
+                <select id="playerGender">
+                    <option value="pria">Pria</option>
+                    <option value="wanita">Wanita</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="playerAge">Usia:</label>
+                <select id="playerAge">
+                    <option value="remaja">16-18 tahun (Remaja)</option>
+                    <option value="dewasa_muda">20-25 tahun (Dewasa Muda)</option>
+                    <option value="dewasa">25-35 tahun (Dewasa)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="playerBackground">Latar Belakang Awal:</label>
+                <select id="playerBackground">
+                    <option value="rakyat_biasa">Rakyat Biasa (Pendidikan Rendah)</option>
+                    <option value="pelajar">Pelajar (Pendidikan Menengah)</option>
+                    <option value="intelektual">Intelektual (Pendidikan Tinggi)</option>
+                </select>
+            </div>
+            <button id="start-game-button">Mulai Petualangan Sejarah</button>
+        </div>
+
+        <div id="game-content">
+            <img id="game-image" src="" alt="Gambar Latar Game">
+            <p id="story-text"></p>
+            <div id="choices">
+                </div>
+        </div>
+
+        <div id="ending-screen">
+            <h2 id="ending-title"></h2>
+            <img id="ending-image" src="" alt="Gambar Ending">
+            <p id="ending-text"></p>
+            <button id="restart-button">Main Lagi</button>
         </div>
     </div>
 
     <script>
-        // --- JavaScript untuk Logika Game ---
+        // --- JavaScript untuk Logika Game (Diperbarui) ---
+        const gameContainer = document.getElementById('game-container');
+        const charCreationScreen = document.getElementById('character-creation');
+        const gameContentScreen = document.getElementById('game-content');
+        const endingScreen = document.getElementById('ending-screen');
+
+        const playerNameInput = document.getElementById('playerName');
+        const playerGenderSelect = document.getElementById('playerGender');
+        const playerAgeSelect = document.getElementById('playerAge');
+        const playerBackgroundSelect = document.getElementById('playerBackground');
+        const startGameButton = document.getElementById('start-game-button');
+
+        const gameImage = document.getElementById('game-image');
         const storyText = document.getElementById('story-text');
         const choicesDiv = document.getElementById('choices');
-        const gameImage = document.getElementById('game-image');
 
-        // Objek untuk menyimpan data cerita
+        const endingTitle = document.getElementById('ending-title');
+        const endingImage = document.getElementById('ending-image');
+        const endingText = document.getElementById('ending-text');
+        const restartButton = document.getElementById('restart-button');
+
+        let player = {}; // Objek untuk menyimpan data karakter pemain
+        let currentScene = 'intro_1945'; // Scene awal setelah karakter dibuat
+
+        // Variabel untuk melacak "poin" yang mengarah ke ending berbeda
+        let diplomacyPoints = 0;
+        let resistancePoints = 0;
+        let federalismPoints = 0;
+
+        // --- Data Cerita Game (Sangat Disederhanakan untuk Contoh) ---
         const gameData = {
-            'start': {
-                text: "Anda tiba-tiba terbangun di tengah hutan yang asing, suara riuh pepohonan dan bau tanah basah memenuhi indra Anda. Di kejauhan, terlihat kobaran api dan terdengar teriakan. Sebuah gulungan kertas tua tergeletak di samping Anda...",
-                image: "https://via.placeholder.com/700x350?text=Gerbang+Waktu",
+            'intro_1945': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/revolution-1635397_1280.jpg', // Contoh gambar: situasi chaos
+                text: `Sebagai ${player.name || 'seorang pemuda/pemudi'} berusia ${player.age || 'tidak diketahui'} dengan latar belakang ${player.background || 'tidak diketahui'}, Anda terbangun di tengah hiruk pikuk Jakarta pasca-Proklamasi 17 Agustus 1945. Euforia kemerdekaan masih terasa, namun ancaman kembalinya Belanda membayangi. Sebuah pamflet bertuliskan "Republik Harga Mati!" tergeletak di jalanan.`,
                 choices: [
-                    { text: "Ambil gulungan kertas itu", next: "gulungan" },
-                    { text: "Bersembunyi dan mengamati situasi", next: "sembunyi" }
-                ]
+                    { text: "Bergabung dengan barisan pemuda yang berpatroli", next: "pilihan_pemuda" },
+                    { text: "Mencari informasi di kalangan diplomatik", next: "pilihan_diplomat" },
+                    { text: "Mengamati reaksi penduduk setempat dan tentara Sekutu", next: "pilihan_sekutu" }
+                ],
+                // Contoh: Pilihan awal bisa memengaruhi poin
+                effects: {
+                    "pilihan_pemuda": { resistance: 1 },
+                    "pilihan_diplomat": { diplomacy: 1 },
+                    "pilihan_sekutu": { federalism: 0.5, diplomacy: 0.5 } // Bisa campur
+                }
             },
-            'gulungan': {
-                text: "Gulungan itu berisi peta kuno dan tulisan samar berbahasa Belanda. Anda merasa ada yang tidak beres. Tiba-tiba, seorang pejuang bersembunyi di balik semak-semak dan melihat Anda!",
-                image: "https://via.placeholder.com/700x350?text=Peta+Kuno",
+            'pilihan_pemuda': {
+                image: 'https://cdn.pixabay.com/photo/2017/08/07/23/07/gun-2609062_1280.jpg', // Contoh gambar: gerilyawan
+                text: "Anda bergabung dengan laskar rakyat yang siap mempertahankan kemerdekaan. Semangat membara, namun persenjataan sangat minim. Beberapa pejuang berbicara tentang pentingnya merebut senjata dari Jepang. Tiba-tiba, terdengar kabar bahwa tentara Belanda, di bawah payung Sekutu, mulai mendarat di Surabaya.",
                 choices: [
-                    { text: "Coba ajak bicara pejuang itu", next: "ajak_bicara" },
-                    { text: "Lari dari tempat itu", next: "lari" }
-                ]
+                    { text: "Ikut serta dalam upaya perebutan senjata", next: "rebut_senjata" },
+                    { text: "Fokus pada pelatihan baris-berbaris dan disiplin militer", next: "latihan_militer" }
+                ],
+                effects: {
+                    "rebut_senjata": { resistance: 1 },
+                    "latihan_militer": { resistance: 0.5, diplomacy: 0.5 }
+                }
             },
-            'sembunyi': {
-                text: "Anda bersembunyi di balik semak-semak lebat. Tak lama kemudian, sekelompok tentara kolonial melintas di dekat Anda, berbicara dalam bahasa yang tidak Anda mengerti. Mereka tampaknya sedang mencari sesuatu...",
-                image: "https://via.placeholder.com/700x350?text=Tentara+Kolonial",
+            'pilihan_diplomat': {
+                image: 'https://cdn.pixabay.com/photo/2015/04/08/04/55/agreement-712686_1280.jpg', // Contoh gambar: perundingan
+                text: "Anda mencoba mencari tahu situasi dari sumber-sumber diplomatik. Tersiar kabar bahwa Sutan Sjahrir sedang berupaya menjalin komunikasi dengan Sekutu untuk mencari pengakuan internasional, meskipun banyak yang ragu. Ada desas-desus tentang perundingan rahasia.",
                 choices: [
-                    { text: "Diam di tempat, tunggu mereka pergi", next: "diam" },
-                    { text: "Coba ikuti mereka dari kejauhan", next: "ikuti" }
-                ]
+                    { text: "Mencoba membantu upaya Sjahrir", next: "bantu_sjahrir" },
+                    { text: "Mengumpulkan informasi intelijen tentang niat Belanda", next: "intel_belanda" }
+                ],
+                effects: {
+                    "bantu_sjahrir": { diplomacy: 1 },
+                    "intel_belanda": { diplomacy: 0.5, resistance: 0.5 }
+                }
             },
-            'ajak_bicara': {
-                text: "Pejuang itu terkejut, namun setelah Anda menjelaskan (dengan sedikit kesulitan) bahwa Anda bukan musuh, ia mulai mempercayai Anda. Ia menceritakan tentang perjuangan melawan penjajah dan krisis yang sedang terjadi.",
-                image: "https://via.placeholder.com/700x350?text=Pejuang+Lokal",
+            'pilihan_sekutu': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/flags-1635398_1280.jpg', // Contoh gambar: bendera
+                text: "Anda mengamati kebingungan di antara penduduk dan melihat kedatangan tentara Sekutu yang mulai menampakkan niat aslinya untuk mengembalikan Belanda. Beberapa tokoh lokal yang berpihak pada Belanda mulai aktif kembali, memprovokasi kerusuhan.",
                 choices: [
-                    { text: "Tawarkan bantuanmu", next: "bantu_pejuang" },
-                    { text: "Minta ia menjelaskan lebih detail tentang situasinya", next: "detail_situasi" }
-                ]
+                    { text: "Mencoba menenangkan massa agar tidak terpancing provokasi", next: "tenangkan_massa" },
+                    { text: "Mencari tahu siapa saja tokoh lokal yang pro-Belanda", next: "deteksi_provokator" }
+                ],
+                effects: {
+                    "tenangkan_massa": { diplomacy: 1 },
+                    "deteksi_provokator": { federalism: 1 }
+                }
             },
-            'lari': {
-                text: "Anda berlari sekuat tenaga, tidak peduli ke mana arahnya. Anda tersandung akar pohon dan jatuh. Ketika Anda bangkit, Anda menyadari telah berada di tengah-tengah pasar tradisional yang ramai. Suasana tahun 1940-an begitu terasa.",
-                image: "https://via.placeholder.com/700x350?text=Pasar+Tradisional+1940an",
+            'rebut_senjata': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/military-1635397_1280.jpg', // Contoh gambar: militer
+                text: "Anda berhasil merebut beberapa senjata dari gudang Jepang. Ini meningkatkan moral pejuang lokal, tetapi juga menarik perhatian Belanda. Pertempuran sengit meletus di Surabaya pada 10 November 1945.",
                 choices: [
-                    { text: "Coba cari tahu di mana Anda berada", next: "cari_tahu" },
-                    { text: "Jual barang berhargamu untuk bertahan hidup", next: "jual_barang" }
-                ]
+                    { text: "Berjuang mati-matian di Surabaya", next: "perang_surabaya" },
+                    { text: "Menarik diri untuk mengatur strategi gerilya", next: "gerilya_surabaya" }
+                ],
+                effects: {
+                    "perang_surabaya": { resistance: 2 },
+                    "gerilya_surabaya": { resistance: 1, diplomacy: 0.5 }
+                }
             },
-            'diam': {
-                text: "Anda menunggu hingga para tentara kolonial menjauh. Setelah suasana aman, Anda perlahan keluar dari persembunyian. Anda harus memutuskan langkah selanjutnya.",
-                image: "https://via.placeholder.com/700x350?text=Hutan+Aman",
+            'bantu_sjahrir': {
+                image: 'https://cdn.pixabay.com/photo/2017/08/07/23/07/agreement-2609062_1280.jpg', // Contoh gambar: diskusi
+                text: "Anda berhasil menyampaikan pesan penting kepada Sjahrir. Upaya diplomatiknya mulai membuahkan hasil, dan Perundingan Linggarjati sedang disiapkan. Namun, banyak pihak di Indonesia yang curiga dengan niat Belanda.",
                 choices: [
-                    { text: "Cari tahu mengapa mereka ada di sini", next: "cari_mengapa" },
-                    { text: "Bergerak menuju arah yang berlawanan dengan mereka", next: "arah_berlawanan" }
-                ]
+                    { text: "Mendukung hasil Linggarjati dan membantu sosialisasi", next: "dukung_linggarjati" },
+                    { text: "Menyarankan Sjahrir untuk lebih berhati-hati", next: "hati_hati_sjahrir" }
+                ],
+                effects: {
+                    "dukung_linggarjati": { diplomacy: 2 },
+                    "hati_hati_sjahrir": { diplomacy: 1, resistance: 0.5 }
+                }
             },
-            'ikuti': {
-                text: "Anda mengikuti para tentara kolonial dari kejauhan. Mereka menuju ke sebuah desa yang tampak sepi. Tiba-tiba, Anda mendengar suara tembakan!",
-                image: "https://via.placeholder.com/700x350?text=Desa+Sepi",
+            'deteksi_provokator': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/flags-1635398_1280.jpg', // Contoh gambar: bendera belanda
+                text: "Anda menemukan bahwa beberapa tokoh lokal memang secara aktif dihasut Belanda untuk membentuk negara-negara bagian. Ini mengancam kesatuan Republik. Anda memiliki kesempatan untuk membongkar rencana mereka.",
                 choices: [
-                    { text: "Selidiki suara tembakan itu", next: "selidiki_tembakan" },
-                    { text: "Kembali dan cari bantuan", next: "cari_bantuan" }
-                ]
+                    { text: "Membongkar rencana federalis kepada publik", next: "bongkar_federalis" },
+                    { text: "Mencoba mendekati beberapa tokoh federalis untuk mencari tahu motif mereka", next: "dekati_federalis" }
+                ],
+                effects: {
+                    "bongkar_federalis": { resistance: 1, diplomacy: 0.5 },
+                    "dekati_federalis": { federalism: 1.5 }
+                }
             },
-            // Tambahkan lebih banyak skenario di sini
-            'bantu_pejuang': {
-                text: "Pejuang itu senang dengan tawaran Anda. Ia meminta Anda untuk menyampaikan pesan rahasia kepada pimpinan pejuang di kota sebelah. Ini adalah misi pertama Anda sebagai Pahlawan Kemerdekaan!",
-                image: "https://via.placeholder.com/700x350?text=Misi+Pertama",
-                choices: [] // Akhir sementara atau lanjut ke misi lain
-            },
-            'detail_situasi': {
-                text: "Pejuang itu menjelaskan bahwa mereka sedang mempersiapkan perlawanan besar, tetapi kekurangan pasokan dan informasi. Ia melihat Anda sebagai harapan baru.",
-                image: "https://via.placeholder.com/700x350?text=Penjelasan+Pejuang",
+            // --- Skenario lanjutan yang mengarah ke Ending ---
+            'perang_surabaya': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/battle-1635397_1280.jpg', // Contoh gambar: pertempuran
+                text: "Anda berjuang gigih di Surabaya, namun jumlah dan persenjataan Belanda yang superior membuat pertempuran ini sangat berat. Banyak korban berjatuhan. Ini semakin membulatkan tekad sebagian besar rakyat untuk berjuang sampai titik darah penghabisan. Namun, dampaknya adalah kerugian besar dan tekanan internasional untuk gencatan senjata.",
                 choices: [
-                    { text: "Bagaimana saya bisa membantu?", next: "bantu_pejuang" }
-                ]
+                    { text: "Melanjutkan perjuangan gerilya tanpa kompromi", next: "route_resistance_final" },
+                    { text: "Mendukung seruan gencatan senjata dan diplomasi", next: "route_diplomacy_mid" }
+                ],
+                effects: {
+                    "route_resistance_final": { resistance: 2 },
+                    "route_diplomacy_mid": { diplomacy: 1 }
+                }
             },
-            'cari_tahu': {
-                text: "Anda mencoba berbicara dengan pedagang di pasar, tetapi bahasa mereka sangat berbeda. Untungnya, seorang nenek tua yang ramah melihat kebingungan Anda dan menawarkan bantuan.",
-                image: "https://via.placeholder.com/700x350?text=Nenek+Ramah",
+            'dukung_linggarjati': {
+                image: 'https://cdn.pixabay.com/photo/2017/08/07/23/07/agreement-2609062_1280.jpg', // Contoh gambar: perundingan
+                text: "Anda berhasil meyakinkan banyak pihak tentang pentingnya Perundingan Linggarjati sebagai langkah awal menuju pengakuan. Namun, ketidaksepakatan interpretasi antara Indonesia dan Belanda akhirnya memicu Agresi Militer I. Apakah Anda akan tetap percaya pada jalur diplomasi?",
                 choices: [
-                    { text: "Terima bantuan nenek itu", next: "bantu_nenek" }
-                ]
+                    { text: "Tetap mencari celah diplomasi", next: "route_diplomacy_final" },
+                    { text: "Beralih ke perjuangan bersenjata setelah agresi", next: "route_resistance_mid" }
+                ],
+                effects: {
+                    "route_diplomacy_final": { diplomacy: 2 },
+                    "route_resistance_mid": { resistance: 1 }
+                }
             },
-            'jual_barang': {
-                text: "Anda mencoba menjual jam tangan modern Anda, tetapi tidak ada yang mengerti nilainya. Anda menyadari bahwa Anda harus beradaptasi dengan zaman ini.",
-                image: "https://via.placeholder.com/700x350?text=Barang+Modern",
+            'dekati_federalis': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/flags-1635398_1280.jpg', // Contoh gambar: bendera RIS
+                text: "Anda memahami argumen para federalis: mereka mengklaim sistem ini bisa membawa stabilitas dan mencegah perang berkepanjangan, meskipun kedaulatan penuh belum tentu tercapai. Beberapa tawaran kerja sama datang dari pihak Belanda untuk membangun negara-negara bagian.",
                 choices: [
-                    { text: "Cari pekerjaan serabutan", next: "pekerjaan_serabutan" }
-                ]
+                    { text: "Menerima tawaran kerja sama dengan pihak federalis (risiko disintegrasi)", next: "route_federalism_final" },
+                    { text: "Mencoba membujuk mereka untuk kembali ke pangkuan Republik", next: "route_diplomacy_mid" }
+                ],
+                effects: {
+                    "route_federalism_final": { federalism: 2 },
+                    "route_diplomacy_mid": { diplomacy: 0.5 }
+                }
             },
-            'cari_mengapa': {
-                text: "Anda menemukan jejak-jejak perkemahan tentara kolonial. Tampaknya mereka sedang mencari sisa-sisa pejuang yang kabur dari pertempuran sebelumnya. Anda harus berhati-hati.",
-                image: "https://via.placeholder.com/700x350?text=Jejak+Tentara",
-                choices: [
-                    { text: "Lanjutkan penyelidikan", next: "lanjut_penyelidikan" }
-                ]
+            // --- Contoh Node Penentu Ending ---
+            'route_diplomacy_final': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/diplomacy-1635397_1280.jpg', // Contoh: konferensi
+                text: "Fokus Anda pada jalur diplomasi terbukti krusial. Meskipun menghadapi rintangan seperti Agresi Militer, tekanan internasional dan perundingan akhirnya mengarah pada Konferensi Meja Bundar. Peran Anda dalam menjaga komunikasi dan dukungan terhadap perundingan sangat berarti. Ini adalah momen krusial.",
+                choices: [{ text: "Lihat hasil perjuanganmu", next: "ending_diplomasi" }]
             },
-            'arah_berlawanan': {
-                text: "Anda berjalan menjauh dari jejak tentara kolonial. Anda menemukan sebuah desa kecil yang tampak damai, jauh dari hiruk pikuk perjuangan.",
-                image: "https://via.placeholder.com/700x350?text=Desa+Damai",
-                choices: [
-                    { text: "Masuk ke desa", next: "masuk_desa" }
-                ]
+            'route_resistance_final': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/war-1635397_1280.jpg', // Contoh: pertempuran besar
+                text: "Keputusan Anda untuk terus berjuang bersenjata tanpa henti menunjukkan semangat pantang menyerah. Anda terlibat dalam banyak pertempuran gerilya, namun perjuangan ini sangat menguras tenaga dan menimbulkan banyak korban. Agresi Militer II membuat situasi semakin sulit, bahkan para pemimpin ditangkap. Namun, semangat rakyat tidak pernah padam.",
+                choices: [{ text: "Lihat hasil perjuanganmu", next: "ending_resistance" }]
             },
-            'selidiki_tembakan': {
-                text: "Anda mengintip ke dalam desa. Pertempuran sengit sedang terjadi antara pejuang lokal dan tentara kolonial. Anda melihat seorang pejuang terluka parah.",
-                image: "https://via.placeholder.com/700x350?text=Pertempuran+Sengit",
-                choices: [
-                    { text: "Bantu pejuang terluka", next: "bantu_terluka" },
-                    { text: "Cari tempat berlindung", next: "berlindung" }
-                ]
+            'route_federalism_final': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/flags-1635398_1280.jpg', // Contoh: banyak bendera
+                text: "Anda terlibat dalam upaya pembentukan negara-negara bagian federal. Meskipun ini menjanjikan 'kemerdekaan' yang lebih cepat di bawah payung RIS, persatuan bangsa terancam. Rakyat mulai mempertanyakan loyalitas Anda dan tujuan akhir dari kemerdekaan ini.",
+                choices: [{ text: "Lihat hasil perjuanganmu", next: "ending_federalism" }]
             },
-            'cari_bantuan': {
-                text: "Anda berlari kembali ke hutan untuk mencari bantuan, berharap menemukan seseorang yang bisa membantu para pejuang di desa.",
-                image: "https://via.placeholder.com/700x350?text=Cari+Bantuan",
-                choices: [
-                    { text: "Terus berlari", next: "terus_berlari" }
-                ]
+
+            // --- Ending Sebenarnya ---
+            'ending_diplomasi': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/independence-1635397_1280.jpg', // Gambar kemenangan/proklamasi
+                text: `<h3>Selamat, ${player.name}!</h3><p>Perjuangan Anda dalam mendukung jalur diplomasi telah membuahkan hasil manis. Setelah empat tahun perjuangan, Agresi Militer, dan tekanan internasional, akhirnya pada 27 Desember 1949, Belanda secara resmi mengakui kedaulatan Republik Indonesia dalam Konferensi Meja Bundar (KMB). Meskipun masih ada beberapa wilayah yang belum sepenuhnya kembali, ini adalah kemenangan gemilang bagi bangsa Indonesia. Anda menyaksikan bendera Merah Putih berkibar di seluruh negeri, sebagai simbol kemerdekaan penuh yang telah diraih melalui perpaduan perjuangan bersenjata dan diplomasi cerdas. Rakyat bersatu padu membangun negara baru.</p><p><strong>Apa yang Terjadi di Dunia Nyata:</strong> Ini adalah skenario yang paling dekat dengan hasil akhir Revolusi Fisik Indonesia. KMB menjadi titik balik penting dalam pengakuan kedaulatan penuh Indonesia oleh Belanda.</p>`,
+                isEnding: true,
+                endingType: "diplomasi"
+            },
+            'ending_resistance': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/guerrilla-1635397_1280.jpg', // Gambar perjuangan berdarah/gerilya
+                text: `<h3>Pengorbanan Tak Terhingga, ${player.name}.</h3><p>Pilihan Anda yang cenderung pada perjuangan bersenjata tanpa kompromi telah menorehkan sejarah berdarah. Meskipun menunjukkan semangat kepahlawanan yang luar biasa, Agresi Militer Belanda kedua pada Desember 1948 berhasil menawan para pemimpin Republik dan menduduki ibu kota sementara Yogyakarta. Perjuangan berlanjut dalam bentuk gerilya yang sangat intens. Dunia internasional mulai menekan Belanda lebih keras, namun rakyat harus membayar harga yang sangat mahal dengan nyawa dan penderitaan.</p><p><strong>Apa yang Terjadi di Dunia Nyata:</strong> Periode ini menggambarkan fase kelam Agresi Militer II, di mana para pemimpin ditawan dan perang gerilya berkecamuk. Meski berat, tekanan gerilya yang tak pernah padam dan dukungan internasional pada akhirnya memaksa Belanda kembali ke meja perundingan.</p>`,
+                isEnding: true,
+                endingType: "resistance"
+            },
+            'ending_federalism': {
+                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/federalism-1635398_1280.jpg', // Gambar perpecahan/banyak bendera
+                text: `<h3>Persatuan Terancam, ${player.name}.</h3><p>Keputusan Anda untuk mendukung jalur federalisme atau bekerja sama dengan Belanda dalam pembentukan negara-negara bagian telah membawa Indonesia ke dalam bentuk Republik Indonesia Serikat (RIS). Meskipun kemerdekaan formal telah diperoleh pada 27 Desember 1949, persatuan bangsa terpecah belah. Anda menyaksikan ketidakpuasan meluas di antara rakyat dan perlawanan terhadap negara-negara bagian bentukan Belanda. Ketidakstabilan politik dan konflik internal mewarnai era ini.</p><p><strong>Apa yang Terjadi di Dunia Nyata:</strong> RIS memang ada dari 27 Desember 1949 hingga 17 Agustus 1950. Ini adalah upaya Belanda untuk memecah belah Indonesia. Namun, berkat keinginan kuat rakyat untuk bersatu, RIS akhirnya bubar dan kembali menjadi Negara Kesatuan Republik Indonesia (NKRI) pada 17 Agustus 1950.</p>`,
+                isEnding: true,
+                endingType: "federalism"
             }
-            // ... Tambahkan lebih banyak node cerita sesuai kebutuhan
+            // ... tambahkan lebih banyak adegan di sini dengan percabangan yang kompleks
         };
 
-        let currentScene = 'start'; // Scene awal
-
         function startGame() {
+            // Sembunyikan layar pembuatan karakter, tampilkan konten game
+            charCreationScreen.style.display = 'none';
+            gameContentScreen.style.display = 'block';
+
+            // Ambil data karakter dari input
+            player.name = playerNameInput.value || 'Pahlawan Rahasia';
+            player.gender = playerGenderSelect.value;
+            player.age = playerAgeSelect.value;
+            player.background = playerBackgroundSelect.value;
+
+            // Perbarui teks awal dengan nama karakter
+            gameData['intro_1945'].text = `Sebagai ${player.name} (${player.gender === 'pria' ? 'seorang pria' : 'seorang wanita'} berusia ${playerAgeSelect.options[playerAgeSelect.selectedIndex].text}) dengan latar belakang ${playerBackgroundSelect.options[playerBackgroundSelect.selectedIndex].text}, Anda terbangun di tengah hiruk pikuk Jakarta pasca-Proklamasi 17 Agustus 1945. Euforia kemerdekaan masih terasa, namun ancaman kembalinya Belanda membayangi. Sebuah pamflet bertuliskan "Republik Harga Mati!" tergeletak di jalanan.`;
+
             loadScene(currentScene);
         }
 
@@ -253,32 +527,103 @@
             currentScene = sceneName;
             const scene = gameData[sceneName];
 
-            if (!scene) {
-                storyText.innerHTML = "<p><strong>TAMAT!</strong> Terima kasih telah bermain. Kisah Anda sebagai pahlawan telah berakhir. Lebih banyak cerita akan datang!</p>";
-                gameImage.src = "https://via.placeholder.com/700x350?text=Akhir+Petualangan";
-                choicesDiv.innerHTML = ''; // Hapus tombol pilihan
+            // Tampilkan ending jika ini adalah adegan ending
+            if (scene.isEnding) {
+                displayEnding(scene);
                 return;
             }
 
-            storyText.innerHTML = `<p>${scene.text}</p>`;
-            gameImage.src = scene.image;
-            choicesDiv.innerHTML = ''; // Kosongkan pilihan sebelumnya
+            // Animasi fade out sebelum ganti konten
+            storyText.style.opacity = '0';
+            gameImage.style.opacity = '0';
+            choicesDiv.style.opacity = '0';
 
-            scene.choices.forEach((choice, index) => {
-                const button = document.createElement('button');
-                button.className = 'choice-button';
-                button.textContent = choice.text;
-                button.onclick = () => makeChoice(choice.next); // Panggil makeChoice dengan nama scene berikutnya
-                choicesDiv.appendChild(button);
-            });
+            setTimeout(() => {
+                gameImage.src = scene.image;
+                storyText.innerHTML = scene.text;
+                choicesDiv.innerHTML = ''; // Kosongkan pilihan sebelumnya
+
+                scene.choices.forEach((choice) => {
+                    const button = document.createElement('button');
+                    button.className = 'choice-button';
+                    button.textContent = choice.text;
+                    button.onclick = () => makeChoice(choice.next, scene.effects ? scene.effects[choice.next] : null);
+                    choicesDiv.appendChild(button);
+                });
+
+                // Animasi fade in setelah ganti konten
+                storyText.style.opacity = '1';
+                gameImage.style.opacity = '1';
+                choicesDiv.style.opacity = '1';
+            }, 800); // Tunggu sebentar untuk efek fade out
         }
 
-        function makeChoice(nextSceneName) {
-            loadScene(nextSceneName);
+        function makeChoice(nextSceneName, effects = null) {
+            // Terapkan efek poin berdasarkan pilihan
+            if (effects) {
+                if (effects.diplomacy) diplomacyPoints += effects.diplomacy;
+                if (effects.resistance) resistancePoints += effects.resistance;
+                if (effects.federalism) federalismPoints += effects.federalism;
+            }
+
+            // Log poin untuk debugging
+            // console.log(`Diplomasi: ${diplomacyPoints}, Perlawanan: ${resistancePoints}, Federalisme: ${federalismPoints}`);
+
+            // Cek untuk transisi ke ending berdasarkan akumulasi poin di tengah permainan
+            // Ini adalah logika yang sangat disederhanakan. Dalam game nyata, ini akan lebih kompleks
+            // dan mungkin ada "checkpoints" yang mengarahkan ke ending tertentu.
+            if (diplomacyPoints >= 4 && nextSceneName !== 'route_resistance_final' && nextSceneName !== 'route_federalism_final') {
+                loadScene('route_diplomacy_final');
+            } else if (resistancePoints >= 4 && nextSceneName !== 'route_diplomacy_final' && nextSceneName !== 'route_federalism_final') {
+                loadScene('route_resistance_final');
+            } else if (federalismPoints >= 3 && nextSceneName !== 'route_diplomacy_final' && nextSceneName !== 'route_resistance_final') {
+                loadScene('route_federalism_final');
+            } else {
+                loadScene(nextSceneName);
+            }
         }
 
-        // Mulai game saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', startGame);
+        function displayEnding(endingScene) {
+            gameContentScreen.style.display = 'none';
+            endingScreen.style.display = 'block';
+
+            endingTitle.textContent = endingScene.endingType === "diplomasi" ? "Kemenangan Diplomatik dan Pengakuan Penuh" :
+                                      endingScene.endingType === "resistance" ? "Perjuangan Berdarah Tak Berkesudahan" :
+                                      "Federalisme dan Disintegrasi Bangsa";
+            endingImage.src = endingScene.image;
+            endingText.innerHTML = endingScene.text;
+        }
+
+        function restartGame() {
+            // Reset semua variabel
+            player = {};
+            diplomacyPoints = 0;
+            resistancePoints = 0;
+            federalismPoints = 0;
+            currentScene = 'intro_1945';
+
+            // Reset input form
+            playerNameInput.value = '';
+            playerGenderSelect.value = 'pria';
+            playerAgeSelect.value = 'remaja';
+            playerBackgroundSelect.value = 'rakyat_biasa';
+
+            // Tampilkan kembali layar pembuatan karakter
+            endingScreen.style.display = 'none';
+            charCreationScreen.style.display = 'block';
+            gameContentScreen.style.display = 'none'; // Pastikan game content tersembunyi
+        }
+
+
+        // Event Listener untuk tombol Mulai Game
+        startGameButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', restartGame);
+
+        // Inisialisasi: Sembunyikan konten game dan ending screen
+        document.addEventListener('DOMContentLoaded', () => {
+            gameContentScreen.style.display = 'none';
+            endingScreen.style.display = 'none';
+        });
 
     </script>
 </body>
