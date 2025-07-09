@@ -25,6 +25,7 @@
       align-items: center;
       padding: 20px;
       background: rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     .container {
       padding: 20px;
@@ -57,7 +58,6 @@
       font-weight: bold;
     }
     #adminPanel { display: none; }
-    .admin-section { margin-top: 30px; }
     #user-popup {
       position: fixed;
       top: 50%;
@@ -72,33 +72,40 @@
       min-width: 300px;
       text-align: center;
     }
+    .popup.green { background: #d4edda; color: #155724; }
+    .admin-section { margin-top: 30px; }
+    a { color: lightblue; cursor: pointer; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>emailjs.init("public_key_anda");</script>
 </head>
 <body>
   <header>
-    <h2>🎮 Project Military</h2>
+    <h2 style="margin:0;">🎮 Project Military</h2>
     <button id="adminToggle" style="display:none;" onclick="toggleAdminPanel()">⚙️ Admin Panel</button>
   </header>
 
   <div class="container" id="loginSection">
-    <h3>Masuk / Daftar</h3>
-    <input type="text" id="usernameInput" placeholder="Masukkan Username" />
-    <input type="password" id="passwordInput" placeholder="Password" />
-    <button onclick="loginUser()">Login</button>
+    <input type="text" id="loginUsername" placeholder="Masukkan Username" />
+    <input type="password" id="loginPassword" placeholder="Masukkan Password" />
+    <button onclick="loginUser()">Masuk</button>
+    <p><a onclick="showResetForm()">Lupa Password?</a> | <a onclick="showRegisterForm()">Daftar Baru</a></p>
+  </div>
+
+  <div class="container" id="registerSection" style="display:none;">
+    <h3>📋 Daftar Akun</h3>
+    <input type="text" id="regUsername" placeholder="Buat Username" />
+    <input type="password" id="regPassword" placeholder="Buat Password" />
     <button onclick="registerUser()">Daftar</button>
-    <p><a href="#" onclick="showResetForm()">🔐 Lupa Password?</a></p>
+    <p><a onclick="showLoginForm()">Kembali ke Login</a></p>
   </div>
 
   <div class="container" id="resetSection" style="display:none;">
-    <h3>Reset Password</h3>
-    <input type="email" id="resetEmail" placeholder="Masukkan Email" />
-    <button onclick="kirimKodeReset()">Kirim Kode</button>
+    <h3>🔐 Reset Password</h3>
+    <input type="email" id="resetEmail" placeholder="Masukkan Email Anda" />
+    <button onclick="kirimKodeReset()">Kirim Kode Verifikasi</button>
     <div id="kodeSection" style="display:none;">
-      <input type="text" id="kodeOTP" placeholder="Kode Verifikasi" />
+      <input type="text" id="kodeOTP" placeholder="Masukkan Kode Verifikasi" />
       <input type="password" id="newPass" placeholder="Password Baru" />
-      <button onclick="verifikasiKode()">Verifikasi & Ganti</button>
+      <button onclick="verifikasiKode()">Verifikasi & Ganti Password</button>
     </div>
     <p id="resetStatus"></p>
   </div>
@@ -110,7 +117,7 @@
   </div>
 
   <div class="container" id="adminPanel">
-    <h3>Admin Panel</h3>
+    <h3>👑 Admin Panel</h3>
 
     <div class="admin-section">
       <h4>Kirim Kode Redeem</h4>
@@ -125,14 +132,14 @@
     </div>
 
     <div class="admin-section">
-      <h4>Tambah Kode Manual</h4>
-      <textarea id="kodeManual" placeholder="Satu kode per baris"></textarea>
+      <h4>Tambah Stok Kode Manual</h4>
+      <textarea id="kodeManual" placeholder="Satu kode per baris."></textarea>
       <select id="kodeTipe">
         <option value="Reguler">Reguler</option>
         <option value="Exclusive">Exclusive</option>
         <option value="Super">Super Exclusive</option>
       </select>
-      <button onclick="tambahKodeManual()">➕ Tambah</button>
+      <button onclick="tambahKodeManual()">➕ Tambah ke Stok</button>
     </div>
 
     <div class="admin-section">
@@ -141,150 +148,163 @@
     </div>
   </div>
 
-  <div id="user-popup" class="popup">
+  <div id="user-popup" class="popup green">
     <span id="popup-text"></span><br><br>
-    <button id="copyBtn">📋 Copy Code</button><br><br>
-    <button onclick="window.open('https://www.roblox.com/games/1234567890/Project-Military')">Masuki dan Redeem Game</button><br>
+    <button onclick="copyCode()">📋 Copy Code</button><br><br>
+    <button onclick="window.open('https://www.roblox.com/games/1234567890/Project-Military')">Masuki dan Redeem Game</button>
     <button onclick="window.open('https://yourwebsite.com/panduan-redeem')">Langkah-langkah Redeem</button><br><br>
     <button onclick="closePopup()">Tutup</button>
   </div>
 
-<script>
-  let currentUser = "", otpKode = "", emailTerkirim = "";
-  const db = JSON.parse(localStorage.getItem("users") || "{}");
+  <script>
+    let currentUser = "";
+    let otpKode = "";
+    let emailTerkirim = "";
+    let kodeTerakhir = "";
 
-  function loginUser() {
-    const u = get("usernameInput"), p = get("passwordInput");
-    if (u === "Rozaq" && p === "akurozaknih") return masuk(u);
-    if (!db[u]) return alert("❌ Username tidak ditemukan.");
-    if (db[u].password !== p) return alert("❌ Password salah.");
-    masuk(u);
-  }
-
-  function registerUser() {
-    const u = get("usernameInput"), p = get("passwordInput");
-    if (!u || !p) return alert("Isi semua!");
-    if (u === "Rozaq") return alert("❌ Nama ini sudah digunakan!");
-    if (db[u]) return alert("❌ Username sudah terdaftar!");
-    db[u] = { password: p, email: "" };
-    localStorage.setItem("users", JSON.stringify(db));
-    alert("✅ Akun berhasil dibuat!");
-  }
-
-  function masuk(u) {
-    currentUser = u;
-    localStorage.setItem("username", u);
-    qs("userDisplay").innerText = u;
-    show("mainSection");
-    hide("loginSection");
-    if (u === "Rozaq") show("adminToggle");
-    cekKodeUntukUser(u);
-  }
-
-  function logoutUser() {
-    localStorage.removeItem("username");
-    location.reload();
-  }
-
-  function toggleAdminPanel() {
-    const p = qs("adminPanel");
-    p.style.display = p.style.display === "none" ? "block" : "none";
-  }
-
-  function beriKode() {
-    const user = get("targetUser"), tipe = get("packSelect");
-    const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-    if (!stok[tipe] || stok[tipe].length === 0) return alert("❌ Stok kosong!");
-    const kode = stok[tipe].shift();
-    localStorage.setItem("stokKode", JSON.stringify(stok));
-    const pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-    pending[user] = { kode: kode, pesan: `✅ Ini kode kamu:\n${kode}` };
-    localStorage.setItem("pendingCodes", JSON.stringify(pending));
-    qs("adminStatus").innerText = `✅ Dikirim ke ${user}`;
-    tampilkanStok();
-  }
-
-  function tambahKodeManual() {
-    const lines = get("kodeManual").split("\n").map(v => v.trim()).filter(Boolean);
-    const tipe = get("kodeTipe"), stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-    stok[tipe] = stok[tipe] || [];
-    stok[tipe].push(...lines);
-    localStorage.setItem("stokKode", JSON.stringify(stok));
-    tampilkanStok();
-  }
-
-  function tampilkanStok() {
-    const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-    let out = "";
-    ["Reguler", "Exclusive", "Super"].forEach(tipe => {
-      out += `${tipe} (${(stok[tipe] || []).length})\n${(stok[tipe] || []).join("\n")}\n\n`;
-    });
-    qs("stokList").innerText = out.trim();
-  }
-
-  function cekKodeUntukUser(user) {
-    const pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-    if (pending[user]) {
-      qs("popup-text").innerText = pending[user].pesan;
-      qs("user-popup").style.display = "block";
-      const kode = pending[user].kode;
-      qs("copyBtn").onclick = () => navigator.clipboard.writeText(kode);
-      delete pending[user];
-      localStorage.setItem("pendingCodes", JSON.stringify(pending));
+    function showLoginForm() {
+      document.getElementById("registerSection").style.display = "none";
+      document.getElementById("resetSection").style.display = "none";
+      document.getElementById("loginSection").style.display = "block";
     }
-  }
 
-  function closePopup() {
-    qs("user-popup").style.display = "none";
-  }
+    function showRegisterForm() {
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("registerSection").style.display = "block";
+    }
 
-  function showResetForm() {
-    hide("loginSection");
-    show("resetSection");
-  }
+    function registerUser() {
+      const u = document.getElementById("regUsername").value.trim();
+      const p = document.getElementById("regPassword").value.trim();
+      if (!u || !p) return alert("Isi semua kolom!");
+      let users = JSON.parse(localStorage.getItem("users") || "{}");
+      if (users[u]) return alert("❌ Username sudah digunakan!");
+      users[u] = { password: p };
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("✅ Akun berhasil dibuat, silakan login.");
+      showLoginForm();
+    }
 
-  function kirimKodeReset() {
-    const email = get("resetEmail");
-    if (!email) return alert("Masukkan email!");
-    otpKode = Math.floor(100000 + Math.random() * 900000).toString();
-    emailTerkirim = email;
+    function loginUser() {
+      const u = document.getElementById("loginUsername").value.trim();
+      const p = document.getElementById("loginPassword").value.trim();
+      if (!u || !p) return alert("Isi semua kolom!");
+      let users = JSON.parse(localStorage.getItem("users") || "{}");
+      if (!users[u] || users[u].password !== p) return alert("❌ Username atau password salah!");
+      currentUser = u;
+      localStorage.setItem("username", u);
+      document.getElementById("userDisplay").innerText = u;
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("mainSection").style.display = "block";
+      if (u === "Rozaq" && p === "akurozaknih") {
+        document.getElementById("adminToggle").style.display = "inline-block";
+      }
+      cekKodeUntukUser(u);
+    }
 
-    // Ganti config EmailJS sesuai punyamu
-    emailjs.send("service_v9moqsb", "template_kodekamu", {
-      to_email: email,
-      message: `Kode reset password: ${otpKode}`
-    }).then(() => {
-      alert("📧 Kode dikirim ke " + email);
-      show("kodeSection");
-    }).catch(() => {
-      alert("Gagal kirim email. Ini kode kamu: " + otpKode);
-      show("kodeSection");
-    });
-  }
+    function logoutUser() {
+      localStorage.removeItem("username");
+      location.reload();
+    }
 
-  function verifikasiKode() {
-    if (get("kodeOTP") !== otpKode) return alert("❌ Kode salah!");
-    const newPass = get("newPass");
-    if (!emailTerkirim || !newPass) return alert("Lengkapi semua!");
-    Object.keys(db).forEach(u => {
-      if (db[u].email === emailTerkirim) db[u].password = newPass;
-    });
-    localStorage.setItem("users", JSON.stringify(db));
-    alert("✅ Password berhasil direset!");
-    hide("resetSection");
-    show("loginSection");
-  }
+    function toggleAdminPanel() {
+      const panel = document.getElementById("adminPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
 
-  const get = id => document.getElementById(id).value.trim();
-  const qs = id => document.getElementById(id);
-  const show = id => qs(id).style.display = "block";
-  const hide = id => qs(id).style.display = "none";
+    function beriKode() {
+      const user = document.getElementById("targetUser").value.trim();
+      const tipe = document.getElementById("packSelect").value;
+      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+      if (!stok[tipe] || stok[tipe].length === 0) return alert("❌ Stok kosong untuk " + tipe);
+      const kode = stok[tipe].shift();
+      localStorage.setItem("stokKode", JSON.stringify(stok));
+      let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
+      pending[user] = { kode: kode, pesan: `Pembayaran berhasil ✅\nIni kode kamu:\n${kode}` };
+      localStorage.setItem("pendingCodes", JSON.stringify(pending));
+      document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
+      tampilkanStok();
+    }
 
-  window.onload = () => {
-    const saved = localStorage.getItem("username");
-    if (saved) masuk(saved);
-    tampilkanStok();
-  }
-</script>
+    function tambahKodeManual() {
+      const text = document.getElementById("kodeManual").value.trim();
+      const tipe = document.getElementById("kodeTipe").value;
+      if (!text) return;
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+      stok[tipe] = stok[tipe] || [];
+      stok[tipe].push(...lines);
+      localStorage.setItem("stokKode", JSON.stringify(stok));
+      document.getElementById("kodeManual").value = "";
+      tampilkanStok();
+    }
+
+    function tampilkanStok() {
+      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+      let out = "";
+      ["Reguler", "Exclusive", "Super"].forEach(tipe => {
+        out += `\n${tipe}: ${stok[tipe] ? stok[tipe].length : 0} kode`;
+        if (stok[tipe]) stok[tipe].forEach(k => out += `\n- ${k}`);
+        out += "\n";
+      });
+      document.getElementById("stokList").innerText = out.trim();
+    }
+
+    function cekKodeUntukUser(user) {
+      let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
+      if (pending[user]) {
+        kodeTerakhir = pending[user].kode;
+        const popup = document.getElementById("user-popup");
+        document.getElementById("popup-text").innerText = pending[user].pesan;
+        popup.style.display = "block";
+        delete pending[user];
+        localStorage.setItem("pendingCodes", JSON.stringify(pending));
+      }
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(kodeTerakhir);
+      alert("✅ Kode berhasil disalin!");
+    }
+
+    function closePopup() {
+      document.getElementById("user-popup").style.display = "none";
+    }
+
+    function showResetForm() {
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("resetSection").style.display = "block";
+    }
+
+    function kirimKodeReset() {
+      const email = document.getElementById("resetEmail").value.trim();
+      if (!email) return alert("Masukkan email dulu!");
+      otpKode = Math.floor(100000 + Math.random() * 900000).toString();
+      emailTerkirim = email;
+      alert(`📧 Kode verifikasi dikirim ke ${email}\n\nDari: ProjectMiliterIndonesia@gmail.com\nKode: ${otpKode}`);
+      document.getElementById("kodeSection").style.display = "block";
+      document.getElementById("resetStatus").innerText = "Silakan masukkan kode verifikasi.";
+    }
+
+    function verifikasiKode() {
+      const kode = document.getElementById("kodeOTP").value.trim();
+      const newPass = document.getElementById("newPass").value.trim();
+      if (kode !== otpKode) return alert("❌ Kode salah!");
+      if (newPass.length < 6) return alert("❌ Password minimal 6 karakter!");
+      alert("✅ Password berhasil diganti!");
+      document.getElementById("resetStatus").innerText = "Password berhasil diganti!";
+      otpKode = "";
+      emailTerkirim = "";
+      document.getElementById("kodeSection").style.display = "none";
+    }
+
+    window.onload = () => {
+      const saved = localStorage.getItem("username");
+      if (saved) {
+        document.getElementById("loginUsername").value = saved;
+      }
+      tampilkanStok();
+    }
+  </script>
 </body>
 </html>
