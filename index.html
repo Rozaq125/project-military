@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Project Military - Redeem</title>
   <style>
     * {
@@ -13,117 +12,104 @@
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #0f2027; }
     ::-webkit-scrollbar-thumb { background: #00c853; border-radius: 10px; }
-
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: white;
     }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      background: rgba(255,255,255,0.05);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
     .container {
-      padding: 20px;
       max-width: 600px;
       margin: 30px auto;
+      padding: 20px;
       background: rgba(255,255,255,0.05);
       border-radius: 12px;
     }
-    input, select, button, textarea {
+    input, button, select, textarea {
       width: 100%;
       padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
+      margin: 10px 0;
       border: none;
+      border-radius: 6px;
       font-size: 16px;
     }
     button {
-      background: #00c853;
+      background-color: #00c853;
       color: white;
       font-weight: bold;
       cursor: pointer;
     }
-    button:hover { background: #009624; }
+    button:hover { background-color: #009624; }
     #adminToggle {
+      display: none;
       background: none;
       color: white;
       border: 1px solid white;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 6px;
     }
     #adminPanel { display: none; }
-    .popup.green { background: #d4edda; color: #155724; }
+    .admin-section { margin-top: 30px; }
     #user-popup {
+      display: none;
       position: fixed;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       background: white;
       color: black;
       padding: 20px;
-      border-radius: 10px;
-      display: none;
+      border-radius: 12px;
       z-index: 9999;
-      min-width: 300px;
       text-align: center;
+      min-width: 300px;
     }
-    .admin-section { margin-top: 30px; }
-    a { color: lightblue; cursor: pointer; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    (function(){emailjs.init("YOUR_PUBLIC_KEY");})();
+  </script>
 </head>
 <body>
-  <header>
-    <h2 style="margin:0;">🎮 Project Military</h2>
-    <button id="adminToggle" style="display:none;" onclick="toggleAdminPanel()">⚙️ Admin Panel</button>
-  </header>
 
   <div class="container" id="registerSection">
-    <h3>Daftar Akun</h3>
-    <input type="text" id="regUsername" placeholder="Username" />
-    <input type="password" id="regPassword" placeholder="Password" />
+    <h2>📋 Daftar Akun</h2>
+    <input type="text" id="regUser" placeholder="Username">
+    <input type="password" id="regPass" placeholder="Password">
     <button onclick="register()">Daftar</button>
-    <p><a onclick="showLogin()">Sudah punya akun? Masuk</a></p>
+    <p>Sudah punya akun? <a href="#" onclick="switchToLogin()">Login di sini</a></p>
   </div>
 
   <div class="container" id="loginSection" style="display:none;">
-    <h3>Login</h3>
-    <input type="text" id="usernameInput" placeholder="Username" />
-    <input type="password" id="passwordInput" placeholder="Password" />
+    <h2>🔐 Login</h2>
+    <input type="text" id="usernameInput" placeholder="Username">
+    <input type="password" id="passwordInput" placeholder="Password">
     <button onclick="loginUser()">Masuk</button>
-    <p><a onclick="showResetForm()">Lupa Password?</a></p>
+    <p><a href="#" onclick="showResetForm()">Lupa Password?</a></p>
   </div>
 
   <div class="container" id="resetSection" style="display:none;">
-    <h3>🔐 Reset Password</h3>
-    <input type="email" id="resetEmail" placeholder="Masukkan Email Anda" />
-    <button onclick="kirimKodeReset()">Kirim Kode Verifikasi</button>
+    <h3>🔁 Reset Password</h3>
+    <input type="email" id="resetEmail" placeholder="Email kamu">
+    <button onclick="kirimKodeReset()">Kirim Kode</button>
     <div id="kodeSection" style="display:none;">
-      <input type="text" id="kodeOTP" placeholder="Masukkan Kode Verifikasi" />
-      <input type="password" id="newPass" placeholder="Password Baru" />
-      <button onclick="verifikasiKode()">Verifikasi & Ganti Password</button>
+      <input type="text" id="kodeOTP" placeholder="Masukkan kode">
+      <input type="password" id="newPass" placeholder="Password baru">
+      <button onclick="verifikasiKode()">Verifikasi</button>
     </div>
     <p id="resetStatus"></p>
   </div>
 
   <div class="container" id="mainSection" style="display:none;">
-    <h3>Selamat datang, <span id="userDisplay"></span></h3>
+    <h2>Selamat datang, <span id="userDisplay"></span></h2>
     <button onclick="window.open('https://wa.me/6285282790834')">💰 Beli Sekarang</button>
     <button onclick="logoutUser()">Logout</button>
+    <button id="adminToggle" onclick="toggleAdminPanel()">⚙️ Admin Panel</button>
   </div>
 
   <div class="container" id="adminPanel">
     <h3>👑 Admin Panel</h3>
-
     <div class="admin-section">
-      <h4>Kirim Kode Redeem</h4>
+      <h4>Kirim Kode ke User</h4>
       <input type="text" id="targetUser" placeholder="Username Pembeli">
       <select id="packSelect">
         <option value="Reguler">Reguler</option>
@@ -135,162 +121,186 @@
     </div>
 
     <div class="admin-section">
-      <h4>Tambah Stok Kode Manual</h4>
-      <textarea id="kodeManual" placeholder="Satu kode per baris."></textarea>
+      <h4>Tambah Kode Manual</h4>
+      <textarea id="kodeManual" placeholder="Satu kode per baris"></textarea>
       <select id="kodeTipe">
         <option value="Reguler">Reguler</option>
         <option value="Exclusive">Exclusive</option>
         <option value="Super">Super Exclusive</option>
       </select>
-      <button onclick="tambahKodeManual()">➕ Tambah ke Stok</button>
+      <button onclick="tambahKodeManual()">Tambah</button>
     </div>
 
     <div class="admin-section">
-      <h4>Lihat Stok Kode</h4>
-      <pre id="stokList" style="white-space: pre-wrap; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px;"></pre>
+      <h4>Stok Kode</h4>
+      <pre id="stokList" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px;"></pre>
     </div>
   </div>
 
-  <div id="user-popup" class="popup">
+  <div id="user-popup">
     <span id="popup-text"></span><br><br>
-    <button onclick="copyKode()">📋 Copy Kode</button><br><br>
-    <button onclick="window.open('https://www.roblox.com/games/1234567890/Project-Military')">Masuki dan Redeem Game</button>
-    <button onclick="window.open('https://yourwebsite.com/panduan-redeem')">Langkah-langkah Redeem</button><br><br>
+    <button id="copyBtn">📋 Copy Kode</button><br><br>
+    <button onclick="window.open('https://www.roblox.com/games/1234567890')">🎮 Masuki Game</button>
+    <button onclick="window.open('https://yourwebsite.com/panduan-redeem')">📘 Panduan Redeem</button><br><br>
     <button onclick="closePopup()">Tutup</button>
   </div>
 
-  <script>
-    emailjs.init("EWw06aLCuMBnHCLIf");
-    let currentUser = "", otpKode = "", emailTerkirim = "";
+<script>
+let currentUser = "", otpKode = "", emailTerkirim = "";
 
-    function showLogin() {
-      document.getElementById("registerSection").style.display = "none";
-      document.getElementById("loginSection").style.display = "block";
-    }
+// REGISTER
+function register() {
+  const user = document.getElementById("regUser").value.trim();
+  const pass = document.getElementById("regPass").value.trim();
+  if (!user || !pass) return alert("Isi semua field!");
+  if (user.toLowerCase() === "rozaq") return alert("Nama ini sudah digunakan admin!");
+  let users = JSON.parse(localStorage.getItem("users") || "{}");
+  if (users[user]) return alert("Username sudah terdaftar!");
+  users[user] = pass;
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("Akun berhasil dibuat! Silakan login.");
+  switchToLogin();
+}
 
-    function register() {
-      const user = document.getElementById("regUsername").value.trim();
-      const pass = document.getElementById("regPassword").value.trim();
-      if (!user || !pass) return alert("Isi semua data!");
-      const users = JSON.parse(localStorage.getItem("users") || "{}");
-      if (users[user]) return alert("Username sudah terdaftar!");
-      users[user] = pass;
+// LOGIN
+function loginUser() {
+  const u = document.getElementById("usernameInput").value.trim();
+  const p = document.getElementById("passwordInput").value.trim();
+  let users = JSON.parse(localStorage.getItem("users") || "{}");
+  if (users[u] && users[u] === p) {
+    currentUser = u;
+    localStorage.setItem("username", u);
+    document.getElementById("userDisplay").innerText = u;
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("mainSection").style.display = "block";
+    if (u === "Rozaq") document.getElementById("adminToggle").style.display = "inline-block";
+    cekKodeUntukUser(u);
+  } else alert("Login gagal!");
+}
+
+// RESET
+function showResetForm() {
+  document.getElementById("registerSection").style.display = "none";
+  document.getElementById("loginSection").style.display = "none";
+  document.getElementById("resetSection").style.display = "block";
+}
+
+function kirimKodeReset() {
+  const email = document.getElementById("resetEmail").value.trim();
+  if (!email) return alert("Email belum diisi!");
+  otpKode = Math.floor(100000 + Math.random() * 900000).toString();
+  emailTerkirim = email;
+  emailjs.send("service_v9moqsb", "template_xxxxxxx", {
+    to_email: email,
+    message: `Kode verifikasi reset password: ${otpKode}`
+  }).then(() => {
+    alert("✅ Kode dikirim ke email!");
+    document.getElementById("kodeSection").style.display = "block";
+    document.getElementById("resetStatus").innerText = "Masukkan kode verifikasi dari email.";
+  }).catch(() => alert("❌ Gagal mengirim email."));
+}
+
+function verifikasiKode() {
+  const kode = document.getElementById("kodeOTP").value.trim();
+  const newPass = document.getElementById("newPass").value.trim();
+  if (kode !== otpKode) return alert("Kode salah!");
+  if (newPass.length < 6) return alert("Password minimal 6 karakter");
+  let users = JSON.parse(localStorage.getItem("users") || "{}");
+  for (let u in users) {
+    if (users[u] === emailTerkirim) {
+      users[u] = newPass;
       localStorage.setItem("users", JSON.stringify(users));
-      alert("Berhasil daftar, silakan login.");
-      showLogin();
+      alert("Password berhasil diganti!");
+      document.getElementById("resetSection").style.display = "none";
+      switchToLogin();
+      return;
     }
+  }
+  alert("Email tidak terdaftar!");
+}
 
-    function loginUser() {
-      const u = document.getElementById("usernameInput").value.trim();
-      const p = document.getElementById("passwordInput").value.trim();
-      const users = JSON.parse(localStorage.getItem("users") || "{}");
-      if (users[u] !== p) return alert("Username atau password salah!");
-      currentUser = u;
-      document.getElementById("userDisplay").innerText = u;
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("mainSection").style.display = "block";
-      if (u === "Rozaq" && p === "akurozaknih") {
-        document.getElementById("adminToggle").style.display = "inline-block";
-      }
-      cekKodeUntukUser(u);
-    }
+// ADMIN
+function toggleAdminPanel() {
+  let panel = document.getElementById("adminPanel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
 
-    function logoutUser() {
-      location.reload();
-    }
+function beriKode() {
+  const user = document.getElementById("targetUser").value.trim();
+  const tipe = document.getElementById("packSelect").value;
+  let stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+  if (!stok[tipe] || stok[tipe].length === 0) return alert("Stok kosong");
+  const kode = stok[tipe].shift();
+  localStorage.setItem("stokKode", JSON.stringify(stok));
+  let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
+  pending[user] = { kode: kode, pesan: `🎉 Kode kamu:\n${kode}` };
+  localStorage.setItem("pendingCodes", JSON.stringify(pending));
+  document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
+  tampilkanStok();
+}
 
-    function toggleAdminPanel() {
-      const panel = document.getElementById("adminPanel");
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-    }
+function tambahKodeManual() {
+  const teks = document.getElementById("kodeManual").value.trim();
+  const tipe = document.getElementById("kodeTipe").value;
+  if (!teks) return;
+  const lines = teks.split("\n").map(l => l.trim()).filter(Boolean);
+  let stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+  stok[tipe] = stok[tipe] || [];
+  stok[tipe].push(...lines);
+  localStorage.setItem("stokKode", JSON.stringify(stok));
+  document.getElementById("kodeManual").value = "";
+  tampilkanStok();
+}
 
-    function kirimKodeReset() {
-      const email = document.getElementById("resetEmail").value.trim();
-      if (!email) return alert("Masukkan email dulu!");
-      otpKode = Math.floor(100000 + Math.random() * 900000).toString();
-      emailTerkirim = email;
-      emailjs.send("service_v9moqsb", "template_z92vl5v", {
-        to_email: email,
-        kode_otp: otpKode
-      }).then(() => {
-        alert(`✅ Kode terkirim ke ${email}`);
-        document.getElementById("kodeSection").style.display = "block";
-        document.getElementById("resetStatus").innerText = "Cek email kamu untuk kode.";
-      }).catch((err) => {
-        alert("❌ Gagal mengirim email: " + err.text);
-      });
-    }
+function tampilkanStok() {
+  const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
+  let out = "";
+  ["Reguler", "Exclusive", "Super"].forEach(tipe => {
+    out += `\n${tipe}: ${stok[tipe]?.length || 0} kode`;
+    if (stok[tipe]) stok[tipe].forEach(k => out += `\n- ${k}`);
+    out += "\n";
+  });
+  document.getElementById("stokList").innerText = out.trim();
+}
 
-    function verifikasiKode() {
-      const kode = document.getElementById("kodeOTP").value.trim();
-      const newPass = document.getElementById("newPass").value.trim();
-      if (kode !== otpKode) return alert("Kode salah!");
-      alert("✅ Password berhasil direset untuk email: " + emailTerkirim);
-      document.getElementById("resetStatus").innerText = "Password berhasil diganti!";
-    }
-
-    function beriKode() {
-      const user = document.getElementById("targetUser").value.trim();
-      const tipe = document.getElementById("packSelect").value;
-      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-      if (!stok[tipe] || stok[tipe].length === 0) return alert("❌ Stok kosong untuk " + tipe);
-      const kode = stok[tipe].shift();
-      localStorage.setItem("stokKode", JSON.stringify(stok));
-      let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-      pending[user] = { kode: kode, pesan: `Pembayaran berhasil ✅\nKode kamu:\n${kode}` };
-      localStorage.setItem("pendingCodes", JSON.stringify(pending));
-      document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
-      tampilkanStok();
-    }
-
-    function tambahKodeManual() {
-      const text = document.getElementById("kodeManual").value.trim();
-      const tipe = document.getElementById("kodeTipe").value;
-      if (!text) return;
-      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-      stok[tipe] = stok[tipe] || [];
-      stok[tipe].push(...lines);
-      localStorage.setItem("stokKode", JSON.stringify(stok));
-      tampilkanStok();
-      document.getElementById("kodeManual").value = "";
-    }
-
-    function tampilkanStok() {
-      const stok = JSON.parse(localStorage.getItem("stokKode") || "{}");
-      let out = "";
-      ["Reguler", "Exclusive", "Super"].forEach(tipe => {
-        out += `\n${tipe}: ${stok[tipe] ? stok[tipe].length : 0} kode`;
-        if (stok[tipe]) stok[tipe].forEach(k => out += `\n- ${k}`);
-        out += "\n";
-      });
-      document.getElementById("stokList").innerText = out.trim();
-    }
-
-    function cekKodeUntukUser(user) {
-      let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-      if (pending[user]) {
-        const popup = document.getElementById("user-popup");
-        popup.className = "popup green";
-        document.getElementById("popup-text").innerText = pending[user].pesan;
-        popup.style.display = "block";
-        popup.dataset.code = pending[user].kode;
-        delete pending[user];
-        localStorage.setItem("pendingCodes", JSON.stringify(pending));
-      }
-    }
-
-    function copyKode() {
-      const code = document.getElementById("popup-text").innerText.match(/[A-Z0-9\-]{10,}/);
-      if (code) {
-        navigator.clipboard.writeText(code[0]);
-        alert("✅ Kode berhasil disalin!");
-      }
-    }
-
-    window.onload = () => {
-      tampilkanStok();
+function cekKodeUntukUser(user) {
+  let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
+  if (pending[user]) {
+    const popup = document.getElementById("user-popup");
+    const text = pending[user].pesan;
+    document.getElementById("popup-text").innerText = text;
+    popup.style.display = "block";
+    document.getElementById("copyBtn").onclick = () => {
+      navigator.clipboard.writeText(pending[user].kode || "kode kosong");
+      alert("Kode berhasil disalin!");
     };
-  </script>
+    delete pending[user];
+    localStorage.setItem("pendingCodes", JSON.stringify(pending));
+  }
+}
+
+function switchToLogin() {
+  document.getElementById("registerSection").style.display = "none";
+  document.getElementById("loginSection").style.display = "block";
+}
+
+function logoutUser() {
+  localStorage.removeItem("username");
+  location.reload();
+}
+
+window.onload = () => {
+  const saved = localStorage.getItem("username");
+  if (saved) {
+    document.getElementById("usernameInput").value = saved;
+    document.getElementById("passwordInput").value = "";
+    loginUser();
+  }
+  let users = JSON.parse(localStorage.getItem("users") || "{}");
+  if (!users["Rozaq"]) users["Rozaq"] = "akurozaknih";
+  localStorage.setItem("users", JSON.stringify(users));
+  tampilkanStok();
+};
+</script>
 </body>
 </html>
