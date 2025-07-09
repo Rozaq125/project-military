@@ -3,507 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Echoes of the Void - Game 2D Inline</title>
-
+    <title>Nusantara Jaya: Pahlawan Kemerdekaan</title>
     <style>
+        /* --- CSS Internal untuk Tampilan Game --- */
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #0a0a20, #222244); /* Latar belakang gelap */
+            color: #eee; /* Warna teks terang */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #1a1a2e; /* Darker background */
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #e0e0e0;
-            flex-direction: column;
-            overflow: hidden; /* Prevent scrollbar */
-        }
-        canvas {
-            background-color: #000;
-            border: 3px solid #0f0;
-            display: block;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); /* Glowing border */
-        }
-        .game-container {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        h1 {
-            color: #00f0ff; /* Cyan title */
-            text-shadow: 0 0 5px #00f0ff;
-            margin-bottom: 10px;
-        }
-        .instructions {
-            font-size: 0.9em;
-            color: #a0a0a0;
-            margin-bottom: 15px;
-        }
-        #scoreDisplay {
-            color: #ffcc00; /* Gold score */
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        .message-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85); /* Semi-transparent black */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: #eee;
-            font-size: 1.5em;
-            text-align: center;
             padding: 20px;
             box-sizing: border-box;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
-            z-index: 100;
         }
-        .message-overlay.active {
-            opacity: 1;
-            visibility: visible;
+
+        #game-container {
+            background-color: rgba(30, 30, 60, 0.9); /* Kotak game semi-transparan */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            width: 90%;
+            max-width: 800px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid #555;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        .message-overlay button {
-            background-color: #007bff;
+
+        h1 {
+            color: #ffcc00; /* Warna judul emas */
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        #game-image {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.4);
+            border: 1px solid #777;
+        }
+
+        #story-text {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #ffcc00;
+        }
+
+        #choices {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .choice-button {
+            background-color: #007bff; /* Warna tombol biru */
             color: white;
-            padding: 10px 20px;
             border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1em;
-            margin-top: 20px;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            flex: 1 1 auto; /* Mengatur fleksibilitas tombol */
+            min-width: 180px;
+            max-width: 45%;
         }
-        .message-overlay button:hover {
+
+        .choice-button:hover {
             background-color: #0056b3;
+            transform: translateY(-2px);
         }
-        .dialog-text {
-            font-size: 1.1em;
-            max-width: 700px;
-            margin: 10px auto;
-            line-height: 1.6;
+
+        .choice-button:active {
+            transform: translateY(0);
         }
-        .dialog-title {
-            color: #ff00ff; /* Magenta for titles */
-            font-size: 2em;
-            margin-bottom: 20px;
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            #game-container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            #story-text {
+                font-size: 1em;
+            }
+            .choice-button {
+                min-width: 100%;
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-
-    <div class="game-container">
-        <h1>Echoes of the Void</h1>
-        <p class="instructions">Gerakkan pesawat dengan &larr; &rarr; (panah kiri/kanan). Tembak dengan [Spasi].</p>
-        <p>Skor: <span id="scoreDisplay">0</span></p>
-    </div>
-
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
-
-    <div id="messageOverlay" class="message-overlay">
-        <h2 class="dialog-title" id="dialogTitle"></h2>
-        <p class="dialog-text" id="dialogText"></p>
-        <button id="nextBtn">Lanjutkan</button>
+    <div id="game-container">
+        <h1>Nusantara Jaya: Pahlawan Kemerdekaan</h1>
+        <img id="game-image" src="https://via.placeholder.com/700x350?text=Gerbang+Waktu" alt="Gambar Latar Game">
+        <p id="story-text">Anda tiba-tiba terbangun di tengah hutan yang asing, suara riuh pepohonan dan bau tanah basah memenuhi indra Anda. Di kejauhan, terlihat kobaran api dan terdengar teriakan. Sebuah gulungan kertas tua tergeletak di samping Anda...</p>
+        <div id="choices">
+            <button class="choice-button" onclick="makeChoice(1)">Ambil gulungan kertas itu</button>
+            <button class="choice-button" onclick="makeChoice(2)">Bersembunyi dan mengamati situasi</button>
+        </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreDisplay = document.getElementById('scoreDisplay');
-        const messageOverlay = document.getElementById('messageOverlay');
-        const dialogTitle = document.getElementById('dialogTitle');
-        const dialogText = document.getElementById('dialogText');
-        const nextBtn = document.getElementById('nextBtn');
+        // --- JavaScript untuk Logika Game ---
+        const storyText = document.getElementById('story-text');
+        const choicesDiv = document.getElementById('choices');
+        const gameImage = document.getElementById('game-image');
 
-        // --- Game State Variables ---
-        let player = {
-            x: canvas.width / 2 - 25,
-            y: canvas.height - 70,
-            width: 50,
-            height: 50,
-            color: 'lime',
-            speed: 7,
-            isShooting: false,
-            invulnerable: 0 // Waktu kebal setelah kena, dalam frame
+        // Objek untuk menyimpan data cerita
+        const gameData = {
+            'start': {
+                text: "Anda tiba-tiba terbangun di tengah hutan yang asing, suara riuh pepohonan dan bau tanah basah memenuhi indra Anda. Di kejauhan, terlihat kobaran api dan terdengar teriakan. Sebuah gulungan kertas tua tergeletak di samping Anda...",
+                image: "https://via.placeholder.com/700x350?text=Gerbang+Waktu",
+                choices: [
+                    { text: "Ambil gulungan kertas itu", next: "gulungan" },
+                    { text: "Bersembunyi dan mengamati situasi", next: "sembunyi" }
+                ]
+            },
+            'gulungan': {
+                text: "Gulungan itu berisi peta kuno dan tulisan samar berbahasa Belanda. Anda merasa ada yang tidak beres. Tiba-tiba, seorang pejuang bersembunyi di balik semak-semak dan melihat Anda!",
+                image: "https://via.placeholder.com/700x350?text=Peta+Kuno",
+                choices: [
+                    { text: "Coba ajak bicara pejuang itu", next: "ajak_bicara" },
+                    { text: "Lari dari tempat itu", next: "lari" }
+                ]
+            },
+            'sembunyi': {
+                text: "Anda bersembunyi di balik semak-semak lebat. Tak lama kemudian, sekelompok tentara kolonial melintas di dekat Anda, berbicara dalam bahasa yang tidak Anda mengerti. Mereka tampaknya sedang mencari sesuatu...",
+                image: "https://via.placeholder.com/700x350?text=Tentara+Kolonial",
+                choices: [
+                    { text: "Diam di tempat, tunggu mereka pergi", next: "diam" },
+                    { text: "Coba ikuti mereka dari kejauhan", next: "ikuti" }
+                ]
+            },
+            'ajak_bicara': {
+                text: "Pejuang itu terkejut, namun setelah Anda menjelaskan (dengan sedikit kesulitan) bahwa Anda bukan musuh, ia mulai mempercayai Anda. Ia menceritakan tentang perjuangan melawan penjajah dan krisis yang sedang terjadi.",
+                image: "https://via.placeholder.com/700x350?text=Pejuang+Lokal",
+                choices: [
+                    { text: "Tawarkan bantuanmu", next: "bantu_pejuang" },
+                    { text: "Minta ia menjelaskan lebih detail tentang situasinya", next: "detail_situasi" }
+                ]
+            },
+            'lari': {
+                text: "Anda berlari sekuat tenaga, tidak peduli ke mana arahnya. Anda tersandung akar pohon dan jatuh. Ketika Anda bangkit, Anda menyadari telah berada di tengah-tengah pasar tradisional yang ramai. Suasana tahun 1940-an begitu terasa.",
+                image: "https://via.placeholder.com/700x350?text=Pasar+Tradisional+1940an",
+                choices: [
+                    { text: "Coba cari tahu di mana Anda berada", next: "cari_tahu" },
+                    { text: "Jual barang berhargamu untuk bertahan hidup", next: "jual_barang" }
+                ]
+            },
+            'diam': {
+                text: "Anda menunggu hingga para tentara kolonial menjauh. Setelah suasana aman, Anda perlahan keluar dari persembunyian. Anda harus memutuskan langkah selanjutnya.",
+                image: "https://via.placeholder.com/700x350?text=Hutan+Aman",
+                choices: [
+                    { text: "Cari tahu mengapa mereka ada di sini", next: "cari_mengapa" },
+                    { text: "Bergerak menuju arah yang berlawanan dengan mereka", next: "arah_berlawanan" }
+                ]
+            },
+            'ikuti': {
+                text: "Anda mengikuti para tentara kolonial dari kejauhan. Mereka menuju ke sebuah desa yang tampak sepi. Tiba-tiba, Anda mendengar suara tembakan!",
+                image: "https://via.placeholder.com/700x350?text=Desa+Sepi",
+                choices: [
+                    { text: "Selidiki suara tembakan itu", next: "selidiki_tembakan" },
+                    { text: "Kembali dan cari bantuan", next: "cari_bantuan" }
+                ]
+            },
+            // Tambahkan lebih banyak skenario di sini
+            'bantu_pejuang': {
+                text: "Pejuang itu senang dengan tawaran Anda. Ia meminta Anda untuk menyampaikan pesan rahasia kepada pimpinan pejuang di kota sebelah. Ini adalah misi pertama Anda sebagai Pahlawan Kemerdekaan!",
+                image: "https://via.placeholder.com/700x350?text=Misi+Pertama",
+                choices: [] // Akhir sementara atau lanjut ke misi lain
+            },
+            'detail_situasi': {
+                text: "Pejuang itu menjelaskan bahwa mereka sedang mempersiapkan perlawanan besar, tetapi kekurangan pasokan dan informasi. Ia melihat Anda sebagai harapan baru.",
+                image: "https://via.placeholder.com/700x350?text=Penjelasan+Pejuang",
+                choices: [
+                    { text: "Bagaimana saya bisa membantu?", next: "bantu_pejuang" }
+                ]
+            },
+            'cari_tahu': {
+                text: "Anda mencoba berbicara dengan pedagang di pasar, tetapi bahasa mereka sangat berbeda. Untungnya, seorang nenek tua yang ramah melihat kebingungan Anda dan menawarkan bantuan.",
+                image: "https://via.placeholder.com/700x350?text=Nenek+Ramah",
+                choices: [
+                    { text: "Terima bantuan nenek itu", next: "bantu_nenek" }
+                ]
+            },
+            'jual_barang': {
+                text: "Anda mencoba menjual jam tangan modern Anda, tetapi tidak ada yang mengerti nilainya. Anda menyadari bahwa Anda harus beradaptasi dengan zaman ini.",
+                image: "https://via.placeholder.com/700x350?text=Barang+Modern",
+                choices: [
+                    { text: "Cari pekerjaan serabutan", next: "pekerjaan_serabutan" }
+                ]
+            },
+            'cari_mengapa': {
+                text: "Anda menemukan jejak-jejak perkemahan tentara kolonial. Tampaknya mereka sedang mencari sisa-sisa pejuang yang kabur dari pertempuran sebelumnya. Anda harus berhati-hati.",
+                image: "https://via.placeholder.com/700x350?text=Jejak+Tentara",
+                choices: [
+                    { text: "Lanjutkan penyelidikan", next: "lanjut_penyelidikan" }
+                ]
+            },
+            'arah_berlawanan': {
+                text: "Anda berjalan menjauh dari jejak tentara kolonial. Anda menemukan sebuah desa kecil yang tampak damai, jauh dari hiruk pikuk perjuangan.",
+                image: "https://via.placeholder.com/700x350?text=Desa+Damai",
+                choices: [
+                    { text: "Masuk ke desa", next: "masuk_desa" }
+                ]
+            },
+            'selidiki_tembakan': {
+                text: "Anda mengintip ke dalam desa. Pertempuran sengit sedang terjadi antara pejuang lokal dan tentara kolonial. Anda melihat seorang pejuang terluka parah.",
+                image: "https://via.placeholder.com/700x350?text=Pertempuran+Sengit",
+                choices: [
+                    { text: "Bantu pejuang terluka", next: "bantu_terluka" },
+                    { text: "Cari tempat berlindung", next: "berlindung" }
+                ]
+            },
+            'cari_bantuan': {
+                text: "Anda berlari kembali ke hutan untuk mencari bantuan, berharap menemukan seseorang yang bisa membantu para pejuang di desa.",
+                image: "https://via.placeholder.com/700x350?text=Cari+Bantuan",
+                choices: [
+                    { text: "Terus berlari", next: "terus_berlari" }
+                ]
+            }
+            // ... Tambahkan lebih banyak node cerita sesuai kebutuhan
         };
 
-        let bullets = [];
-        let bulletSpeed = 10;
-        let bulletWidth = 6;
-        let bulletHeight = 18;
-        let bulletColor = 'yellow';
+        let currentScene = 'start'; // Scene awal
 
-        let enemies = []; // Akan berisi Void-Corrupted atau Mining Cores
-        let enemyType = 'voidCorrupted'; // 'voidCorrupted' atau 'miningCore'
-        let enemySpeed = 1.5;
-        let enemyWidth = 45;
-        let enemyHeight = 45;
-        let enemyColor = 'red';
-        let enemySpawnInterval = 1200; // spawn setiap 1.2 detik
-        let lastEnemySpawnTime = 0;
-        let enemiesToSpawn = 10; // Jumlah musuh per gelombang
-        let enemiesSpawned = 0;
-
-        let score = 0;
-        let gameOver = false;
-        let gamePaused = true; // Game dimulai dalam keadaan paused untuk narasi
-        let currentChapter = 0; // 0: Intro, 1: Babak 1, 2: Babak 2, 3: Plot Twist, 4: Babak Akhir, 5: Epilog
-
-        // --- Input Keyboard ---
-        let keys = {};
-        document.addEventListener('keydown', (e) => {
-            keys[e.code] = true;
-            if (gamePaused && e.code === 'Space') { // Allow space to advance dialog
-                nextBtn.click();
-            }
-        });
-        document.addEventListener('keyup', (e) => {
-            keys[e.code] = false;
-        });
-
-        // --- Cerita dan Narasi ---
-        const chapters = [
-            {
-                title: "Echoes of the Void: Prolog",
-                text: "Kamu adalah Ace, pilot terakhir skuadron Starfall. Misi patroli rutin di Sektor Nexus yang kini sunyi. 5 tahun setelah 'Great Silence', tak ada yang datang, tak ada yang pergi...",
-                action: () => { startGameChapter(1); }
-            },
-            {
-                title: "Babak 1: Gelombang Pertama",
-                text: "Sensor pesawatmu mendeteksi anomali! Makhluk asing mulai muncul dari Void. Tujuan mereka tidak jelas, tapi mereka bukan kawan. Hancurkan mereka!",
-                action: () => { gamePaused = false; enemyType = 'voidCorrupted'; enemiesToSpawn = 20; enemySpawnInterval = 1200; enemySpeed = 1.5; }
-            },
-            {
-                title: "Babak 2: Jejak Cahaya Kuno",
-                text: "Musuh semakin banyak. Namun, ada sumber energi kuat di depan: sebuah Pilar Cahaya Kuno! Sinyalnya aneh... Dekati dan lindungi pesawatmu untuk memecahkan kode!",
-                action: () => { gamePaused = false; enemiesToSpawn = 30; enemySpawnInterval = 1000; enemySpeed = 2; }
-            },
-            {
-                title: "PLOT TWIST: Kebenaran Terungkap",
-                text: "Rekaman dari Pilar terurai... Musuh yang kamu lawan BUKAN alien penjajah! Mereka adalah Void-Corrupted, mantan penduduk Sektor Nexus, termasuk Dr. Lyra Vaan! Mereka diubah oleh 'Energi Void' yang ditambang Galactic Council secara rahasia. Kamu selama ini melindungi sistem penambangan yang menghancurkan mereka! Suara bisikan itu peringatan mereka! Sekarang, misi barumu: Hancurkan titik-titik penambangan!",
-                action: () => { startGameChapter(4); }
-            },
-            {
-                title: "Babak Akhir: Pilihan Terakhir",
-                text: "Saatnya menghentikan kehancuran. Hancurkan Core Penambangan Utama! Lindungi dirimu dari sisa-sisa Void-Corrupted yang akan mencoba menghentikanmu!",
-                action: () => { gamePaused = false; enemyType = 'miningCore'; enemiesToSpawn = 1; // Only 1 final core
-                                enemyColor = 'darkblue'; enemyWidth = 80; enemyHeight = 80; // Make core bigger
-                                enemySpeed = 0.5; // Core moves slower
-                                // Also spawn some void corrupted as support
-                                lastEnemySpawnTime = Date.now(); // Reset spawn timer for support enemies
-                                spawnSupportEnemies(); // Start spawning support enemies
-                            }
-            },
-            {
-                title: "Epilog: Harapan Baru",
-                text: "Kamu berhasil! Core Penambangan Utama hancur. Sektor Nexus perlahan mulai pulih. Sebuah pesan terakhir dari Lyra Vaan bergema: 'Terima kasih, Ace. Semoga masa depan lebih baik...'. Kemanusiaan menemukan jalannya.",
-                action: () => { showGameOver('SELAMAT! Kemenangan!', 'green'); }
-            },
-            {
-                title: "Epilog: The Silence Deepens",
-                text: "Kegagalan... Sektor Nexus runtuh sepenuhnya, dilahap Energi Void tak terkendali. Pesawatmu hancur. Kegelapan menelan semua...",
-                action: () => { showGameOver('GAME OVER! Kegagalan Misi!', 'red'); }
-            }
-        ];
-
-        // --- Fungsi Kontrol Cerita ---
-        function showChapterMessage(chapterIndex) {
-            const chapter = chapters[chapterIndex];
-            dialogTitle.textContent = chapter.title;
-            dialogText.textContent = chapter.text;
-            messageOverlay.classList.add('active');
-            gamePaused = true;
-            nextBtn.onclick = () => {
-                messageOverlay.classList.remove('active');
-                chapter.action();
-            };
+        function startGame() {
+            loadScene(currentScene);
         }
 
-        function startGameChapter(chapterNum) {
-            currentChapter = chapterNum;
-            enemies = []; // Clear any existing enemies
-            enemiesSpawned = 0;
-            lastEnemySpawnTime = Date.now(); // Reset timer
-            gamePaused = false;
-        }
+        function loadScene(sceneName) {
+            currentScene = sceneName;
+            const scene = gameData[sceneName];
 
-        function showGameOver(title, color) {
-            gameOver = true;
-            gamePaused = true;
-            dialogTitle.textContent = title;
-            dialogTitle.style.color = color;
-            dialogText.textContent = `Skor Akhir Anda: ${score}.`;
-            messageOverlay.classList.add('active');
-            nextBtn.textContent = "Mulai Ulang";
-            nextBtn.onclick = resetGame;
-        }
-
-        // --- Game Logic Functions ---
-
-        // Fungsi untuk menggambar objek
-        function drawRect(x, y, width, height, color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, width, height);
-        }
-
-        // Update posisi dan logika game
-        function update() {
-            if (gamePaused) return;
-
-            // Gerakan Pemain
-            if (keys['ArrowLeft'] && player.x > 0) {
-                player.x -= player.speed;
-            }
-            if (keys['ArrowRight'] && player.x + player.width < canvas.width) {
-                player.x += player.speed;
+            if (!scene) {
+                storyText.innerHTML = "<p><strong>TAMAT!</strong> Terima kasih telah bermain. Kisah Anda sebagai pahlawan telah berakhir. Lebih banyak cerita akan datang!</p>";
+                gameImage.src = "https://via.placeholder.com/700x350?text=Akhir+Petualangan";
+                choicesDiv.innerHTML = ''; // Hapus tombol pilihan
+                return;
             }
 
-            // Tembak Peluru
-            if (keys['Space'] && !player.isShooting) {
-                bullets.push({
-                    x: player.x + player.width / 2 - bulletWidth / 2,
-                    y: player.y,
-                    width: bulletWidth,
-                    height: bulletHeight,
-                    color: bulletColor
-                });
-                player.isShooting = true;
-            }
-            if (!keys['Space']) {
-                player.isShooting = false;
-            }
+            storyText.innerHTML = `<p>${scene.text}</p>`;
+            gameImage.src = scene.image;
+            choicesDiv.innerHTML = ''; // Kosongkan pilihan sebelumnya
 
-            // Update Peluru
-            for (let i = 0; i < bullets.length; i++) {
-                bullets[i].y -= bulletSpeed;
-                if (bullets[i].y < 0) {
-                    bullets.splice(i, 1);
-                    i--;
-                }
-            }
-
-            // Spawn Musuh/Core (berdasarkan chapter)
-            const currentTime = Date.now();
-            if (currentChapter === 1 || currentChapter === 2) { // Babak 1 & 2: Spawn Void-Corrupted
-                if (enemiesSpawned < enemiesToSpawn && currentTime - lastEnemySpawnTime > enemySpawnInterval) {
-                    enemies.push({
-                        x: Math.random() * (canvas.width - enemyWidth),
-                        y: -enemyHeight,
-                        width: enemyWidth,
-                        height: enemyHeight,
-                        color: enemyColor,
-                        health: (currentChapter === 1 ? 1 : 2) // Musuh babak 2 lebih kuat
-                    });
-                    lastEnemySpawnTime = currentTime;
-                    enemiesSpawned++;
-                    // Percepat spawn dan kecepatan musuh sedikit seiring waktu
-                    if (enemySpawnInterval > 300) enemySpawnInterval -= 5;
-                    enemySpeed += 0.005;
-                }
-                // Jika sudah spawn semua musuh, pindah chapter
-                if (enemiesSpawned >= enemiesToSpawn && enemies.length === 0) {
-                    if (currentChapter === 1) showChapterMessage(2); // Ke Babak 2
-                    else if (currentChapter === 2) showChapterMessage(3); // Ke Plot Twist
-                }
-            } else if (currentChapter === 4) { // Babak Akhir: Core Penambangan & Support
-                if (enemies.length === 0 && enemiesSpawned === 0) { // Hanya spawn Core satu kali
-                    enemies.push({
-                        x: canvas.width / 2 - enemyWidth / 2,
-                        y: 50,
-                        width: enemyWidth,
-                        height: enemyHeight,
-                        color: enemyColor,
-                        health: 50 // Core memiliki HP banyak
-                    });
-                    enemiesSpawned = 1; // Tandai core sudah spawn
-                }
-                // Spawn support enemies for the core
-                if (currentTime - lastEnemySpawnTime > 2000) { // Spawn setiap 2 detik
-                    spawnSupportEnemies();
-                    lastEnemySpawnTime = currentTime;
-                }
-            }
-
-            // Update Musuh/Core
-            for (let i = 0; i < enemies.length; i++) {
-                enemies[i].y += enemies[i].speed || enemySpeed; // Gunakan speed individu jika ada, atau default
-
-                // Jika musuh/core lewat dari bawah
-                if (enemies[i].y > canvas.height) {
-                    if (enemyType === 'voidCorrupted') {
-                        // Jika musuh Void-Corrupted lewat, game over (terlalu banyak lolos)
-                        // Untuk contoh ini kita biarkan lewat saja, game over hanya jika tertabrak
-                        // atau untuk core, jika core lewat atau kamu yang kena
-                    } else if (enemyType === 'miningCore') {
-                         // Jika Core penambangan melewati batas, berarti gagal melindunginya
-                         showChapterMessage(6); // Epilog Gagal
-                         return;
-                    }
-                    enemies.splice(i, 1);
-                    i--;
-                }
-            }
-
-            // Deteksi Tabrakan (Peluru vs Musuh/Core)
-            for (let b = 0; b < bullets.length; b++) {
-                for (let e = 0; e < enemies.length; e++) {
-                    if (bullets[b] && enemies[e] &&
-                        bullets[b].x < enemies[e].x + enemies[e].width &&
-                        bullets[b].x + bullets[b].width > enemies[e].x &&
-                        bullets[b].y < enemies[e].y + enemies[e].height &&
-                        bullets[b].y + bullets[b].height > enemies[e].y) {
-
-                        bullets.splice(b, 1);
-                        b--; // Adjust index
-
-                        enemies[e].health--; // Kurangi HP musuh/core
-                        if (enemies[e].health <= 0) {
-                            enemies.splice(e, 1);
-                            e--; // Adjust index
-                            score += (enemyType === 'voidCorrupted' ? 10 : 100); // Skor lebih besar untuk Core
-                            scoreDisplay.textContent = score;
-
-                            if (enemyType === 'miningCore' && enemies.length === 0 && enemiesSpawned > 0) {
-                                // Jika semua core utama hancur
-                                showChapterMessage(5); // Epilog Berhasil
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Deteksi Tabrakan (Pemain vs Musuh/Core)
-            if (player.invulnerable <= 0) { // Hanya jika tidak dalam mode kebal
-                for (let i = 0; i < enemies.length; i++) {
-                    if (
-                        player.x < enemies[i].x + enemies[i].width &&
-                        player.x + player.width > enemies[i].x &&
-                        player.y < enemies[i].y + enemies[i].height &&
-                        player.y + player.height > enemies[i].y
-                    ) {
-                        player.invulnerable = 120; // Kebal selama 2 detik (60fps * 2)
-                        player.color = 'gray'; // Indikator kebal
-                        score = Math.max(0, score - 50); // Kurangi skor jika tertabrak
-                        scoreDisplay.textContent = score;
-
-                        if (enemyType === 'miningCore') {
-                            // Jika pemain menabrak core, game over
-                            showChapterMessage(6); // Epilog Gagal
-                            return;
-                        }
-                    }
-                }
-            } else {
-                player.invulnerable--;
-                if (player.invulnerable % 10 < 5) { // Efek kedip saat kebal
-                     player.color = 'lightgray';
-                } else {
-                     player.color = 'lime';
-                }
-                if (player.invulnerable <= 0) {
-                    player.color = 'lime'; // Kembali ke warna normal
-                }
-            }
-        }
-
-        // Fungsi bantu untuk spawn musuh support (untuk babak Core)
-        function spawnSupportEnemies() {
-            for(let i = 0; i < 3; i++) { // Spawn 3 musuh kecil sebagai support
-                enemies.push({
-                    x: Math.random() * (canvas.width - 40),
-                    y: -40,
-                    width: 30,
-                    height: 30,
-                    color: 'purple',
-                    speed: enemySpeed * 1.5, // Lebih cepat
-                    health: 1
-                });
-            }
-        }
-
-        // Gambar semua elemen ke canvas
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Bersihkan canvas
-
-            drawRect(player.x, player.y, player.width, player.height, player.color); // Gambar pemain
-
-            bullets.forEach(bullet => {
-                drawRect(bullet.x, bullet.y, bullet.width, bullet.height, bullet.color);
-            });
-
-            enemies.forEach(enemy => {
-                drawRect(enemy.x, enemy.y, enemy.width, enemy.height, enemy.color);
-                // Tampilkan HP musuh/core jika ada
-                if (enemy.health > 1) {
-                    ctx.fillStyle = 'white';
-                    ctx.font = '12px Arial';
-                    ctx.fillText(enemy.health, enemy.x + enemy.width / 2 - 5, enemy.y + enemy.height / 2 + 5);
-                }
+            scene.choices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice-button';
+                button.textContent = choice.text;
+                button.onclick = () => makeChoice(choice.next); // Panggil makeChoice dengan nama scene berikutnya
+                choicesDiv.appendChild(button);
             });
         }
 
-        // Reset Game
-        function resetGame() {
-            player = {
-                x: canvas.width / 2 - 25,
-                y: canvas.height - 70,
-                width: 50,
-                height: 50,
-                color: 'lime',
-                speed: 7,
-                isShooting: false,
-                invulnerable: 0
-            };
-            bullets = [];
-            enemies = [];
-            score = 0;
-            scoreDisplay.textContent = score;
-            gameOver = false;
-            gamePaused = true;
-            currentChapter = 0;
-            enemyType = 'voidCorrupted';
-            enemySpeed = 1.5;
-            enemySpawnInterval = 1200;
-            enemiesToSpawn = 10;
-            enemiesSpawned = 0;
-            lastEnemySpawnTime = 0;
-            dialogTitle.style.color = '#ff00ff'; // Reset dialog title color
-            nextBtn.textContent = "Lanjutkan";
-            showChapterMessage(0); // Mulai dari Intro lagi
+        function makeChoice(nextSceneName) {
+            loadScene(nextSceneName);
         }
 
-        // Game Loop Utama
-        let lastFrameTime = 0;
-        function gameLoop(timestamp) {
-            if (!gameOver) {
-                const deltaTime = timestamp - lastFrameTime;
-                lastFrameTime = timestamp;
-
-                // Adjust game speed based on deltaTime if needed for consistency,
-                // but for simple game like this, direct update is often fine.
-                // Or you can make all speeds relative to a fixed framerate (e.g., 60fps)
-                // and multiply by (deltaTime / (1000 / 60))
-                
-                update();
-                draw();
-                requestAnimationFrame(gameLoop);
-            }
-        }
-
-        // Mulai Game saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', () => {
-            resetGame(); // Panggil reset untuk menampilkan intro cerita
-            gameLoop(0); // Mulai game loop
-        });
+        // Mulai game saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', startGame);
 
     </script>
-
 </body>
 </html>
