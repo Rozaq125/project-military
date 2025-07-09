@@ -2,9 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Project Military - Redeem</title>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <style>
     * {
       scrollbar-width: thin;
@@ -14,6 +13,7 @@
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #0f2027; }
     ::-webkit-scrollbar-thumb { background: #00c853; border-radius: 10px; }
+
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -59,6 +59,7 @@
       font-weight: bold;
     }
     #adminPanel { display: none; }
+    .popup.green { background: #d4edda; color: #155724; }
     #user-popup {
       position: fixed;
       top: 50%;
@@ -73,10 +74,10 @@
       min-width: 300px;
       text-align: center;
     }
-    .popup.green { background: #d4edda; color: #155724; }
     .admin-section { margin-top: 30px; }
     a { color: lightblue; cursor: pointer; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 </head>
 <body>
   <header>
@@ -85,15 +86,15 @@
   </header>
 
   <div class="container" id="registerSection">
-    <h3>🔰 Daftar Akun</h3>
+    <h3>Daftar Akun</h3>
     <input type="text" id="regUsername" placeholder="Username" />
     <input type="password" id="regPassword" placeholder="Password" />
-    <button onclick="registerUser()">Daftar</button>
-    <p>Sudah punya akun? <a onclick="switchToLogin()">Masuk</a></p>
+    <button onclick="register()">Daftar</button>
+    <p><a onclick="showLogin()">Sudah punya akun? Masuk</a></p>
   </div>
 
   <div class="container" id="loginSection" style="display:none;">
-    <h3>🔐 Login</h3>
+    <h3>Login</h3>
     <input type="text" id="usernameInput" placeholder="Username" />
     <input type="password" id="passwordInput" placeholder="Password" />
     <button onclick="loginUser()">Masuk</button>
@@ -101,7 +102,7 @@
   </div>
 
   <div class="container" id="resetSection" style="display:none;">
-    <h3>🔁 Reset Password</h3>
+    <h3>🔐 Reset Password</h3>
     <input type="email" id="resetEmail" placeholder="Masukkan Email Anda" />
     <button onclick="kirimKodeReset()">Kirim Kode Verifikasi</button>
     <div id="kodeSection" style="display:none;">
@@ -150,47 +151,41 @@
     </div>
   </div>
 
-  <div id="user-popup" class="popup green">
+  <div id="user-popup" class="popup">
     <span id="popup-text"></span><br><br>
-    <button onclick="copyCode()">📋 Copy Kode</button><br><br>
-    <button onclick="window.open('https://www.roblox.com/games/1234567890/Project-Military')">Masuki & Redeem Game</button>
+    <button onclick="copyKode()">📋 Copy Kode</button><br><br>
+    <button onclick="window.open('https://www.roblox.com/games/1234567890/Project-Military')">Masuki dan Redeem Game</button>
     <button onclick="window.open('https://yourwebsite.com/panduan-redeem')">Langkah-langkah Redeem</button><br><br>
     <button onclick="closePopup()">Tutup</button>
   </div>
 
   <script>
     emailjs.init("EWw06aLCuMBnHCLIf");
-    let currentUser = "";
-    let otpKode = "";
-    let emailTerkirim = "";
-    let kodePopupTerakhir = "";
+    let currentUser = "", otpKode = "", emailTerkirim = "";
 
-    function switchToLogin() {
+    function showLogin() {
       document.getElementById("registerSection").style.display = "none";
       document.getElementById("loginSection").style.display = "block";
     }
 
-    function registerUser() {
+    function register() {
       const user = document.getElementById("regUsername").value.trim();
-      const pass = document.getElementById("regPassword").value;
-      if (!user || !pass) return alert("Isi semua kolom!");
-      if (pass.length < 6) return alert("Password minimal 6 karakter");
-      let akun = JSON.parse(localStorage.getItem("akunPM") || "{}");
-      if (akun[user]) return alert("Username sudah terdaftar!");
-      akun[user] = { password: pass };
-      localStorage.setItem("akunPM", JSON.stringify(akun));
-      alert("✅ Berhasil daftar, silakan login.");
-      switchToLogin();
+      const pass = document.getElementById("regPassword").value.trim();
+      if (!user || !pass) return alert("Isi semua data!");
+      const users = JSON.parse(localStorage.getItem("users") || "{}");
+      if (users[user]) return alert("Username sudah terdaftar!");
+      users[user] = pass;
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("Berhasil daftar, silakan login.");
+      showLogin();
     }
 
     function loginUser() {
       const u = document.getElementById("usernameInput").value.trim();
-      const p = document.getElementById("passwordInput").value;
-      if (!u || !p) return alert("Isi semua data!");
-      const akun = JSON.parse(localStorage.getItem("akunPM") || "{}");
-      if (!akun[u] || akun[u].password !== p) return alert("Username/password salah!");
+      const p = document.getElementById("passwordInput").value.trim();
+      const users = JSON.parse(localStorage.getItem("users") || "{}");
+      if (users[u] !== p) return alert("Username atau password salah!");
       currentUser = u;
-      localStorage.setItem("username", u);
       document.getElementById("userDisplay").innerText = u;
       document.getElementById("loginSection").style.display = "none";
       document.getElementById("mainSection").style.display = "block";
@@ -201,13 +196,37 @@
     }
 
     function logoutUser() {
-      localStorage.removeItem("username");
       location.reload();
     }
 
     function toggleAdminPanel() {
       const panel = document.getElementById("adminPanel");
       panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    function kirimKodeReset() {
+      const email = document.getElementById("resetEmail").value.trim();
+      if (!email) return alert("Masukkan email dulu!");
+      otpKode = Math.floor(100000 + Math.random() * 900000).toString();
+      emailTerkirim = email;
+      emailjs.send("service_v9moqsb", "template_z92vl5v", {
+        to_email: email,
+        kode_otp: otpKode
+      }).then(() => {
+        alert(`✅ Kode terkirim ke ${email}`);
+        document.getElementById("kodeSection").style.display = "block";
+        document.getElementById("resetStatus").innerText = "Cek email kamu untuk kode.";
+      }).catch((err) => {
+        alert("❌ Gagal mengirim email: " + err.text);
+      });
+    }
+
+    function verifikasiKode() {
+      const kode = document.getElementById("kodeOTP").value.trim();
+      const newPass = document.getElementById("newPass").value.trim();
+      if (kode !== otpKode) return alert("Kode salah!");
+      alert("✅ Password berhasil direset untuk email: " + emailTerkirim);
+      document.getElementById("resetStatus").innerText = "Password berhasil diganti!";
     }
 
     function beriKode() {
@@ -218,7 +237,7 @@
       const kode = stok[tipe].shift();
       localStorage.setItem("stokKode", JSON.stringify(stok));
       let pending = JSON.parse(localStorage.getItem("pendingCodes") || "{}");
-      pending[user] = { kode: kode, pesan: `Pembayaran berhasil ✅\nIni kode kamu:\n${kode}` };
+      pending[user] = { kode: kode, pesan: `Pembayaran berhasil ✅\nKode kamu:\n${kode}` };
       localStorage.setItem("pendingCodes", JSON.stringify(pending));
       document.getElementById("adminStatus").innerText = `✅ Kode ${kode} dikirim ke ${user}`;
       tampilkanStok();
@@ -233,8 +252,8 @@
       stok[tipe] = stok[tipe] || [];
       stok[tipe].push(...lines);
       localStorage.setItem("stokKode", JSON.stringify(stok));
-      document.getElementById("kodeManual").value = "";
       tampilkanStok();
+      document.getElementById("kodeManual").value = "";
     }
 
     function tampilkanStok() {
@@ -254,71 +273,24 @@
         const popup = document.getElementById("user-popup");
         popup.className = "popup green";
         document.getElementById("popup-text").innerText = pending[user].pesan;
-        kodePopupTerakhir = pending[user].kode;
         popup.style.display = "block";
+        popup.dataset.code = pending[user].kode;
         delete pending[user];
         localStorage.setItem("pendingCodes", JSON.stringify(pending));
       }
     }
 
-    function copyCode() {
-      navigator.clipboard.writeText(kodePopupTerakhir || "").then(() => {
+    function copyKode() {
+      const code = document.getElementById("popup-text").innerText.match(/[A-Z0-9\-]{10,}/);
+      if (code) {
+        navigator.clipboard.writeText(code[0]);
         alert("✅ Kode berhasil disalin!");
-      });
-    }
-
-    function closePopup() {
-      document.getElementById("user-popup").style.display = "none";
-    }
-
-    function showResetForm() {
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("resetSection").style.display = "block";
-    }
-
-    function kirimKodeReset() {
-      const email = document.getElementById("resetEmail").value.trim();
-      if (!email) return alert("Masukkan email dulu!");
-      otpKode = Math.floor(100000 + Math.random() * 900000).toString();
-      emailTerkirim = email;
-
-      emailjs.send("service_hesidqi", "template_z92vl5v", {
-        to_email: email,
-        to_name: "Player Project Military",
-        kode_otp: otpKode
-      }).then(() => {
-        alert("✅ Kode verifikasi dikirim ke " + email);
-        document.getElementById("kodeSection").style.display = "block";
-        document.getElementById("resetStatus").innerText = "Silakan masukkan kode verifikasi.";
-      }).catch(err => {
-        alert("❌ Gagal mengirim email: " + err.text);
-      });
-    }
-
-    function verifikasiKode() {
-      const kode = document.getElementById("kodeOTP").value.trim();
-      const newPass = document.getElementById("newPass").value.trim();
-      if (kode !== otpKode) return alert("❌ Kode salah!");
-      if (newPass.length < 6) return alert("❌ Password harus minimal 6 karakter!");
-      const akun = JSON.parse(localStorage.getItem("akunPM") || "{}");
-      for (let u in akun) {
-        if (akun[u].email === emailTerkirim) {
-          akun[u].password = newPass;
-          localStorage.setItem("akunPM", JSON.stringify(akun));
-          alert("✅ Password berhasil diganti!");
-          return location.reload();
-        }
       }
-      alert("❌ Email tidak terdaftar!");
     }
 
     window.onload = () => {
-      const saved = localStorage.getItem("username");
-      if (saved) {
-        document.getElementById("usernameInput").value = saved;
-      }
       tampilkanStok();
-    }
+    };
   </script>
 </body>
 </html>
