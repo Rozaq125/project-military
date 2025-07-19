@@ -3,628 +3,1874 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arus Sejarah: Titik Balik Bangsa</title>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <title>Toko Item Roblox Anda - RZKSTUDIO</title>
+    
     <style>
-        /* --- CSS Internal untuk Tampilan Game (Diperbarui) --- */
+        /* style.css content starts here */
+
+        :root {
+            --bg-dark: #1a1a1a;
+            --bg-medium: #2a2a2a;
+            --bg-light: #3a3a3a;
+            --text-light: #f0f0f0;
+            --text-medium: #b0b0b0;
+            --accent-color: #007bff; /* Biru cerah */
+            --accent-hover: #0056b3;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --border-color: #4a4a4a;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --warning-color: #ffc107; /* Kuning untuk peringatan */
+            --discount-color: #00ff00; /* Hijau terang untuk diskon */
+            --old-price-color: #888; /* Warna abu-abu untuk harga lama */
+        }
+
         body {
-            font-family: 'Merriweather', serif; /* Font dengan nuansa historis */
-            background: linear-gradient(to bottom, #1a1a2e, #0f0f1d); /* Latar belakang gelap dan dramatis */
-            color: #e0e0e0; /* Warna teks terang */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow-y: auto; /* Memungkinkan scrolling jika konten panjang */
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
         }
 
-        #game-container {
-            background-color: rgba(20, 20, 40, 0.95); /* Kotak game semi-transparan lebih gelap */
-            border-radius: 12px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-            width: 95%;
+        .container {
+            background-color: var(--bg-medium);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px var(--shadow-color);
+            width: 100%;
             max-width: 900px;
-            padding: 35px;
+            margin: 30px auto;
+            box-sizing: border-box;
+        }
+
+        h1, h2, h3 {
+            color: var(--text-light);
             text-align: center;
-            border: 2px solid #5a5a70; /* Border abu-abu kebiruan */
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            animation: fadeIn 1.5s ease-out; /* Animasi fade-in */
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h1 {
-            font-family: 'Playfair Display', serif; /* Font judul yang elegan */
-            color: #ffd700; /* Warna judul emas */
-            font-size: 3em;
             margin-bottom: 25px;
-            text-shadow: 3px 3px 7px rgba(0,0,0,0.6);
-            letter-spacing: 1.5px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
-        #character-creation {
-            background-color: rgba(30, 30, 60, 0.7);
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            border: 1px solid #444;
-        }
-
-        #character-creation h2 {
-            color: #ffe4b5; /* Warna krem */
+        header {
+            background-color: var(--bg-light);
+            width: 100%;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px var(--shadow-color);
             margin-bottom: 20px;
-            font-size: 1.8em;
         }
 
-        .input-group {
-            margin-bottom: 15px;
+        nav {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-        }
-
-        .input-group label {
-            font-size: 1.1em;
-            color: #ccc;
-        }
-
-        .input-group input[type="text"],
-        .input-group input[type="number"],
-        .input-group select {
-            width: calc(100% - 20px);
-            padding: 12px;
-            border: 1px solid #666;
-            border-radius: 5px;
-            background-color: #333;
-            color: #eee;
-            font-size: 1em;
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
-
-        .input-group input[type="text"]:focus,
-        .input-group input[type="number"]:focus,
-        .input-group select:focus {
-            border-color: #ffd700;
-        }
-
-        #start-game-button {
-            background-color: #28a745; /* Tombol hijau untuk mulai */
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.2em;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            margin-top: 20px;
-        }
-
-        #start-game-button:hover {
-            background-color: #218838;
-            transform: translateY(-3px);
-        }
-
-        #game-content {
-            display: none; /* Sembunyikan konten game sampai karakter dibuat */
-            text-align: left;
-        }
-
-        #game-image {
-            width: 100%;
-            max-height: 400px;
-            object-fit: cover; /* Memastikan gambar mengisi area tanpa distorsi */
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            border: 1px solid #777;
-            transition: opacity 1s ease-in-out; /* Transisi gambar */
-        }
-
-        #story-text {
-            font-size: 1.15em;
-            line-height: 1.7;
-            margin-bottom: 35px;
-            background-color: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 6px solid #ffd700;
-            min-height: 150px; /* Agar tidak terlalu 'loncat' saat teks pendek */
-            transition: opacity 0.8s ease-in-out; /* Transisi teks */
-        }
-
-        #choices {
-            display: flex;
-            flex-wrap: wrap;
             justify-content: center;
-            gap: 18px;
+            gap: 25px;
+            flex-wrap: wrap; /* Untuk responsif */
         }
 
-        .choice-button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 14px 28px;
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: bold;
             font-size: 1.1em;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            flex: 1 1 auto;
-            min-width: 200px;
-            max-width: 48%; /* Untuk dua kolom */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-
-        .choice-button:hover {
-            background-color: #0056b3;
-            transform: translateY(-4px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-        }
-
-        .choice-button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        /* Ending Screen */
-        #ending-screen {
-            display: none;
-            background-color: rgba(30, 30, 60, 0.98);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
-            border: 3px solid #ffd700;
-            text-align: center;
-            color: #e0e0e0;
-        }
-
-        #ending-screen h2 {
-            font-family: 'Playfair Display', serif;
-            color: #ffd700;
-            font-size: 2.8em;
-            margin-bottom: 25px;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-        }
-
-        #ending-text {
-            font-size: 1.2em;
-            line-height: 1.8;
-            margin-bottom: 30px;
-            text-align: justify;
-        }
-
-        #ending-image {
-            width: 100%;
-            max-height: 300px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            border: 1px solid #aaa;
-        }
-
-        #restart-button {
-            background-color: #dc3545; /* Merah untuk restart */
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 1.1em;
+            padding: 8px 15px;
             border-radius: 5px;
-            cursor: pointer;
             transition: background-color 0.3s ease;
         }
 
-        #restart-button:hover {
-            background-color: #c82333;
+        nav a:hover, nav a.active {
+            background-color: var(--accent-color);
         }
 
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-medium);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="number"],
+        input[type="datetime-local"], /* Tambahan untuk datetime-local */
+        textarea,
+        select {
+            width: calc(100% - 22px);
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            font-size: 1em;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        input[type="datetime-local"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+
+        .product-card {
+            background-color: var(--bg-light);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px var(--shadow-color);
+        }
+
+        .product-card img {
+            max-width: 100%;
+            height: 180px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .product-card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .product-card p {
+            color: var(--text-medium);
+            margin-bottom: 15px;
+        }
+
+        .product-card button {
+            width: 100%;
+            margin-top: auto; /* Push button to bottom */
+        }
+
+        /* Harga Diskon */
+        .price-info {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: var(--old-price-color);
+            margin-right: 8px;
+            font-size: 0.9em;
+        }
+
+        .discounted-price {
+            color: var(--discount-color);
+            font-weight: bold;
+        }
+
+        .discount-tag {
+            background-color: var(--success-color);
+            color: white;
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+
+        /* Admin Specific */
+        .admin-section h3 {
+            text-align: left;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .code-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+            color: var(--text-medium);
+        }
+
+        .code-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .code-list-item .status {
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .code-list-item .status.used {
+            color: var(--error-color);
+        }
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5em;
+            .container {
+                margin: 15px;
+                padding: 20px;
             }
-            .choice-button {
-                max-width: 100%; /* Satu kolom di layar kecil */
+            nav {
+                flex-direction: column;
+                gap: 10px;
             }
-            #ending-screen h2 {
-                font-size: 2em;
+            nav a {
+                width: fit-content;
+                margin: 0 auto;
             }
         }
 
-        @media (max-width: 480px) {
-            #game-container {
-                padding: 20px;
-                gap: 15px;
-            }
-            h1 {
-                font-size: 2em;
-                margin-bottom: 15px;
-            }
-            #story-text {
-                font-size: 1em;
-                padding: 15px;
-            }
-            .choice-button {
-                padding: 10px 20px;
-                font-size: 1em;
-            }
+        /* --- Custom Pop-up (Modal) --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s forwards;
         }
+
+        .modal-content {
+            background-color: var(--bg-medium);
+            margin: auto;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            text-align: center;
+            animation: slideIn 0.3s forwards;
+            position: relative; /* For close button positioning */
+        }
+
+        .modal-content.error {
+            border-color: var(--error-color);
+        }
+
+        .modal-content.success {
+            border-color: var(--success-color);
+        }
+
+        .modal-content.warning {
+            border-color: var(--warning-color);
+        }
+
+        .modal h2 {
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            color: var(--text-light);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            word-break: break-all; /* For long codes/IDs */
+        }
+
+        .modal strong {
+            color: var(--text-light);
+            font-size: 1.2em;
+            background-color: var(--bg-light);
+            padding: 8px 15px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 10px 0;
+            border: 1px dashed var(--border-color);
+        }
+
+        .modal button {
+            margin: 10px 5px;
+        }
+
+        .close-button {
+            color: var(--text-medium);
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--error-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* --- Live Sale Notification --- */
+        .sale-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            opacity: 0; /* Hidden by default */
+            transform: translateX(-100%); /* Start off-screen */
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .sale-notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sale-notification p {
+            margin: 0;
+            font-size: 1.05em;
+            display: flex;
+            align-items: center;
+        }
+
+        .sale-notification .sale-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+            color: var(--success-color); /* Atau warna lain yang menarik */
+        }
+
+        /* --- Top Products List --- */
+        .top-products-list {
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 30px;
+        }
+
+        .top-products-list h2 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .top-products-list ol {
+            list-style: none; /* Remove default numbering */
+            padding: 0;
+            counter-reset: top-product-counter; /* Initialize counter */
+        }
+
+        .top-products-list li {
+            counter-increment: top-product-counter; /* Increment counter for each list item */
+            background-color: var(--bg-light);
+            margin-bottom: 10px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            padding-left: 50px; /* Make space for the number */
+        }
+
+        .top-products-list li::before {
+            content: counter(top-product-counter);
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--accent-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .top-products-list li strong {
+            color: var(--text-light);
+            font-size: 1.1em;
+        }
+
+        .top-products-list li span {
+            color: var(--text-medium);
+            margin-left: auto; /* Push count to the right */
+            font-weight: bold;
+        }
+
+        /* --- Discount Countdown --- */
+        .discount-countdown-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            text-align: center;
+        }
+
+        .countdown-timer {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: var(--discount-color);
+            margin-top: 15px;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .countdown-timer.expired {
+            color: var(--error-color);
+        }
+
+        .countdown-timer.upcoming {
+            color: var(--warning-color);
+        }
+
+        /* --- Maintenance Mode Overlay --- */
+        .maintenance-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95); /* Darker overlay */
+            color: var(--text-light);
+            z-index: 2000; /* Higher than other modals */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .maintenance-content {
+            background-color: var(--bg-medium);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            max-width: 600px;
+            border: 2px solid var(--warning-color);
+        }
+
+        .maintenance-content h1 {
+            color: var(--warning-color);
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .maintenance-content p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        /* style.css content ends here */
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <h1>Arus Sejarah: Titik Balik Bangsa</h1>
+    <header>
+        <nav>
+            <a href="#" onclick="showPage('home')">Beranda</a>
+            <a href="#" onclick="showPage('redeem')">Tukar ID Pesanan</a>
+            <span id="authLinks">
+                <a href="#" onclick="showPage('login')">Login</a>
+                <a href="#" onclick="showPage('register')">Register</a>
+            </span>
+            <span id="loggedInLinks" style="display:none;">
+                <a href="#" onclick="showPage('admin')">Admin Panel</a>
+                <a href="#" onclick="logoutUser()">Logout</a>
+            </span>
+        </nav>
+    </header>
 
-        <div id="character-creation">
-            <h2>Ciptakan Pahlawanmu</h2>
-            <div class="input-group">
-                <label for="playerName">Nama:</label>
-                <input type="text" id="playerName" placeholder="Nama Pahlawanmu" required>
-            </div>
-            <div class="input-group">
-                <label for="playerGender">Jenis Kelamin:</label>
-                <select id="playerGender">
-                    <option value="pria">Pria</option>
-                    <option value="wanita">Wanita</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="playerAge">Usia:</label>
-                <select id="playerAge">
-                    <option value="remaja">16-18 tahun (Remaja)</option>
-                    <option value="dewasa_muda">20-25 tahun (Dewasa Muda)</option>
-                    <option value="dewasa">25-35 tahun (Dewasa)</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="playerBackground">Latar Belakang Awal:</label>
-                <select id="playerBackground">
-                    <option value="rakyat_biasa">Rakyat Biasa (Pendidikan Rendah)</option>
-                    <option value="pelajar">Pelajar (Pendidikan Menengah)</option>
-                    <option value="intelektual">Intelektual (Pendidikan Tinggi)</option>
-                </select>
-            </div>
-            <button id="start-game-button">Mulai Petualangan Sejarah</button>
+    <main class="container" id="appContent">
+        </main>
+
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <p id="modalMessage"></p>
+            <button id="modalCopyButton" style="display:none;"></button>
+            <button onclick="closeModal()">Tutup</button>
         </div>
+    </div>
 
-        <div id="game-content">
-            <img id="game-image" src="" alt="Gambar Latar Game">
-            <p id="story-text"></p>
-            <div id="choices">
-                </div>
+    <div id="saleNotification" class="sale-notification">
+        <p><span class="sale-icon">💰</span> <span id="saleMessage"></span></p>
+    </div>
+
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content warning">
+            <span class="close-button" onclick="hideConfirmation()">&times;</span>
+            <h2>Konfirmasi Pembelian</h2>
+            <p id="confirmationMessage"></p>
+            <button id="confirmPurchaseBtn">Ya, Beli</button>
+            <button id="cancelPurchaseBtn">Batal</button>
         </div>
+    </div>
 
-        <div id="ending-screen">
-            <h2 id="ending-title"></h2>
-            <img id="ending-image" src="" alt="Gambar Ending">
-            <p id="ending-text"></p>
-            <button id="restart-button">Main Lagi</button>
+    <div id="maintenanceOverlay" class="maintenance-overlay" style="display:none;">
+        <div class="maintenance-content">
+            <h1>🚧 Website Sedang Dalam Pemeliharaan 🚧</h1>
+            <p>Kami sedang melakukan perbaikan dan pembaruan untuk meningkatkan pengalaman Anda.</p>
+            <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
+            <p>Terima kasih atas kesabaran Anda.</p>
         </div>
     </div>
 
     <script>
-        // --- JavaScript untuk Logika Game (Diperbarui) ---
-        const gameContainer = document.getElementById('game-container');
-        const charCreationScreen = document.getElementById('character-creation');
-        const gameContentScreen = document.getElementById('game-content');
-        const endingScreen = document.getElementById('ending-screen');
+        /* script.js content starts here */
 
-        const playerNameInput = document.getElementById('playerName');
-        const playerGenderSelect = document.getElementById('playerGender');
-        const playerAgeSelect = document.getElementById('playerAge');
-        const playerBackgroundSelect = document.getElementById('playerBackground');
-        const startGameButton = document.getElementById('start-game-button');
+        // --- Konstan Kunci Local Storage ---
+        const PRODUCTS_KEY = 'roblox_store_products_v3';
+        const CODES_KEY = 'roblox_store_codes_v3';
+        const USERS_KEY = 'roblox_store_users_v3';
+        const ORDERS_KEY = 'roblox_store_orders_v3'; // Untuk melacak ID pesanan yang sudah terpakai
+        const CURRENT_USER_KEY = 'current_roblox_store_user'; // Untuk melacak sesi login
+        const DISCOUNT_CONFIG_KEY = 'roblox_store_discount_config'; // Kunci untuk konfigurasi diskon
+        const MAINTENANCE_CONFIG_KEY = 'roblox_store_maintenance_config'; // Kunci untuk maintenance mode
 
-        const gameImage = document.getElementById('game-image');
-        const storyText = document.getElementById('story-text');
-        const choicesDiv = document.getElementById('choices');
+        // --- Kredensial Admin ---
+        const ADMIN_USERNAME = 'RZKSTUDIO1';
+        const ADMIN_PASSWORD = 'Akurozaknih';
 
-        const endingTitle = document.getElementById('ending-title');
-        const endingImage = document.getElementById('ending-image');
-        const endingText = document.getElementById('ending-text');
-        const restartButton = document.getElementById('restart-button');
+        // --- Data Dummy untuk Notifikasi Penjualan ---
+        const DUMMY_BUYER_NAMES = [
+            "PlayerPro", "RobloxianGamer", "NoobMaster69", "EpicBuilder", "PixelPirate",
+            "StarCreator", "BloxyKing", "GameFanatic", "VirtualVoyager", "CodeWizard"
+        ];
 
-        let player = {}; // Objek untuk menyimpan data karakter pemain
-        let currentScene = 'intro_1945'; // Scene awal setelah karakter dibuat
+        // Variabel global untuk interval countdown
+        let countdownInterval = null;
 
-        // Variabel untuk melacak "poin" yang mengarah ke ending berbeda
-        let diplomacyPoints = 0;
-        let resistancePoints = 0;
-        let federalismPoints = 0;
-
-        // --- Data Cerita Game (Sangat Disederhanakan untuk Contoh) ---
-        const gameData = {
-            'intro_1945': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/revolution-1635397_1280.jpg', // Contoh gambar: situasi chaos
-                text: `Sebagai ${player.name || 'seorang pemuda/pemudi'} berusia ${player.age || 'tidak diketahui'} dengan latar belakang ${player.background || 'tidak diketahui'}, Anda terbangun di tengah hiruk pikuk Jakarta pasca-Proklamasi 17 Agustus 1945. Euforia kemerdekaan masih terasa, namun ancaman kembalinya Belanda membayangi. Sebuah pamflet bertuliskan "Republik Harga Mati!" tergeletak di jalanan.`,
-                choices: [
-                    { text: "Bergabung dengan barisan pemuda yang berpatroli", next: "pilihan_pemuda" },
-                    { text: "Mencari informasi di kalangan diplomatik", next: "pilihan_diplomat" },
-                    { text: "Mengamati reaksi penduduk setempat dan tentara Sekutu", next: "pilihan_sekutu" }
-                ],
-                // Contoh: Pilihan awal bisa memengaruhi poin
-                effects: {
-                    "pilihan_pemuda": { resistance: 1 },
-                    "pilihan_diplomat": { diplomacy: 1 },
-                    "pilihan_sekutu": { federalism: 0.5, diplomacy: 0.5 } // Bisa campur
-                }
-            },
-            'pilihan_pemuda': {
-                image: 'https://cdn.pixabay.com/photo/2017/08/07/23/07/gun-2609062_1280.jpg', // Contoh gambar: gerilyawan
-                text: "Anda bergabung dengan laskar rakyat yang siap mempertahankan kemerdekaan. Semangat membara, namun persenjataan sangat minim. Beberapa pejuang berbicara tentang pentingnya merebut senjata dari Jepang. Tiba-tiba, terdengar kabar bahwa tentara Belanda, di bawah payung Sekutu, mulai mendarat di Surabaya.",
-                choices: [
-                    { text: "Ikut serta dalam upaya perebutan senjata", next: "rebut_senjata" },
-                    { text: "Fokus pada pelatihan baris-berbaris dan disiplin militer", next: "latihan_militer" }
-                ],
-                effects: {
-                    "rebut_senjata": { resistance: 1 },
-                    "latihan_militer": { resistance: 0.5, diplomacy: 0.5 }
-                }
-            },
-            'pilihan_diplomat': {
-                image: 'https://cdn.pixabay.com/photo/2015/04/08/04/55/agreement-712686_1280.jpg', // Contoh gambar: perundingan
-                text: "Anda mencoba mencari tahu situasi dari sumber-sumber diplomatik. Tersiar kabar bahwa Sutan Sjahrir sedang berupaya menjalin komunikasi dengan Sekutu untuk mencari pengakuan internasional, meskipun banyak yang ragu. Ada desas-desus tentang perundingan rahasia.",
-                choices: [
-                    { text: "Mencoba membantu upaya Sjahrir", next: "bantu_sjahrir" },
-                    { text: "Mengumpulkan informasi intelijen tentang niat Belanda", next: "intel_belanda" }
-                ],
-                effects: {
-                    "bantu_sjahrir": { diplomacy: 1 },
-                    "intel_belanda": { diplomacy: 0.5, resistance: 0.5 }
-                }
-            },
-            'pilihan_sekutu': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/flags-1635398_1280.jpg', // Contoh gambar: bendera
-                text: "Anda mengamati kebingungan di antara penduduk dan melihat kedatangan tentara Sekutu yang mulai menampakkan niat aslinya untuk mengembalikan Belanda. Beberapa tokoh lokal yang berpihak pada Belanda mulai aktif kembali, memprovokasi kerusuhan.",
-                choices: [
-                    { text: "Mencoba menenangkan massa agar tidak terpancing provokasi", next: "tenangkan_massa" },
-                    { text: "Mencari tahu siapa saja tokoh lokal yang pro-Belanda", next: "deteksi_provokator" }
-                ],
-                effects: {
-                    "tenangkan_massa": { diplomacy: 1 },
-                    "deteksi_provokator": { federalism: 1 }
-                }
-            },
-            'rebut_senjata': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/military-1635397_1280.jpg', // Contoh gambar: militer
-                text: "Anda berhasil merebut beberapa senjata dari gudang Jepang. Ini meningkatkan moral pejuang lokal, tetapi juga menarik perhatian Belanda. Pertempuran sengit meletus di Surabaya pada 10 November 1945.",
-                choices: [
-                    { text: "Berjuang mati-matian di Surabaya", next: "perang_surabaya" },
-                    { text: "Menarik diri untuk mengatur strategi gerilya", next: "gerilya_surabaya" }
-                ],
-                effects: {
-                    "perang_surabaya": { resistance: 2 },
-                    "gerilya_surabaya": { resistance: 1, diplomacy: 0.5 }
-                }
-            },
-            'bantu_sjahrir': {
-                image: 'https://cdn.pixabay.com/photo/2017/08/07/23/07/agreement-2609062_1280.jpg', // Contoh gambar: diskusi
-                text: "Anda berhasil menyampaikan pesan penting kepada Sjahrir. Upaya diplomatiknya mulai membuahkan hasil, dan Perundingan Linggarjati sedang disiapkan. Namun, banyak pihak di Indonesia yang curiga dengan niat Belanda.",
-                choices: [
-                    { text: "Mendukung hasil Linggarjati dan membantu sosialisasi", next: "dukung_linggarjati" },
-                    { text: "Menyarankan Sjahrir untuk lebih berhati-hati", next: "hati_hati_sjahrir" }
-                ],
-                effects: {
-                    "dukung_linggarjati": { diplomacy: 2 },
-                    "hati_hati_sjahrir": { diplomacy: 1, resistance: 0.5 }
-                }
-            },
-            'deteksi_provokator': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/flags-1635398_1280.jpg', // Contoh gambar: bendera belanda
-                text: "Anda menemukan bahwa beberapa tokoh lokal memang secara aktif dihasut Belanda untuk membentuk negara-negara bagian. Ini mengancam kesatuan Republik. Anda memiliki kesempatan untuk membongkar rencana mereka.",
-                choices: [
-                    { text: "Membongkar rencana federalis kepada publik", next: "bongkar_federalis" },
-                    { text: "Mencoba mendekati beberapa tokoh federalis untuk mencari tahu motif mereka", next: "dekati_federalis" }
-                ],
-                effects: {
-                    "bongkar_federalis": { resistance: 1, diplomacy: 0.5 },
-                    "dekati_federalis": { federalism: 1.5 }
-                }
-            },
-            // --- Skenario lanjutan yang mengarah ke Ending ---
-            'perang_surabaya': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/battle-1635397_1280.jpg', // Contoh gambar: pertempuran
-                text: "Anda berjuang gigih di Surabaya, namun jumlah dan persenjataan Belanda yang superior membuat pertempuran ini sangat berat. Banyak korban berjatuhan. Ini semakin membulatkan tekad sebagian besar rakyat untuk berjuang sampai titik darah penghabisan. Namun, dampaknya adalah kerugian besar dan tekanan internasional untuk gencatan senjata.",
-                choices: [
-                    { text: "Melanjutkan perjuangan gerilya tanpa kompromi", next: "route_resistance_final" },
-                    { text: "Mendukung seruan gencatan senjata dan diplomasi", next: "route_diplomacy_mid" }
-                ],
-                effects: {
-                    "route_resistance_final": { resistance: 2 },
-                    "route_diplomacy_mid": { diplomacy: 1 }
-                }
-            },
-            'dukung_linggarjati': {
-                image: 'https://cdn.pixabay.com/photo/2017/08/07/23/07/agreement-2609062_1280.jpg', // Contoh gambar: perundingan
-                text: "Anda berhasil meyakinkan banyak pihak tentang pentingnya Perundingan Linggarjati sebagai langkah awal menuju pengakuan. Namun, ketidaksepakatan interpretasi antara Indonesia dan Belanda akhirnya memicu Agresi Militer I. Apakah Anda akan tetap percaya pada jalur diplomasi?",
-                choices: [
-                    { text: "Tetap mencari celah diplomasi", next: "route_diplomacy_final" },
-                    { text: "Beralih ke perjuangan bersenjata setelah agresi", next: "route_resistance_mid" }
-                ],
-                effects: {
-                    "route_diplomacy_final": { diplomacy: 2 },
-                    "route_resistance_mid": { resistance: 1 }
-                }
-            },
-            'dekati_federalis': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/flags-1635398_1280.jpg', // Contoh gambar: bendera RIS
-                text: "Anda memahami argumen para federalis: mereka mengklaim sistem ini bisa membawa stabilitas dan mencegah perang berkepanjangan, meskipun kedaulatan penuh belum tentu tercapai. Beberapa tawaran kerja sama datang dari pihak Belanda untuk membangun negara-negara bagian.",
-                choices: [
-                    { text: "Menerima tawaran kerja sama dengan pihak federalis (risiko disintegrasi)", next: "route_federalism_final" },
-                    { text: "Mencoba membujuk mereka untuk kembali ke pangkuan Republik", next: "route_diplomacy_mid" }
-                ],
-                effects: {
-                    "route_federalism_final": { federalism: 2 },
-                    "route_diplomacy_mid": { diplomacy: 0.5 }
-                }
-            },
-            // --- Contoh Node Penentu Ending ---
-            'route_diplomacy_final': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/diplomacy-1635397_1280.jpg', // Contoh: konferensi
-                text: "Fokus Anda pada jalur diplomasi terbukti krusial. Meskipun menghadapi rintangan seperti Agresi Militer, tekanan internasional dan perundingan akhirnya mengarah pada Konferensi Meja Bundar. Peran Anda dalam menjaga komunikasi dan dukungan terhadap perundingan sangat berarti. Ini adalah momen krusial.",
-                choices: [{ text: "Lihat hasil perjuanganmu", next: "ending_diplomasi" }]
-            },
-            'route_resistance_final': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/war-1635397_1280.jpg', // Contoh: pertempuran besar
-                text: "Keputusan Anda untuk terus berjuang bersenjata tanpa henti menunjukkan semangat pantang menyerah. Anda terlibat dalam banyak pertempuran gerilya, namun perjuangan ini sangat menguras tenaga dan menimbulkan banyak korban. Agresi Militer II membuat situasi semakin sulit, bahkan para pemimpin ditangkap. Namun, semangat rakyat tidak pernah padam.",
-                choices: [{ text: "Lihat hasil perjuanganmu", next: "ending_resistance" }]
-            },
-            'route_federalism_final': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/flags-1635398_1280.jpg', // Contoh: banyak bendera
-                text: "Anda terlibat dalam upaya pembentukan negara-negara bagian federal. Meskipun ini menjanjikan 'kemerdekaan' yang lebih cepat di bawah payung RIS, persatuan bangsa terancam. Rakyat mulai mempertanyakan loyalitas Anda dan tujuan akhir dari kemerdekaan ini.",
-                choices: [{ text: "Lihat hasil perjuanganmu", next: "ending_federalism" }]
-            },
-
-            // --- Ending Sebenarnya ---
-            'ending_diplomasi': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/independence-1635397_1280.jpg', // Gambar kemenangan/proklamasi
-                text: `<h3>Selamat, ${player.name}!</h3><p>Perjuangan Anda dalam mendukung jalur diplomasi telah membuahkan hasil manis. Setelah empat tahun perjuangan, Agresi Militer, dan tekanan internasional, akhirnya pada 27 Desember 1949, Belanda secara resmi mengakui kedaulatan Republik Indonesia dalam Konferensi Meja Bundar (KMB). Meskipun masih ada beberapa wilayah yang belum sepenuhnya kembali, ini adalah kemenangan gemilang bagi bangsa Indonesia. Anda menyaksikan bendera Merah Putih berkibar di seluruh negeri, sebagai simbol kemerdekaan penuh yang telah diraih melalui perpaduan perjuangan bersenjata dan diplomasi cerdas. Rakyat bersatu padu membangun negara baru.</p><p><strong>Apa yang Terjadi di Dunia Nyata:</strong> Ini adalah skenario yang paling dekat dengan hasil akhir Revolusi Fisik Indonesia. KMB menjadi titik balik penting dalam pengakuan kedaulatan penuh Indonesia oleh Belanda.</p>`,
-                isEnding: true,
-                endingType: "diplomasi"
-            },
-            'ending_resistance': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/guerrilla-1635397_1280.jpg', // Gambar perjuangan berdarah/gerilya
-                text: `<h3>Pengorbanan Tak Terhingga, ${player.name}.</h3><p>Pilihan Anda yang cenderung pada perjuangan bersenjata tanpa kompromi telah menorehkan sejarah berdarah. Meskipun menunjukkan semangat kepahlawanan yang luar biasa, Agresi Militer Belanda kedua pada Desember 1948 berhasil menawan para pemimpin Republik dan menduduki ibu kota sementara Yogyakarta. Perjuangan berlanjut dalam bentuk gerilya yang sangat intens. Dunia internasional mulai menekan Belanda lebih keras, namun rakyat harus membayar harga yang sangat mahal dengan nyawa dan penderitaan.</p><p><strong>Apa yang Terjadi di Dunia Nyata:</strong> Periode ini menggambarkan fase kelam Agresi Militer II, di mana para pemimpin ditawan dan perang gerilya berkecamuk. Meski berat, tekanan gerilya yang tak pernah padam dan dukungan internasional pada akhirnya memaksa Belanda kembali ke meja perundingan.</p>`,
-                isEnding: true,
-                endingType: "resistance"
-            },
-            'ending_federalism': {
-                image: 'https://cdn.pixabay.com/photo/2016/09/01/08/24/federalism-1635398_1280.jpg', // Gambar perpecahan/banyak bendera
-                text: `<h3>Persatuan Terancam, ${player.name}.</h3><p>Keputusan Anda untuk mendukung jalur federalisme atau bekerja sama dengan Belanda dalam pembentukan negara-negara bagian telah membawa Indonesia ke dalam bentuk Republik Indonesia Serikat (RIS). Meskipun kemerdekaan formal telah diperoleh pada 27 Desember 1949, persatuan bangsa terpecah belah. Anda menyaksikan ketidakpuasan meluas di antara rakyat dan perlawanan terhadap negara-negara bagian bentukan Belanda. Ketidakstabilan politik dan konflik internal mewarnai era ini.</p><p><strong>Apa yang Terjadi di Dunia Nyata:</strong> RIS memang ada dari 27 Desember 1949 hingga 17 Agustus 1950. Ini adalah upaya Belanda untuk memecah belah Indonesia. Namun, berkat keinginan kuat rakyat untuk bersatu, RIS akhirnya bubar dan kembali menjadi Negara Kesatuan Republik Indonesia (NKRI) pada 17 Agustus 1950.</p>`,
-                isEnding: true,
-                endingType: "federalism"
+        // --- Fungsi Helper untuk Local Storage ---
+        function getLocalStorage(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : {};
+            } catch (e) {
+                console.error("Error parsing localStorage for key:", key, e);
+                return {};
             }
-            // ... tambahkan lebih banyak adegan di sini dengan percabangan yang kompleks
-        };
-
-        function startGame() {
-            // Sembunyikan layar pembuatan karakter, tampilkan konten game
-            charCreationScreen.style.display = 'none';
-            gameContentScreen.style.display = 'block';
-
-            // Ambil data karakter dari input
-            player.name = playerNameInput.value || 'Pahlawan Rahasia';
-            player.gender = playerGenderSelect.value;
-            player.age = playerAgeSelect.value;
-            player.background = playerBackgroundSelect.value;
-
-            // Perbarui teks awal dengan nama karakter
-            gameData['intro_1945'].text = `Sebagai ${player.name} (${player.gender === 'pria' ? 'seorang pria' : 'seorang wanita'} berusia ${playerAgeSelect.options[playerAgeSelect.selectedIndex].text}) dengan latar belakang ${playerBackgroundSelect.options[playerBackgroundSelect.selectedIndex].text}, Anda terbangun di tengah hiruk pikuk Jakarta pasca-Proklamasi 17 Agustus 1945. Euforia kemerdekaan masih terasa, namun ancaman kembalinya Belanda membayangi. Sebuah pamflet bertuliskan "Republik Harga Mati!" tergeletak di jalanan.`;
-
-            loadScene(currentScene);
         }
 
-        function loadScene(sceneName) {
-            currentScene = sceneName;
-            const scene = gameData[sceneName];
+        function setLocalStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
 
-            // Tampilkan ending jika ini adalah adegan ending
-            if (scene.isEnding) {
-                displayEnding(scene);
+        // --- Fungsi Helper untuk Pop-up Kustom ---
+        function showModal(title, message, type = 'success', textToCopy = '') {
+            const modal = document.getElementById('customModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalCopyButton = document.getElementById('modalCopyButton');
+
+            // Reset classes
+            modal.querySelector('.modal-content').className = 'modal-content';
+            if (type === 'error') {
+                modal.querySelector('.modal-content').classList.add('error');
+            } else if (type === 'warning') {
+                modal.querySelector('.modal-content').classList.add('warning');
+            } else {
+                modal.querySelector('.modal-content').classList.add('success');
+            }
+
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+
+            if (textToCopy) {
+                modalCopyButton.style.display = 'inline-block';
+                modalCopyButton.textContent = 'Salin Kode/ID';
+                modalCopyButton.onclick = () => {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        showModal('Berhasil Disalin!', 'Teks berhasil disalin ke clipboard Anda.', 'success');
+                    }).catch(err => {
+                        showModal('Gagal Menyalin!', 'Maaf, gagal menyalin teks.', 'error');
+                        console.error('Failed to copy text: ', err);
+                    });
+                };
+            } else {
+                modalCopyButton.style.display = 'none';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').style.display = 'none';
+        }
+
+        // --- Fungsi Notifikasi Penjualan Live (Simulasi) ---
+        function showSaleNotification(productName) {
+            const notificationDiv = document.getElementById('saleNotification');
+            const saleMessageSpan = document.getElementById('saleMessage');
+
+            const randomBuyer = DUMMY_BUYER_NAMES[Math.floor(Math.random() * DUMMY_BUYER_NAMES.length)];
+            saleMessageSpan.textContent = `${randomBuyer} baru saja membeli ${productName}!`;
+
+            notificationDiv.classList.add('show');
+
+            // Sembunyikan notifikasi setelah beberapa detik
+            setTimeout(() => {
+                notificationDiv.classList.remove('show');
+            }, 5000); // Notifikasi akan terlihat selama 5 detik
+        }
+
+
+        // --- Inisialisasi Data Default (Jika Belum Ada) ---
+        function initializeStore() {
+            let products = getLocalStorage(PRODUCTS_KEY);
+            let codes = getLocalStorage(CODES_KEY);
+            let users = getLocalStorage(USERS_KEY);
+            let orders = getLocalStorage(ORDERS_KEY);
+            let discountConfig = getLocalStorage(DISCOUNT_CONFIG_KEY); // Ambil konfigurasi diskon
+            let maintenanceConfig = getLocalStorage(MAINTENANCE_CONFIG_KEY); // Ambil konfigurasi maintenance
+
+            // Inisialisasi produk default jika kosong
+            if (Object.keys(products).length === 0) {
+                products = {
+                    "gamepass_vip": {
+                        id: "gamepass_vip",
+                        name: "Gamepass VIP Premium",
+                        price: 75000,
+                        image: "https://i.imgur.com/example_vip.png" // Ganti dengan URL gambar Roblox atau placeholder yang relevan
+                    },
+                    "1000_robux_pack": {
+                        id: "1000_robux_pack",
+                        name: "1000 Robux Pack",
+                        price: 150000,
+                        image: "https://i.imgur.com/example_robux.png" // Ganti dengan URL gambar Roblox atau placeholder yang relevan
+                    },
+                    "rare_item_bundle": {
+                        id: "rare_item_bundle",
+                        name: "Rare Item Bundle",
+                        price: 250000,
+                        image: "https://i.imgur.com/example_bundle.png" // Ganti dengan URL gambar Roblox atau placeholder yang relevan
+                    }
+                };
+                setLocalStorage(PRODUCTS_KEY, products);
+            }
+
+            // Pastikan setiap produk memiliki array kode kosong
+            for (const productId in products) {
+                if (!codes[productId]) {
+                    codes[productId] = [];
+                }
+            }
+            setLocalStorage(CODES_KEY, codes);
+
+            // Inisialisasi users jika kosong (tambahkan admin user secara default jika belum ada)
+            if (Object.keys(users).length === 0) {
+                users[ADMIN_USERNAME] = {
+                    username: ADMIN_USERNAME,
+                    password: ADMIN_PASSWORD, // Untuk demo, password disimpan langsung. Di sistem nyata harus di-hash!
+                    isAdmin: true
+                };
+            }
+            setLocalStorage(USERS_KEY, users);
+            setLocalStorage(ORDERS_KEY, orders); // Pastikan orders juga diinisialisasi
+
+            // Inisialisasi konfigurasi diskon default jika kosong
+            if (Object.keys(discountConfig).length === 0 || discountConfig.isActive === undefined) {
+                discountConfig = {
+                    isActive: false, // Diskon tidak aktif secara default
+                    percentage: 10,  // Diskon 10% secara default (jika aktif)
+                    targetType: 'all', // 'all' (semua produk) atau 'specific' (produk tertentu)
+                    targetProducts: [], // Array ID produk jika targetType 'specific'
+                    targetUsers: '', // String username dipisahkan koma, jika kosong berarti semua user
+                    countdownEndTime: null // Waktu berakhir countdown diskon (ISO string)
+                };
+                setLocalStorage(DISCOUNT_CONFIG_KEY, discountConfig);
+            }
+
+            // Inisialisasi konfigurasi maintenance default
+            if (Object.keys(maintenanceConfig).length === 0 || maintenanceConfig.isActive === undefined) {
+                maintenanceConfig = {
+                    isActive: false // Maintenance mode tidak aktif secara default
+                };
+                setLocalStorage(MAINTENANCE_CONFIG_KEY, maintenanceConfig);
+            }
+        }
+
+        // --- Fungsi Generator ID Pesanan ---
+        function generateOrderId() {
+            const timestamp = Date.now().toString(36).substring(0, 8);
+            const randomPart1 = Math.random().toString(36).substring(2, 8);
+            const randomPart2 = Math.random().toString(36).substring(2, 7);
+            return `ORD-${timestamp}-${randomPart1}-${randomPart2}`.toUpperCase();
+        }
+
+        // --- Manajemen Sesi Login ---
+        function getLoggedInUser() {
+            const username = localStorage.getItem(CURRENT_USER_KEY);
+            if (!username) return null;
+            return getLocalStorage(USERS_KEY)[username] || null;
+        }
+
+        function updateAuthLinks() {
+            const authLinks = document.getElementById('authLinks');
+            const loggedInLinks = document.getElementById('loggedInLinks');
+            const currentUser = getLoggedInUser();
+
+            if (currentUser) {
+                authLinks.style.display = 'none';
+                loggedInLinks.style.display = 'inline-block';
+                // Opsional: Tampilkan nama pengguna
+                // document.getElementById('welcomeUser').textContent = `Halo, ${currentUser.username}`;
+            } else {
+                authLinks.style.display = 'inline-block';
+                loggedInLinks.style.display = 'none';
+            }
+        }
+
+        function logoutUser() {
+            localStorage.removeItem(CURRENT_USER_KEY);
+            showModal('Logout Berhasil', 'Anda telah berhasil keluar dari akun.', 'success');
+            updateAuthLinks();
+            showPage('home'); // Kembali ke beranda setelah logout
+        }
+
+        // --- FUNGSI TAMPILAN HALAMAN (SPA Logic) ---
+        function showPage(pageName) {
+            const appContent = document.getElementById('appContent');
+            let htmlContent = '';
+            const currentUser = getLoggedInUser();
+            const maintenanceConfig = getLocalStorage(MAINTENANCE_CONFIG_KEY);
+
+            // Hapus kelas 'active' dari semua link navigasi
+            document.querySelectorAll('nav a').forEach(link => link.classList.remove('active'));
+            // Tambahkan kelas 'active' ke link yang sedang diklik
+            const activeLink = document.querySelector(`nav a[onclick="showPage('${pageName}')"]`);
+            if (activeLink) activeLink.classList.add('active');
+
+            // Cek Maintenance Mode
+            const isMaintenanceMode = maintenanceConfig.isActive;
+            const isAdminLoggedIn = (currentUser && currentUser.username === ADMIN_USERNAME && currentUser.password === ADMIN_PASSWORD);
+
+            const maintenanceOverlay = document.getElementById('maintenanceOverlay');
+
+            // Jika dalam maintenance mode dan bukan admin, dan mencoba mengakses halaman selain home
+            if (isMaintenanceMode && !isAdminLoggedIn && pageName !== 'home') {
+                maintenanceOverlay.style.display = 'flex';
+                appContent.innerHTML = ''; // Kosongkan konten utama
+                return; // Hentikan eksekusi lebih lanjut
+            } else {
+                maintenanceOverlay.style.display = 'none'; // Sembunyikan overlay jika tidak dalam maintenance atau admin login
+            }
+
+
+            switch (pageName) {
+                case 'home':
+                    htmlContent = `
+                        <h1>🎮 Toko Item Roblox Anda 💰</h1>
+                        <p>Beli item-item keren untuk game Roblox Anda di sini dan dapatkan kode redeem instan!</p>
+                        <div id="discountCountdownSection" class="discount-countdown-section" style="display:none;">
+                            <h2>Penawaran Spesial Berakhir Dalam!</h2>
+                            <div class="countdown-timer" id="countdownTimer"></div>
+                            <p id="countdownMessage"></p>
+                        </div>
+                        <div class="product-grid" id="productGrid">
+                            </div>
+                        <div class="top-products-list" id="topProductsList">
+                            </div>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    displayProducts(); // Panggil fungsi untuk mengisi produk
+                    displayTopSellingProducts(); // Panggil fungsi untuk menampilkan produk terlaris
+                    startCountdown(); // Mulai countdown
+                    break;
+
+                case 'redeem':
+                    htmlContent = `
+                        <h2>Dapatkan Kode Anda!</h2>
+                        <p>Masukkan ID Pesanan Anda di bawah ini untuk mendapatkan kode redeem unik.</p>
+                        <div class="form-group">
+                            <label for="orderIdInput">ID Pesanan:</label>
+                            <input type="text" id="orderIdInput" placeholder="Tempel ID Pesanan Anda di sini..." autocomplete="off">
+                        </div>
+                        <button onclick="redeemCode()">Dapatkan Kode</button>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    break;
+
+                case 'login':
+                    if (currentUser) {
+                        showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.username}. Silakan logout terlebih dahulu jika ingin login dengan akun lain.`, 'warning');
+                        return; // Jangan tampilkan form login jika sudah login
+                    }
+                    htmlContent = `
+                        <h2>Login</h2>
+                        <div class="form-group">
+                            <label for="loginUsername">Username:</label>
+                            <input type="text" id="loginUsername" placeholder="Masukkan username Anda">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password:</label>
+                            <input type="password" id="loginPassword" placeholder="Masukkan password Anda">
+                        </div>
+                        <button onclick="loginUser()">Login</button>
+                        <p style="text-align:center; margin-top:20px; color:var(--text-medium);">Belum punya akun? <a href="#" onclick="showPage('register')" style="color:var(--accent-color);">Daftar di sini</a></p>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    break;
+
+                case 'register':
+                    if (currentUser) {
+                        showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.username}. Silakan logout terlebih dahulu jika ingin daftar akun baru.`, 'warning');
+                        return; // Jangan tampilkan form register jika sudah login
+                    }
+                    htmlContent = `
+                        <h2>Register Akun Baru</h2>
+                        <div class="form-group">
+                            <label for="regUsername">Username:</label>
+                            <input type="text" id="regUsername" placeholder="Buat username unik">
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Password:</label>
+                            <input type="password" id="regPassword" placeholder="Buat password Anda">
+                        </div>
+                        <button onclick="registerUser()">Daftar</button>
+                        <p style="text-align:center; margin-top:20px; color:var(--text-medium);">Sudah punya akun? <a href="#" onclick="showPage('login')" style="color:var(--accent-color);">Login di sini</a></p>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    break;
+
+                case 'admin':
+                    // Cek akses admin sebelum menampilkan konten
+                    if (!currentUser || currentUser.username !== ADMIN_USERNAME || currentUser.password !== ADMIN_PASSWORD) {
+                        showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk mengakses halaman admin.', 'error');
+                        showPage('home'); // Redirect kembali ke beranda
+                        return;
+                    }
+                    htmlContent = `
+                        <h2>🛠️ Panel Admin RZKSTUDIO 🔒</h2>
+                        <p style="text-align:center; color:var(--text-medium);">Kelola produk dan kode di sini.</p>
+
+                        <h3>Tambah Produk Baru</h3>
+                        <div class="form-group">
+                            <label for="adminProductName">Nama Produk:</label>
+                            <input type="text" id="adminProductName" placeholder="Contoh: Gamepass VIP">
+                        </div>
+                        <div class="form-group">
+                            <label for="adminProductPrice">Harga (IDR):</label>
+                            <input type="number" id="adminProductPrice" placeholder="Contoh: 50000">
+                        </div>
+                        <div class="form-group">
+                            <label for="adminProductImage">URL Gambar Produk (Opsional):</label>
+                            <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/gambar_produk.png">
+                        </div>
+                        <button onclick="addProduct()">Tambah Produk</button>
+
+                        <h3>Tambah Kode untuk Produk</h3>
+                        <div class="form-group">
+                            <label for="adminCodeProductSelect">Pilih Produk:</label>
+                            <select id="adminCodeProductSelect">
+                                </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="adminNewCodes">Kode Baru (satu per baris):</label>
+                            <textarea id="adminNewCodes" rows="10" placeholder="Masukkan kode baru, satu per baris. Contoh:&#10;KODE_VIP_123&#10;KODE_GAMEPASS_ABC&#10;KODE_UANG_XYZ"></textarea>
+                        </div>
+                        <button onclick="addCodes()">Tambah Kode</button>
+
+                        <h3>Daftar Kode (Per Produk)</h3>
+                        <div class="form-group">
+                            <label for="adminViewCodeProductSelect">Pilih Produk untuk Melihat Kode:</label>
+                            <select id="adminViewCodeProductSelect" onchange="displayCodesForProduct()">
+                                </select>
+                        </div>
+                        <div id="codeList">
+                            <p style="text-align:center; color:var(--text-medium);">Pilih produk untuk melihat daftar kodenya.</p>
+                        </div>
+
+                        <h3 style="margin-top: 40px;">💰 Pengaturan Diskon 💰</h3>
+                        <div class="form-group">
+                            <label for="discountStatus">Status Diskon:</label>
+                            <input type="checkbox" id="discountStatus" onchange="toggleDiscountFields()"> Aktifkan Diskon
+                        </div>
+                        <div id="discountSettingsFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="discountPercentage">Persentase Diskon (%):</label>
+                                <input type="number" id="discountPercentage" min="1" max="100" value="10">
+                            </div>
+                            <div class="form-group">
+                                <label for="discountCountdownEndTime">Waktu Berakhir Diskon (Opsional):</label>
+                                <input type="datetime-local" id="discountCountdownEndTime">
+                                <small style="color:var(--text-medium);">Diskon akan otomatis nonaktif setelah waktu ini.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="discountTargetType">Target Diskon:</label>
+                                <select id="discountTargetType" onchange="toggleDiscountTargetProductSelect()">
+                                    <option value="all">Semua Produk</option>
+                                    <option value="specific">Produk Tertentu</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="discountSpecificProductSelect" style="display: none;">
+                                <label for="discountProductSelect">Pilih Produk (CTRL+klik untuk pilih banyak):</label>
+                                <select id="discountProductSelect" multiple size="5">
+                                    </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="discountTargetUsers">Target Pengguna (pisahkan dengan koma, kosongkan untuk semua):</label>
+                                <input type="text" id="discountTargetUsers" placeholder="contoh: user1, user2, RZKSTUDIO1">
+                            </div>
+                            <button onclick="saveDiscountConfig()">Simpan Pengaturan Diskon</button>
+                        </div>
+
+                        <h3 style="margin-top: 40px;">🚧 Maintenance Mode 🚧</h3>
+                        <div class="form-group">
+                            <label for="maintenanceStatus">Status Maintenance Mode:</label>
+                            <input type="checkbox" id="maintenanceStatus" onchange="saveMaintenanceConfig()"> Aktifkan Mode Pemeliharaan
+                        </div>
+                        <small style="color:var(--text-medium);">Jika aktif, website akan menampilkan pesan pemeliharaan untuk non-admin.</small>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    populateAdminProductSelects(); // Panggil fungsi untuk mengisi dropdown produk
+                    populateDiscountProductSelect(); // Panggil fungsi untuk mengisi dropdown diskon
+                    loadDiscountConfig(); // Panggil fungsi untuk memuat konfigurasi diskon yang tersimpan
+                    loadMaintenanceConfig(); // Panggil fungsi untuk memuat konfigurasi maintenance
+                    break;
+
+                default:
+                    showPage('home'); // Default ke halaman beranda
+                    break;
+            }
+            // Check maintenance mode immediately after page content is set
+            checkMaintenanceModeAndRedirect();
+        }
+
+
+        // --- FUNGSI SPESIFIK UNTUK home (BERANDA) ---
+        function displayProducts() {
+            const productGrid = document.getElementById('productGrid');
+            if (!productGrid) return; // Pastikan elemen ada di halaman ini
+
+            productGrid.innerHTML = ''; // Bersihkan grid
+            const products = getLocalStorage(PRODUCTS_KEY);
+            const discountConfig = getLocalStorage(DISCOUNT_CONFIG_KEY);
+            const currentUser = getLoggedInUser();
+
+            // Periksa apakah diskon global masih aktif berdasarkan waktu berakhir
+            if (discountConfig.isActive && discountConfig.countdownEndTime) {
+                const endTime = new Date(discountConfig.countdownEndTime).getTime();
+                const now = new Date().getTime();
+                if (now >= endTime) {
+                    // Diskon sudah berakhir, nonaktifkan secara otomatis
+                    discountConfig.isActive = false;
+                    discountConfig.countdownEndTime = null; // Hapus waktu berakhir
+                    setLocalStorage(DISCOUNT_CONFIG_KEY, discountConfig);
+                    showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
+                    // displayProducts(); // Refresh products to show normal prices (akan dipanggil lagi di startCountdown)
+                    // return; // Hentikan proses render saat ini untuk menghindari duplikasi
+                }
+            }
+
+
+            // Konversi objek produk ke array untuk diurutkan jika perlu, atau cukup iterasi langsung
+            const productArray = Object.values(products);
+
+            if (productArray.length === 0) {
+                productGrid.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Belum ada produk yang tersedia. Silakan tambahkan dari panel admin.</p>';
                 return;
             }
 
-            // Animasi fade out sebelum ganti konten
-            storyText.style.opacity = '0';
-            gameImage.style.opacity = '0';
-            choicesDiv.style.opacity = '0';
+            productArray.forEach(product => {
+                let displayPrice = product.price;
+                let originalPriceHtml = '';
+                let discountTag = '';
 
-            setTimeout(() => {
-                gameImage.src = scene.image;
-                storyText.innerHTML = scene.text;
-                choicesDiv.innerHTML = ''; // Kosongkan pilihan sebelumnya
+                // Cek apakah diskon berlaku untuk produk ini dan user ini
+                if (discountConfig.isActive) {
+                    const isUserTargeted = !discountConfig.targetUsers || (currentUser && discountConfig.targetUsers.toLowerCase().includes(currentUser.username.toLowerCase()));
+                    const isProductTargeted = 
+                        discountConfig.targetType === 'all' || 
+                        (discountConfig.targetType === 'specific' && discountConfig.targetProducts.includes(product.id));
 
-                scene.choices.forEach((choice) => {
-                    const button = document.createElement('button');
-                    button.className = 'choice-button';
-                    button.textContent = choice.text;
-                    button.onclick = () => makeChoice(choice.next, scene.effects ? scene.effects[choice.next] : null);
-                    choicesDiv.appendChild(button);
-                });
+                    if (isUserTargeted && isProductTargeted) {
+                        const discountedPrice = product.price * (1 - discountConfig.percentage / 100);
+                        originalPriceHtml = `<span class="original-price">Rp ${product.price.toLocaleString('id-ID')}</span>`;
+                        displayPrice = discountedPrice;
+                        discountTag = `<span class="discount-tag">-${discountConfig.percentage}%</span>`;
+                    }
+                }
 
-                // Animasi fade in setelah ganti konten
-                storyText.style.opacity = '1';
-                gameImage.style.opacity = '1';
-                choicesDiv.style.opacity = '1';
-            }, 800); // Tunggu sebentar untuk efek fade out
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <img src="${product.image || 'https://via.placeholder.com/150/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}">
+                    <h3>${product.name}</h3>
+                    <p class="price-info">
+                        ${originalPriceHtml}
+                        <span class="discounted-price">Rp ${displayPrice.toLocaleString('id-ID')}</span>
+                        ${discountTag}
+                    </p>
+                    <button onclick="confirmPurchase('${product.id}')">Beli Sekarang</button>
+                `;
+                productGrid.appendChild(productCard);
+            });
         }
 
-        function makeChoice(nextSceneName, effects = null) {
-            // Terapkan efek poin berdasarkan pilihan
-            if (effects) {
-                if (effects.diplomacy) diplomacyPoints += effects.diplomacy;
-                if (effects.resistance) resistancePoints += effects.resistance;
-                if (effects.federalism) federalismPoints += effects.federalism;
+        // --- Fungsi Konfirmasi Pembelian ---
+        let currentPurchaseProductId = null; // Untuk menyimpan ID produk yang akan dibeli
+
+        function confirmPurchase(productId) {
+            const products = getLocalStorage(PRODUCTS_KEY);
+            const product = products[productId];
+            const discountConfig = getLocalStorage(DISCOUNT_CONFIG_KEY);
+            const currentUser = getLoggedInUser();
+
+            if (!product) {
+                showModal('Error!', 'Produk tidak ditemukan.', 'error');
+                return;
             }
 
-            // Log poin untuk debugging
-            // console.log(`Diplomasi: ${diplomacyPoints}, Perlawanan: ${resistancePoints}, Federalisme: ${federalismPoints}`);
+            let finalPrice = product.price;
+            // Cek apakah diskon berlaku untuk produk ini dan user ini
+            if (discountConfig.isActive) {
+                const isUserTargeted = !discountConfig.targetUsers || (currentUser && discountConfig.targetUsers.toLowerCase().includes(currentUser.username.toLowerCase()));
+                const isProductTargeted = 
+                    discountConfig.targetType === 'all' || 
+                    (discountConfig.targetType === 'specific' && discountConfig.targetProducts.includes(product.id));
 
-            // Cek untuk transisi ke ending berdasarkan akumulasi poin di tengah permainan
-            // Ini adalah logika yang sangat disederhanakan. Dalam game nyata, ini akan lebih kompleks
-            // dan mungkin ada "checkpoints" yang mengarahkan ke ending tertentu.
-            if (diplomacyPoints >= 4 && nextSceneName !== 'route_resistance_final' && nextSceneName !== 'route_federalism_final') {
-                loadScene('route_diplomacy_final');
-            } else if (resistancePoints >= 4 && nextSceneName !== 'route_diplomacy_final' && nextSceneName !== 'route_federalism_final') {
-                loadScene('route_resistance_final');
-            } else if (federalismPoints >= 3 && nextSceneName !== 'route_diplomacy_final' && nextSceneName !== 'route_resistance_final') {
-                loadScene('route_federalism_final');
+                if (isUserTargeted && isProductTargeted) {
+                    finalPrice = product.price * (1 - discountConfig.percentage / 100);
+                }
+            }
+
+            currentPurchaseProductId = productId; // Simpan ID produk
+            const message = `Apakah Anda yakin ingin membeli <strong>${product.name}</strong> seharga <strong>Rp ${finalPrice.toLocaleString('id-ID')}</strong>?`;
+            
+            document.getElementById('confirmationMessage').innerHTML = message;
+            document.getElementById('confirmationModal').style.display = 'flex'; // Tampilkan modal konfirmasi
+        }
+
+        function hideConfirmation() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            currentPurchaseProductId = null; // Reset ID produk
+        }
+
+        // Event listener untuk tombol "Ya, Beli" di modal konfirmasi
+        document.getElementById('confirmPurchaseBtn').onclick = function() {
+            if (currentPurchaseProductId) {
+                simulatePurchase(currentPurchaseProductId); // Lanjutkan dengan simulasi pembelian
+            }
+            hideConfirmation();
+        };
+
+        // Event listener untuk tombol "Batal" di modal konfirmasi
+        document.getElementById('cancelPurchaseBtn').onclick = function() {
+            showModal('Pembelian Dibatalkan', 'Anda telah membatalkan pembelian.', 'warning');
+            hideConfirmation();
+        };
+
+
+        function simulatePurchase(productId) {
+            const products = getLocalStorage(PRODUCTS_KEY);
+            const product = products[productId];
+            // Pastikan product tidak null (sudah dicek di confirmPurchase, tapi jaga-jaga)
+            if (!product) {
+                showModal('Error!', 'Produk tidak ditemukan saat simulasi pembelian.', 'error');
+                return;
+            }
+
+            const orderId = generateOrderId();
+            let orders = getLocalStorage(ORDERS_KEY);
+            orders[orderId] = {
+                productId: productId,
+                isUsed: false,
+                codeGiven: null, // Akan diisi saat kode diberikan
+                purchaseDate: new Date().toISOString()
+            };
+            setLocalStorage(ORDERS_KEY, orders);
+
+            const message = `
+                <p>Terima kasih telah membeli <strong>${product.name}</strong>!</p>
+                <p>Silakan salin ID Pesanan Anda:</p>
+                <p><strong>${orderId}</strong></p>
+                <p>Lalu, klik tombol di bawah atau navigasi ke "Tukar ID Pesanan" untuk menerima kode redeem Anda.</p>
+            `;
+            showModal('Pembelian Berhasil!', message, 'success', orderId);
+
+            // Tampilkan notifikasi penjualan live
+            showSaleNotification(product.name);
+
+            // Perbarui daftar produk terlaris setelah pembelian
+            displayTopSellingProducts();
+        }
+
+        // --- FUNGSI SPESIFIK UNTUK redeem (TUKAR ID PESANAN) ---
+        function redeemCode() {
+            const orderIdInput = document.getElementById('orderIdInput');
+            if (!orderIdInput) return; // Pastikan elemen ada di halaman ini
+
+            const orderId = orderIdInput.value.trim();
+
+            if (!orderId) {
+                showModal('Input Kosong', '⚠️ Masukkan ID Pesanan Anda!', 'warning');
+                return;
+            }
+
+            let orders = getLocalStorage(ORDERS_KEY);
+            let codes = getLocalStorage(CODES_KEY);
+
+            const order = orders[orderId];
+
+            if (!order) {
+                showModal('ID Tidak Valid', '❌ ID Pesanan tidak ditemukan atau tidak valid.', 'error');
+                return;
+            }
+
+            if (order.isUsed) {
+                const message = `<p>⚠️ ID Pesanan ini sudah digunakan!</p><p>Kode Anda sebelumnya adalah: <strong>${order.codeGiven}</strong></p>`;
+                showModal('Sudah Digunakan', message, 'warning', order.codeGiven);
+                return;
+            }
+
+            const productCodes = codes[order.productId];
+            if (!productCodes || productCodes.length === 0) {
+                showModal('Stok Habis', '❌ Maaf, stok kode untuk produk ini habis. Silakan hubungi admin.', 'error');
+                return;
+            }
+
+            // Ambil kode pertama yang belum terpakai
+            const availableCodeIndex = productCodes.findIndex(code => !code.isUsed);
+            if (availableCodeIndex === -1) {
+                showModal('Stok Habis', '❌ Maaf, stok kode untuk produk ini habis. Silakan hubungi admin.', 'error');
+                return;
+            }
+
+            const redeemedCode = productCodes[availableCodeIndex].value;
+
+            // Tandai kode sebagai terpakai
+            codes[order.productId][availableCodeIndex].isUsed = true;
+            codes[order.productId][availableCodeIndex].usedAt = new Date().toISOString(); // Tambah timestamp penggunaan
+            setLocalStorage(CODES_KEY, codes);
+
+            // Tandai ID pesanan sebagai terpakai dan simpan kode yang diberikan
+            orders[orderId].isUsed = true;
+            orders[orderId].codeGiven = redeemedCode;
+            orders[orderId].redeemDate = new Date().toISOString(); // Tambah timestamp redeem
+            setLocalStorage(ORDERS_KEY, orders);
+
+            const successMessage = `
+                <p>🎉 Selamat! Ini kode redeem Anda:</p>
+                <p><strong>${redeemedCode}</strong></p>
+                <p>Tempel kode ini di game Roblox Anda.</p>
+            `;
+            showModal('Kode Berhasil Didapatkan!', successMessage, 'success', redeemedCode);
+
+            orderIdInput.value = ''; // Bersihkan input setelah sukses
+            
+            // Perbarui daftar produk terlaris setelah redeem
+            displayTopSellingProducts();
+        }
+
+        // --- FUNGSI SPESIFIK UNTUK login & register ---
+        function registerUser() {
+            const usernameInput = document.getElementById('regUsername');
+            const passwordInput = document.getElementById('regPassword');
+            if (!usernameInput || !passwordInput) return;
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                showModal('Input Kosong', 'Username dan password tidak boleh kosong.', 'warning');
+                return;
+            }
+
+            let users = getLocalStorage(USERS_KEY);
+
+            if (users[username]) {
+                showModal('Username Sudah Ada', 'Maaf, username ini sudah terdaftar. Silakan gunakan username lain.', 'error');
+                return;
+            }
+
+            // Untuk demo, password disimpan langsung. Di sistem nyata, HARUS DI-HASH!
+            users[username] = { username: username, password: password, isAdmin: false };
+            setLocalStorage(USERS_KEY, users);
+
+            showModal('Registrasi Berhasil!', `Akun <strong>${username}</strong> berhasil dibuat. Silakan login.`, 'success');
+            usernameInput.value = '';
+            passwordInput.value = '';
+            showPage('login'); // Langsung pindah ke halaman login
+        }
+
+        function loginUser() {
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+            if (!usernameInput || !passwordInput) return;
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                showModal('Input Kosong', 'Username dan password tidak boleh kosong.', 'warning');
+                return;
+            }
+
+            let users = getLocalStorage(USERS_KEY);
+            const user = users[username];
+
+            if (!user || user.password !== password) {
+                showModal('Login Gagal', 'Username atau password salah.', 'error');
+                return;
+            }
+
+            // Login Berhasil
+            localStorage.setItem(CURRENT_USER_KEY, username); // Simpan username pengguna yang login
+            showModal('Login Berhasil!', `Selamat datang, <strong>${username}</strong>!`, 'success');
+            updateAuthLinks(); // Perbarui link navigasi
+
+            if (user.isAdmin) {
+                setTimeout(() => showPage('admin'), 1000); // Redirect ke admin panel
             } else {
-                loadScene(nextSceneName);
+                setTimeout(() => showPage('home'), 1000); // Redirect ke beranda
             }
         }
 
-        function displayEnding(endingScene) {
-            gameContentScreen.style.display = 'none';
-            endingScreen.style.display = 'block';
+        // --- FUNGSI SPESIFIK UNTUK admin (ADMIN PANEL) ---
+        function addProduct() {
+            const adminProductName = document.getElementById('adminProductName');
+            const adminProductPrice = document.getElementById('adminProductPrice');
+            const adminProductImage = document.getElementById('adminProductImage');
+            if (!adminProductName || !adminProductPrice || !adminProductImage) return;
 
-            endingTitle.textContent = endingScene.endingType === "diplomasi" ? "Kemenangan Diplomatik dan Pengakuan Penuh" :
-                                      endingScene.endingType === "resistance" ? "Perjuangan Berdarah Tak Berkesudahan" :
-                                      "Federalisme dan Disintegrasi Bangsa";
-            endingImage.src = endingScene.image;
-            endingText.innerHTML = endingScene.text;
+            const name = adminProductName.value.trim();
+            const price = parseFloat(adminProductPrice.value);
+            const image = adminProductImage.value.trim();
+
+            if (!name || isNaN(price) || price <= 0) {
+                showModal('Input Tidak Valid', 'Nama produk dan harga harus diisi dengan benar.', 'warning');
+                return;
+            }
+
+            const productId = name.toLowerCase().replace(/\s/g, '_').replace(/[^a-z0-9_]/g, ''); // Generate ID yang aman
+            let products = getLocalStorage(PRODUCTS_KEY);
+            let codes = getLocalStorage(CODES_KEY);
+
+            if (products[productId]) {
+                showModal('Produk Sudah Ada', 'Produk dengan nama ini sudah ada.', 'error');
+                return;
+            }
+
+            products[productId] = {
+                id: productId,
+                name: name,
+                price: price,
+                image: image || 'https://via.placeholder.com/150/2a2a2a/f0f0f0?text=Item'
+            };
+            setLocalStorage(PRODUCTS_KEY, products);
+
+            if (!codes[productId]) {
+                codes[productId] = [];
+                setLocalStorage(CODES_KEY, codes);
+            }
+
+            showModal('Berhasil!', `Produk "<strong>${name}</strong>" berhasil ditambahkan!`, 'success');
+            adminProductName.value = '';
+            adminProductPrice.value = '';
+            adminProductImage.value = '';
+            populateAdminProductSelects(); // Refresh dropdown admin
+            populateDiscountProductSelect(); // Refresh dropdown diskon
+            displayProducts(); // Refresh product list on home page
+            displayTopSellingProducts(); // Refresh top selling products
         }
 
-        function restartGame() {
-            // Reset semua variabel
-            player = {};
-            diplomacyPoints = 0;
-            resistancePoints = 0;
-            federalismPoints = 0;
-            currentScene = 'intro_1945';
+        function addCodes() {
+            const selectedProductElement = document.getElementById('adminCodeProductSelect');
+            const newCodesTextElement = document.getElementById('adminNewCodes');
+            if (!selectedProductElement || !newCodesTextElement) return;
 
-            // Reset input form
-            playerNameInput.value = '';
-            playerGenderSelect.value = 'pria';
-            playerAgeSelect.value = 'remaja';
-            playerBackgroundSelect.value = 'rakyat_biasa';
+            const selectedProductId = selectedProductElement.value;
+            const newCodesText = newCodesTextElement.value.trim();
 
-            // Tampilkan kembali layar pembuatan karakter
-            endingScreen.style.display = 'none';
-            charCreationScreen.style.display = 'block';
-            gameContentScreen.style.display = 'none'; // Pastikan game content tersembunyi
+            if (!selectedProductId) {
+                showModal('Pilih Produk', 'Pilih produk terlebih dahulu.', 'warning');
+                return;
+            }
+            if (!newCodesText) {
+                showModal('Input Kode', 'Masukkan setidaknya satu kode.', 'warning');
+                return;
+            }
+
+            const codesToAdd = newCodesText.split('\n').map(code => code.trim()).filter(code => code !== '');
+            if (codesToAdd.length === 0) {
+                showModal('Input Kode', 'Masukkan setidaknya satu kode yang valid.', 'warning');
+                return;
+            }
+
+            let codes = getLocalStorage(CODES_KEY);
+            if (!codes[selectedProductId]) {
+                codes[selectedProductId] = [];
+            }
+
+            let codesAddedCount = 0;
+            let duplicateCodesCount = 0;
+
+            codesToAdd.forEach(codeValue => {
+                // Hindari duplikasi kode untuk produk yang sama
+                const isDuplicate = codes[selectedProductId].some(c => c.value.toUpperCase() === codeValue.toUpperCase()); // Case-insensitive check
+                if (!isDuplicate) {
+                    codes[selectedProductId].push({
+                        value: codeValue.toUpperCase(), // Simpan dalam huruf kapital
+                        isUsed: false,
+                        addedAt: new Date().toISOString()
+                    });
+                    codesAddedCount++;
+                } else {
+                    duplicateCodesCount++;
+                }
+            });
+
+            setLocalStorage(CODES_KEY, codes);
+
+            let successMessage = `Berhasil menambahkan <strong>${codesAddedCount} kode</strong> untuk produk "<strong>${getLocalStorage(PRODUCTS_KEY)[selectedProductId].name}</strong>"!`;
+            if (duplicateCodesCount > 0) {
+                successMessage += `<br>(${duplicateCodesCount} kode duplikat tidak ditambahkan.)`;
+                showModal('Berhasil Sebagian!', successMessage, 'warning'); // Ubah ke warning jika ada duplikat
+            } else {
+                showModal('Berhasil!', successMessage, 'success');
+            }
+            
+            newCodesTextElement.value = ''; // Bersihkan textarea setelah kode ditambahkan
+            displayCodesForProduct(); // Refresh tampilan kode jika sedang dilihat
+        }
+
+        function populateAdminProductSelects() {
+            const products = getLocalStorage(PRODUCTS_KEY);
+            const adminCodeProductSelect = document.getElementById('adminCodeProductSelect');
+            const adminViewCodeProductSelect = document.getElementById('adminViewCodeProductSelect');
+
+            if (adminCodeProductSelect) {
+                adminCodeProductSelect.innerHTML = '<option value="">-- Pilih Produk --</option>';
+                for (const productId in products) {
+                    const option = document.createElement('option');
+                    option.value = productId;
+                    option.textContent = products[productId].name;
+                    adminCodeProductSelect.appendChild(option);
+                }
+            }
+
+            if (adminViewCodeProductSelect) {
+                adminViewCodeProductSelect.innerHTML = '<option value="">-- Pilih Produk --</option>';
+                for (const productId in products) {
+                    const option = document.createElement('option');
+                    option.value = productId;
+                    option.textContent = products[productId].name;
+                    adminViewCodeProductSelect.appendChild(option);
+                }
+            }
+        }
+
+        function displayCodesForProduct() {
+            const selectedProductElement = document.getElementById('adminViewCodeProductSelect');
+            const codeListDiv = document.getElementById('codeList');
+            if (!selectedProductElement || !codeListDiv) return;
+
+            const selectedProductId = selectedProductElement.value;
+            codeListDiv.innerHTML = '';
+
+            if (!selectedProductId) {
+                codeListDiv.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Pilih produk untuk melihat daftar kodenya.</p>';
+                return;
+            }
+
+            const codes = getLocalStorage(CODES_KEY);
+            const productCodes = codes[selectedProductId] || [];
+
+            if (productCodes.length === 0) {
+                codeListDiv.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Belum ada kode untuk produk ini.</p>';
+                return;
+            }
+
+            // Urutkan kode berdasarkan status (tersedia dulu) dan tanggal ditambah (terbaru di atas)
+            productCodes.sort((a, b) => {
+                if (a.isUsed === b.isUsed) {
+                    return new Date(b.addedAt) - new Date(a.addedAt); // Terbaru di atas
+                }
+                return a.isUsed ? 1 : -1; // Tersedia (false) di atas Terpakai (true)
+            });
+
+            productCodes.forEach((code, index) => { // Tambahkan 'index' di sini
+                const codeItem = document.createElement('div');
+                codeItem.className = 'code-list-item';
+                let statusText = code.isUsed ? 'Terpakai' : 'Tersedia';
+                let statusClass = code.isUsed ? 'used' : '';
+
+                // Tampilkan tanggal ditambahkan dan tanggal terpakai jika ada
+                let dateInfo = `Ditambah: ${new Date(code.addedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}`;
+                if (code.isUsed && code.usedAt) {
+                    dateInfo += ` | Dipakai: ${new Date(code.usedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}`;
+                }
+
+                const codeValueSpan = document.createElement('span');
+                codeValueSpan.style.fontWeight = 'bold';
+                codeValueSpan.textContent = code.value;
+                codeValueSpan.style.cursor = 'pointer'; // Menunjukkan bisa diklik untuk edit
+                codeValueSpan.title = 'Klik untuk mengubah kode';
+
+                codeValueSpan.onclick = function() {
+                    const oldCodeValue = code.value;
+                    const newCodeValue = prompt('Masukkan kode baru:', oldCodeValue);
+
+                    if (newCodeValue !== null && newCodeValue.trim() !== '') {
+                        const trimmedNewCode = newCodeValue.trim().toUpperCase();
+                        if (trimmedNewCode === oldCodeValue) {
+                            // Tidak ada perubahan, atau perubahan hanya pada casing
+                            return; 
+                        }
+
+                        // Cek duplikasi di antara kode untuk produk yang SAMA
+                        let currentCodesForProduct = getLocalStorage(CODES_KEY)[selectedProductId];
+                        const isDuplicate = currentCodesForProduct.some((c, i) => 
+                            i !== index && c.value.toUpperCase() === trimmedNewCode
+                        );
+
+                        if (isDuplicate) {
+                            showModal('Kode Duplikat!', 'Kode baru sudah ada untuk produk ini. Mohon gunakan kode lain.', 'error');
+                        } else {
+                            // Perbarui nilai kode di Local Storage
+                            let allCodes = getLocalStorage(CODES_KEY);
+                            allCodes[selectedProductId][index].value = trimmedNewCode;
+                            setLocalStorage(CODES_KEY, allCodes);
+                            showModal('Berhasil!', 'Kode berhasil diubah!', 'success');
+                            displayCodesForProduct(); // Refresh daftar
+                        }
+                    } else if (newCodeValue !== null && newCodeValue.trim() === '') {
+                        showModal('Input Kosong', 'Kode tidak boleh kosong!', 'warning');
+                    }
+                };
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Hapus';
+                deleteButton.style.backgroundColor = 'var(--error-color)';
+                deleteButton.style.padding = '5px 10px';
+                deleteButton.style.fontSize = '0.9em';
+                deleteButton.style.marginLeft = '10px';
+                deleteButton.onclick = function() {
+                    if (confirm('Apakah Anda yakin ingin menghapus kode ini?')) {
+                        let allCodes = getLocalStorage(CODES_KEY);
+                        allCodes[selectedProductId].splice(index, 1); // Hapus kode berdasarkan indeks
+                        setLocalStorage(CODES_KEY, allCodes);
+                        showModal('Berhasil!', 'Kode berhasil dihapus!', 'success');
+                        displayCodesForProduct(); // Refresh daftar
+                    }
+                };
+
+
+                const statusSpan = document.createElement('span');
+                statusSpan.className = `status ${statusClass}`;
+                statusSpan.textContent = statusText;
+
+                const infoDiv = document.createElement('div');
+                infoDiv.style.display = 'flex';
+                infoDiv.style.flexDirection = 'column';
+                infoDiv.style.alignItems = 'flex-start'; // Align text to left
+                infoDiv.style.flexGrow = '1'; // Take available space
+
+                infoDiv.appendChild(codeValueSpan);
+                const smallDateInfo = document.createElement('small');
+                smallDateInfo.style.color = 'var(--text-medium)';
+                smallDateInfo.textContent = dateInfo;
+                infoDiv.appendChild(smallDateInfo);
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.style.display = 'flex';
+                actionsDiv.style.alignItems = 'center';
+
+                actionsDiv.appendChild(statusSpan);
+                actionsDiv.appendChild(deleteButton);
+
+
+                codeItem.appendChild(infoDiv);
+                codeItem.appendChild(actionsDiv);
+                codeListDiv.appendChild(codeItem);
+            });
+        }
+
+        // --- FUNGSI untuk Menampilkan Produk Terlaris ---
+        function displayTopSellingProducts() {
+            const topProductsListDiv = document.getElementById('topProductsList');
+            if (!topProductsListDiv) return;
+
+            const orders = getLocalStorage(ORDERS_KEY);
+            const products = getLocalStorage(PRODUCTS_KEY);
+
+            // Hitung frekuensi penjualan untuk setiap produk yang sudah di-redeem
+            const salesCount = {};
+            for (const orderId in orders) {
+                const order = orders[orderId];
+                if (order.isUsed && order.productId) { // Pastikan sudah di-redeem dan punya productId
+                    salesCount[order.productId] = (salesCount[order.productId] || 0) + 1;
+                }
+            }
+
+            // Konversi ke array dan urutkan berdasarkan jumlah penjualan
+            const sortedProducts = Object.keys(salesCount)
+                .map(productId => ({
+                    id: productId,
+                    name: products[productId] ? products[productId].name : 'Produk Tidak Dikenal',
+                    sales: salesCount[productId]
+                }))
+                .sort((a, b) => b.sales - a.sales) // Urutkan dari yang terbanyak
+                .slice(0, 5); // Ambil 5 produk teratas
+
+            let htmlContent = '<h2>🔥 Produk Terlaris 🔥</h2>';
+            if (sortedProducts.length === 0) {
+                htmlContent += '<p style="text-align:center; color:var(--text-medium);">Belum ada produk yang terjual.</p>';
+            } else {
+                htmlContent += '<ol>';
+                sortedProducts.forEach(product => {
+                    htmlContent += `<li><strong>${product.name}</strong> <span>Terjual: ${product.sales}</span></li>`;
+                });
+                htmlContent += '</ol>';
+            }
+            topProductsListDiv.innerHTML = htmlContent;
+        }
+
+        // --- FUNGSI PENGATURAN DISKON ---
+        function loadDiscountConfig() {
+            const discountConfig = getLocalStorage(DISCOUNT_CONFIG_KEY);
+
+            const discountStatus = document.getElementById('discountStatus');
+            const discountPercentage = document.getElementById('discountPercentage');
+            const discountTargetType = document.getElementById('discountTargetType');
+            const discountProductSelect = document.getElementById('discountProductSelect');
+            const discountTargetUsers = document.getElementById('discountTargetUsers');
+            const discountCountdownEndTime = document.getElementById('discountCountdownEndTime'); // New input
+            const discountSettingsFields = document.getElementById('discountSettingsFields');
+
+            if (discountStatus) discountStatus.checked = discountConfig.isActive;
+            if (discountPercentage) discountPercentage.value = discountConfig.percentage;
+            if (discountTargetType) discountTargetType.value = discountConfig.targetType;
+            if (discountTargetUsers) discountTargetUsers.value = discountConfig.targetUsers;
+            
+            // Set datetime-local value
+            if (discountCountdownEndTime && discountConfig.countdownEndTime) {
+                // Format ISO string to YYYY-MM-DDTHH:MM for datetime-local input
+                const date = new Date(discountConfig.countdownEndTime);
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                discountCountdownEndTime.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            } else if (discountCountdownEndTime) {
+                discountCountdownEndTime.value = ''; // Kosongkan jika tidak ada waktu berakhir
+            }
+
+
+            // Load selected products for specific discount
+            if (discountProductSelect) {
+                for (let i = 0; i < discountProductSelect.options.length; i++) {
+                    const option = discountProductSelect.options[i];
+                    option.selected = discountConfig.targetProducts.includes(option.value);
+                }
+            }
+
+            // Tampilkan/sembunyikan field berdasarkan status aktif dan tipe target
+            if (discountSettingsFields) discountSettingsFields.style.display = discountConfig.isActive ? 'block' : 'none';
+            if (document.getElementById('discountSpecificProductSelect')) document.getElementById('discountSpecificProductSelect').style.display = (discountConfig.isActive && discountConfig.targetType === 'specific') ? 'block' : 'none';
+        }
+
+        function toggleDiscountFields() {
+            const discountStatus = document.getElementById('discountStatus');
+            const discountSettingsFields = document.getElementById('discountSettingsFields');
+            if (discountStatus && discountSettingsFields) {
+                discountSettingsFields.style.display = discountStatus.checked ? 'block' : 'none';
+                toggleDiscountTargetProductSelect(); // Sesuaikan tampilan produk target juga
+            }
+        }
+
+        function toggleDiscountTargetProductSelect() {
+            const discountTargetType = document.getElementById('discountTargetType');
+            const discountSpecificProductSelect = document.getElementById('discountSpecificProductSelect');
+            if (discountTargetType && discountSpecificProductSelect) {
+                discountSpecificProductSelect.style.display = (discountTargetType.value === 'specific' && document.getElementById('discountStatus').checked) ? 'block' : 'none';
+            }
+        }
+
+        function populateDiscountProductSelect() {
+            const products = getLocalStorage(PRODUCTS_KEY);
+            const discountProductSelect = document.getElementById('discountProductSelect');
+            if (!discountProductSelect) return;
+
+            discountProductSelect.innerHTML = '';
+            for (const productId in products) {
+                const option = document.createElement('option');
+                option.value = productId;
+                option.textContent = products[productId].name;
+                discountProductSelect.appendChild(option);
+            }
+            loadDiscountConfig(); // Muat ulang konfigurasi setelah populasi
+        }
+
+        function saveDiscountConfig() {
+            const discountStatus = document.getElementById('discountStatus');
+            const discountPercentage = document.getElementById('discountPercentage');
+            const discountTargetType = document.getElementById('discountTargetType');
+            const discountProductSelect = document.getElementById('discountProductSelect');
+            const discountTargetUsers = document.getElementById('discountTargetUsers');
+            const discountCountdownEndTime = document.getElementById('discountCountdownEndTime');
+
+            if (!discountStatus || !discountPercentage || !discountTargetType || !discountProductSelect || !discountTargetUsers || !discountCountdownEndTime) return;
+
+            const isActive = discountStatus.checked;
+            const percentage = parseFloat(discountPercentage.value);
+            const targetType = discountTargetType.value;
+            const targetProducts = [];
+            if (targetType === 'specific') {
+                for (let i = 0; i < discountProductSelect.options.length; i++) {
+                    if (discountProductSelect.options[i].selected) {
+                        targetProducts.push(discountProductSelect.options[i].value);
+                    }
+                }
+            }
+            const targetUsers = discountTargetUsers.value.trim();
+            const endTimeValue = discountCountdownEndTime.value;
+            const countdownEndTime = endTimeValue ? new Date(endTimeValue).toISOString() : null; // Simpan sebagai ISO string
+
+
+            if (isActive) {
+                if (isNaN(percentage) || percentage <= 0 || percentage > 100) {
+                    showModal('Input Tidak Valid', 'Persentase diskon harus antara 1-100.', 'warning');
+                    return;
+                }
+                if (targetType === 'specific' && targetProducts.length === 0) {
+                    showModal('Pilih Produk', 'Jika target diskon spesifik, pilih setidaknya satu produk.', 'warning');
+                    return;
+                }
+                if (countdownEndTime && new Date(countdownEndTime).getTime() <= new Date().getTime()) {
+                    showModal('Waktu Berakhir Tidak Valid', 'Waktu berakhir diskon harus di masa depan jika diatur.', 'warning');
+                    return;
+                }
+            }
+
+            const newConfig = {
+                isActive: isActive,
+                percentage: percentage,
+                targetType: targetType,
+                targetProducts: targetProducts,
+                targetUsers: targetUsers,
+                countdownEndTime: countdownEndTime
+            };
+
+            setLocalStorage(DISCOUNT_CONFIG_KEY, newConfig);
+            showModal('Berhasil!', 'Pengaturan diskon berhasil disimpan!', 'success');
+            displayProducts(); // Refresh tampilan produk di home page
+            startCountdown(); // Restart countdown dengan konfigurasi baru
+        }
+
+        // --- FUNGSI COUNTDOWN ---
+        function startCountdown() {
+            // Hentikan interval sebelumnya jika ada
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+
+            const discountConfig = getLocalStorage(DISCOUNT_CONFIG_KEY);
+            const countdownSection = document.getElementById('discountCountdownSection');
+            const countdownTimer = document.getElementById('countdownTimer');
+            const countdownMessage = document.getElementById('countdownMessage');
+
+            if (!countdownSection || !countdownTimer || !countdownMessage) {
+                return; // Pastikan elemen ada di halaman saat ini
+            }
+
+            if (!discountConfig.isActive || !discountConfig.countdownEndTime) {
+                countdownSection.style.display = 'none'; // Sembunyikan jika diskon tidak aktif atau tidak ada waktu akhir
+                return;
+            }
+
+            const endTime = new Date(discountConfig.countdownEndTime).getTime();
+            countdownSection.style.display = 'block'; // Tampilkan section countdown
+
+            countdownInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    countdownTimer.textContent = "00:00:00:00";
+                    countdownTimer.classList.remove('upcoming', 'active');
+                    countdownTimer.classList.add('expired');
+                    countdownMessage.textContent = "Penawaran spesial telah berakhir!";
+                    
+                    // Otomatis nonaktifkan diskon jika waktu habis
+                    discountConfig.isActive = false;
+                    discountConfig.countdownEndTime = null; // Hapus waktu berakhir
+                    setLocalStorage(DISCOUNT_CONFIG_KEY, discountConfig);
+                    displayProducts(); // Perbarui harga di halaman beranda
+                    showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                countdownTimer.textContent = 
+                    `${days.toString().padStart(2, '0')}:` +
+                    `${hours.toString().padStart(2, '0')}:` +
+                    `${minutes.toString().padStart(2, '0')}:` +
+                    `${seconds.toString().padStart(2, '0')}`;
+                
+                countdownTimer.classList.remove('expired', 'upcoming');
+                countdownTimer.classList.add('active'); // General class for active countdown
+
+                if (distance < (1000 * 60 * 60 * 24)) { // Kurang dari 24 jam
+                    countdownMessage.textContent = "Buruan! Tinggal kurang dari sehari!";
+                    countdownTimer.classList.add('warning'); // Opsional: warna peringatan
+                } else {
+                    countdownMessage.textContent = "Jangan sampai ketinggalan!";
+                }
+
+            }, 1000); // Update setiap 1 detik
+        }
+
+        // --- FUNGSI MAINTENANCE MODE ---
+        function loadMaintenanceConfig() {
+            const maintenanceConfig = getLocalStorage(MAINTENANCE_CONFIG_KEY);
+            const maintenanceStatusToggle = document.getElementById('maintenanceStatus');
+            if (maintenanceStatusToggle) {
+                maintenanceStatusToggle.checked = maintenanceConfig.isActive;
+            }
+        }
+
+        function saveMaintenanceConfig() {
+            const maintenanceStatusToggle = document.getElementById('maintenanceStatus');
+            if (!maintenanceStatusToggle) return;
+
+            const newConfig = {
+                isActive: maintenanceStatusToggle.checked
+            };
+            setLocalStorage(MAINTENANCE_CONFIG_KEY, newConfig);
+            showModal('Berhasil!', `Mode pemeliharaan ${newConfig.isActive ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
+            // Refresh page to apply changes, but only if not currently on admin page (to avoid redirect loop)
+            const currentUser = getLoggedInUser();
+            const isAdminLoggedIn = (currentUser && currentUser.username === ADMIN_USERNAME && currentUser.password === ADMIN_PASSWORD);
+            if (!isAdminLoggedIn) { // Only redirect if not admin, or if admin explicitly leaves admin page
+                showPage('home'); // Redirect to home to apply overlay if activated
+            }
+            checkMaintenanceModeAndRedirect(); // Check for all pages
+        }
+
+        function checkMaintenanceModeAndRedirect() {
+            const maintenanceConfig = getLocalStorage(MAINTENANCE_CONFIG_KEY);
+            const maintenanceOverlay = document.getElementById('maintenanceOverlay');
+            const appContent = document.getElementById('appContent');
+            const currentUser = getLoggedInUser();
+            const isAdminLoggedIn = (currentUser && currentUser.username === ADMIN_USERNAME && currentUser.password === ADMIN_PASSWORD);
+
+            if (maintenanceConfig.isActive && !isAdminLoggedIn) {
+                // Jika mode pemeliharaan aktif dan pengguna bukan admin
+                // Sembunyikan konten utama
+                if (appContent) {
+                    appContent.style.display = 'none';
+                }
+                // Tampilkan overlay pemeliharaan
+                if (maintenanceOverlay) {
+                    maintenanceOverlay.style.display = 'flex';
+                }
+                // Opsional: disable navigasi untuk non-admin kecuali home (jika mau)
+                // document.querySelectorAll('nav a:not([onclick="showPage(\'home\')"])').forEach(link => link.style.pointerEvents = 'none');
+
+            } else {
+                // Jika mode pemeliharaan tidak aktif atau admin sedang login
+                // Tampilkan kembali konten utama
+                if (appContent) {
+                    appContent.style.display = 'block';
+                }
+                // Sembunyikan overlay pemeliharaan
+                if (maintenanceOverlay) {
+                    maintenanceOverlay.style.display = 'none';
+                }
+                // Pastikan navigasi aktif kembali
+                // document.querySelectorAll('nav a').forEach(link => link.style.pointerEvents = 'auto');
+            }
         }
 
 
-        // Event Listener untuk tombol Mulai Game
-        startGameButton.addEventListener('click', startGame);
-        restartButton.addEventListener('click', restartGame);
-
-        // Inisialisasi: Sembunyikan konten game dan ending screen
+        // --- Inisialisasi saat halaman dimuat ---
         document.addEventListener('DOMContentLoaded', () => {
-            gameContentScreen.style.display = 'none';
-            endingScreen.style.display = 'none';
+            initializeStore();
+            updateAuthLinks(); // Perbarui link login/logout saat halaman dimuat
+            checkMaintenanceModeAndRedirect(); // Cek maintenance mode sangat awal
+            showPage('home'); // Tampilkan halaman beranda secara default saat pertama kali dimuat
         });
 
+        /* script.js content ends here */
     </script>
 </body>
 </html>
