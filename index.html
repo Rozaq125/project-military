@@ -629,6 +629,152 @@
         // KODE JAVASCRIPT ASLI ANDA, DISATUKAN DAN DISESUAIKAN UNTUK FIREBASE
         // =========================================================================
 
+        // --- Fungsi Listener Real-time Firestore ---
+        // Ini adalah jantung dari real-time updates. Setiap kali data di Firestore berubah,
+        // fungsi-fungsi ini akan mendeteksi perubahan dan memperbarui variabel global di atas,
+        // kemudian memicu pembaruan UI (antar muka pengguna).
+
+        // Listener untuk koleksi 'products'
+        onSnapshot(productsCol, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added" || change.type === "modified") {
+                    allProducts[change.doc.id] = { ...change.doc.data(), id: change.doc.id }; // Tambahkan ID dokumen
+                }
+                if (change.type === "removed") {
+                    delete allProducts[change.doc.id];
+                }
+            });
+            console.log("Products updated:", allProducts);
+            // Panggil fungsi-fungsi yang perlu di-refresh saat produk berubah
+            if (document.getElementById('productGrid')) { 
+              displayProducts(); 
+            }
+            if (document.getElementById('adminCodeProductSelect')) { 
+              populateAdminProductSelects(); 
+            }
+            if (document.getElementById('discountProductSelect')) { 
+              populateDiscountProductSelect(); 
+            }
+            displayTopSellingProducts(); // Selalu refresh produk terlaris
+        });
+
+        // Listener untuk koleksi 'codes'
+        onSnapshot(codesCol, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                const codeData = { ...change.doc.data(), id: change.doc.id }; // Pastikan ID dokumen ikut
+                if (change.type === "added" || change.type === "modified") {
+                    // Pastikan array untuk productId ada
+                    if (!allCodes[codeData.productId]) {
+                        allCodes[codeData.productId] = [];
+                    }
+                    // Cari apakah kode sudah ada, jika ya, update; jika tidak, tambahkan
+                    const existingIndex = allCodes[codeData.productId].findIndex(c => c.id === codeData.id);
+                    if (existingIndex > -1) {
+                        allCodes[codeData.productId][existingIndex] = codeData;
+                    } else {
+                        allCodes[codeData.productId].push(codeData);
+                    }
+                }
+                if (change.type === "removed") {
+                    const removedProductId = codeData.productId;
+                    if (allCodes[removedProductId]) {
+                        allCodes[removedProductId] = allCodes[removedProductId].filter(c => c.id !== codeData.id);
+                    }
+                }
+            });
+            console.log("Codes updated:", allCodes);
+            if (document.getElementById('codeList')) { 
+              displayCodesForProduct(); 
+            }
+        });
+
+        // Listener untuk koleksi 'users' (data tambahan user di Firestore)
+        onSnapshot(usersCol, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added" || change.type === "modified") {
+                    allUsers[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
+                }
+                if (change.type === "removed") {
+                    delete allUsers[change.doc.id];
+                }
+            });
+            console.log("Users updated:", allUsers);
+            // Jika currentUser sudah terisi (misal setelah login), perbarui propertinya
+            if (currentUser && allUsers[currentUser.uid]) { 
+                currentUser = { ...currentUser, ...allUsers[currentUser.uid] }; 
+                updateAuthLinks(); 
+                checkMaintenanceModeAndRedirect(); 
+            }
+        });
+
+        // Listener untuk koleksi 'orders'
+        onSnapshot(ordersCol, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added" || change.type === "modified") {
+                    allOrders[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
+                }
+                if (change.type === "removed") {
+                    delete allOrders[change.doc.id];
+                }
+            });
+            console.log("Orders updated:", allOrders);
+            displayTopSellingProducts(); 
+        });
+
+        // Listener untuk dokumen konfigurasi global (diskon, maintenance mode)
+        onSnapshot(doc(configCol, "global_settings"), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                // Perbarui variabel global
+                discountConfig = data.discount || {};
+                maintenanceConfig = data.maintenance || {};
+                console.log("Global config updated:", discountConfig, maintenanceConfig);
+                // Panggil fungsi-fungsi yang bergantung pada konfigurasi ini
+                displayProducts(); 
+                startCountdown(); 
+                checkMaintenanceModeAndRedirect(); 
+                loadDiscountConfig(); 
+                loadMaintenanceConfig(); 
+            } else {
+                console.log("Global settings document does not exist, initializing default in Firestore.");
+                // Jika dokumen 'global_settings' belum ada di Firestore, buat dokumen default
+                setDoc(doc(configCol, "global_settings"), {
+                    discount: { isActive: false, percentage: 10, targetType: 'all', targetProducts: [], targetUsers: '', countdownEndTime: null },
+                    maintenance: { isActive: false }
+                }); // Gunakan setDoc untuk membuat, tidak perlu merge:true pada dokumen baru
+            }
+        });
+
+        // Firebase Authentication Listener (untuk status login pengguna)
+        onAuthStateChanged(auth, async (user) => { // Tambahkan async untuk bisa pakai await
+            if (user) {
+                // Pengguna login
+                console.log("Firebase Auth User:", user.uid, user.email);
+                // Ambil data tambahan user dari koleksi 'users' di Firestore
+                const userDocSnap = await getDoc(doc(usersCol, user.uid));
+                if (userDocSnap.exists()) {
+                    currentUser = { ...user, ...userDocSnap.data() }; // Gabungkan data Auth dan Firestore
+                } else {
+                    // Jika data user belum ada di Firestore (misal, user login pertama kali via Google Auth)
+                    // Buat dokumen user di Firestore (misalnya, untuk non-admin)
+                    await setDoc(doc(usersCol, user.uid), {
+                        username: user.email,
+                        isAdmin: false // Defaultnya bukan admin
+                    });
+                    currentUser = { ...user, username: user.email, isAdmin: false };
+                }
+                console.log("Current User (Firebase Auth + Firestore):", currentUser);
+                updateAuthLinks();
+                checkMaintenanceModeAndRedirect();
+            } else {
+                // Pengguna logout
+                currentUser = null;
+                console.log("User logged out.");
+                updateAuthLinks();
+                checkMaintenanceModeAndRedirect();
+            }
+        });
+
         // --- Data Dummy untuk Notifikasi Penjualan ---
         const DUMMY_BUYER_NAMES = [
             "PlayerPro", "RobloxianGamer", "NoobMaster69", "EpicBuilder", "PixelPirate",
