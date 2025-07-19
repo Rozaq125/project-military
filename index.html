@@ -580,7 +580,7 @@
         <div class="maintenance-content">
             <h1>🚧 Website Sedang Dalam Pemeliharaan 🚧</h1>
             <p>Kami sedang melakukan perbaikan dan pembaruan untuk meningkatkan pengalaman Anda.</p>
-            <p>Mohon maaf atas ketidaknyamananannya. Kami akan segera kembali!</p>
+            <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
             <p>Terima kasih atas kesabaran Anda.</p>
         </div>
     </div>
@@ -624,6 +624,39 @@
         let discountConfig = {};
         let maintenanceConfig = {};
         let currentUser = null; // Ini akan berisi objek pengguna dari Firebase Authentication
+
+        // --- EXPOSE FUNGSI-FUNGSI INTI FIREBASE KE GLOBAL `window` ---
+        // Ini adalah langkah KRUSIAL untuk fungsi `setupInitialDataInFirestore` yang di-paste di konsol
+        window.initializeApp = initializeApp;
+        window.getFirestore = getFirestore;
+        window.collection = collection;
+        window.doc = doc;
+        window.getDoc = getDoc;
+        window.getDocs = getDocs;
+        window.setDoc = setDoc;
+        window.addDoc = addDoc;
+        window.updateDoc = updateDoc;
+        window.deleteDoc = deleteDoc;
+        window.onSnapshot = onSnapshot;
+        window.query = query;
+        window.orderBy = orderBy;
+        window.where = where;
+        window.getAuth = getAuth;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.signOut = signOut;
+
+        // --- EXPOSE INSTANCE FIREBASE KE GLOBAL `window` ---
+        // Ini agar fungsi yang di-paste di konsol bisa mengakses `db` dan `auth` langsung
+        window.app = app;
+        window.db = db;
+        window.auth = auth;
+        window.productsCol = productsCol;
+        window.codesCol = codesCol;
+        window.usersCol = usersCol;
+        window.ordersCol = ordersCol;
+        window.configCol = configCol;
 
         // =========================================================================
         // KODE JAVASCRIPT ASLI ANDA, DISATUKAN DAN DISESUAIKAN UNTUK FIREBASE
