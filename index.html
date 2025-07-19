@@ -580,7 +580,7 @@
         <div class="maintenance-content">
             <h1>🚧 Website Sedang Dalam Pemeliharaan 🚧</h1>
             <p>Kami sedang melakukan perbaikan dan pembaruan untuk meningkatkan pengalaman Anda.</p>
-            <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
+            <p>Mohon maaf atas ketidaknyamananannya. Kami akan segera kembali!</p>
             <p>Terima kasih atas kesabaran Anda.</p>
         </div>
     </div>
@@ -1812,7 +1812,7 @@
                 await updateDoc(doc(configCol, "global_settings"), { discount: updates });
                 console.log("Discount config updated in Firestore.");
             } catch (error) {
-                console.error("Error updating discount config in Firestore:", error.message);
+                console.error("Error saving discount config:", error.message);
                 showModal('Gagal Simpan', 'Terjadi kesalahan saat menyimpan pengaturan diskon.', 'error');
             }
         }
