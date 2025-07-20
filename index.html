@@ -257,6 +257,63 @@
             color: var(--error-color);
         }
 
+        /* User Management Table */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .user-table th, .user-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-table th {
+            background-color: var(--bg-light);
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .user-table tr:hover {
+            background-color: var(--bg-light);
+        }
+
+        .user-table .admin-badge {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .user-table .action-btn {
+            padding: 5px 10px;
+            margin-right: 5px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .user-table .make-admin-btn {
+            background-color: var(--success-color);
+        }
+
+        .user-table .remove-admin-btn {
+            background-color: var(--warning-color);
+        }
+
+        .user-table .delete-user-btn {
+            background-color: var(--error-color);
+        }
+
+        .user-table .action-btn:hover {
+            opacity: 0.9;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .container {
@@ -270,6 +327,11 @@
             nav a {
                 width: fit-content;
                 margin: 0 auto;
+            }
+            
+            .user-table {
+                display: block;
+                overflow-x: auto;
             }
         }
 
@@ -748,6 +810,11 @@
                 updateAuthLinks(); 
                 checkMaintenanceModeAndRedirect(); 
             }
+            
+            // Update user table if on admin page
+            if (document.getElementById('userManagementSection')) {
+                displayAllUsers();
+            }
         });
 
         onSnapshot(ordersCol, (snapshot) => {
@@ -804,7 +871,8 @@
                 } else {
                     await setDoc(doc(usersCol, user.uid), {
                         username: user.email,
-                        isAdmin: false
+                        isAdmin: false,
+                        createdAt: new Date().toISOString()
                     });
                     currentUser = { ...user, username: user.email, isAdmin: false };
                 }
@@ -1020,9 +1088,34 @@
                     }
                     htmlContent = `
                         <h2>🛠️ Panel Admin 🔒</h2>
-                        <p style="text-align:center; color:var(--text-medium);">Kelola produk dan kode di sini.</p>
+                        <p style="text-align:center; color:var(--text-medium);">Kelola produk, kode, dan pengguna di sini.</p>
 
-                        <h3>Tambah Produk Baru</h3>
+                        <div id="userManagementSection">
+                            <h3>Manajemen Pengguna</h3>
+                            <div class="form-group">
+                                <label for="newUserEmail">Email Pengguna Baru:</label>
+                                <input type="email" id="newUserEmail" placeholder="Masukkan email pengguna baru">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserPassword">Password:</label>
+                                <input type="password" id="newUserPassword" placeholder="Buat password untuk pengguna">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserIsAdmin">Jenis Akun:</label>
+                                <select id="newUserIsAdmin">
+                                    <option value="false">Pengguna Biasa</option>
+                                    <option value="true">Admin</option>
+                                </select>
+                            </div>
+                            <button onclick="createUserFromAdmin()">Buat Akun</button>
+
+                            <h3 style="margin-top: 30px;">Daftar Semua Pengguna</h3>
+                            <div id="usersTableContainer">
+                                <!-- Tabel pengguna akan dimuat di sini -->
+                            </div>
+                        </div>
+
+                        <h3 style="margin-top: 40px;">Tambah Produk Baru</h3>
                         <div class="form-group">
                             <label for="adminProductName">Nama Produk:</label>
                             <input type="text" id="adminProductName" placeholder="Contoh: Gamepass VIP">
@@ -1120,6 +1213,7 @@
                     populateDiscountProductSelect();
                     loadDiscountConfig();
                     loadMaintenanceConfig();
+                    displayAllUsers();
                     break;
 
                 default:
@@ -1129,6 +1223,165 @@
             checkMaintenanceModeAndRedirect();
         }
         window.showPage = showPage;
+
+        // --- FUNGSI MANAJEMEN PENGGUNA ---
+        async function createUserFromAdmin() {
+            const emailInput = document.getElementById('newUserEmail');
+            const passwordInput = document.getElementById('newUserPassword');
+            const isAdminSelect = document.getElementById('newUserIsAdmin');
+            
+            if (!emailInput || !passwordInput || !isAdminSelect) return;
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const isAdmin = isAdminSelect.value === 'true';
+            
+            if (!email || !password) {
+                showModal('Input Kosong', 'Email dan password tidak boleh kosong.', 'warning');
+                return;
+            }
+            
+            try {
+                // Buat akun dengan email dan password
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                // Simpan data tambahan pengguna di Firestore
+                await setDoc(doc(usersCol, userCredential.user.uid), {
+                    username: email,
+                    isAdmin: isAdmin,
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser.uid
+                });
+                
+                showModal('Berhasil!', `Akun ${email} berhasil dibuat sebagai ${isAdmin ? 'Admin' : 'Pengguna Biasa'}.`, 'success');
+                
+                // Kosongkan form
+                emailInput.value = '';
+                passwordInput.value = '';
+                isAdminSelect.value = 'false';
+                
+            } catch (error) {
+                console.error("Error creating user:", error.message);
+                let errorMessage = "Terjadi kesalahan saat membuat akun.";
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "Email ini sudah terdaftar.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Format email tidak valid.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "Password terlalu lemah (minimal 6 karakter).";
+                }
+                showModal('Gagal Membuat Akun', errorMessage, 'error');
+            }
+        }
+        window.createUserFromAdmin = createUserFromAdmin;
+
+        async function displayAllUsers() {
+            const usersTableContainer = document.getElementById('usersTableContainer');
+            if (!usersTableContainer) return;
+            
+            try {
+                // Dapatkan semua dokumen dari koleksi users
+                const querySnapshot = await getDocs(usersCol);
+                
+                let html = `
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Tanggal Dibuat</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                querySnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    const userId = doc.id;
+                    
+                    // Skip current user (admin yang sedang login)
+                    if (userId === currentUser.uid) {
+                        return;
+                    }
+                    
+                    const createdAt = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('id-ID') : '-';
+                    const createdBy = userData.createdBy ? (allUsers[userData.createdBy]?.username || 'Admin') : 'System';
+                    
+                    html += `
+                        <tr>
+                            <td>${userData.username || '-'}</td>
+                            <td>
+                                ${userData.isAdmin ? '<span class="admin-badge">Admin</span>' : 'Pengguna'}
+                            </td>
+                            <td>${createdAt} (oleh ${createdBy})</td>
+                            <td>
+                                ${!userData.isAdmin ? 
+                                    `<button class="action-btn make-admin-btn" onclick="toggleAdminStatus('${userId}', true)">Jadikan Admin</button>` : 
+                                    `<button class="action-btn remove-admin-btn" onclick="toggleAdminStatus('${userId}', false)">Hapus Admin</button>`
+                                }
+                                <button class="action-btn delete-user-btn" onclick="deleteUser('${userId}')">Hapus</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+                
+                usersTableContainer.innerHTML = html;
+                
+            } catch (error) {
+                console.error("Error fetching users:", error);
+                usersTableContainer.innerHTML = '<p style="color: var(--error-color);">Gagal memuat daftar pengguna.</p>';
+            }
+        }
+        window.displayAllUsers = displayAllUsers;
+
+        async function toggleAdminStatus(userId, makeAdmin) {
+            if (!confirm(`Apakah Anda yakin ingin ${makeAdmin ? 'menjadikan' : 'menghapus status admin'} pengguna ini?`)) {
+                return;
+            }
+            
+            try {
+                await updateDoc(doc(usersCol, userId), {
+                    isAdmin: makeAdmin
+                });
+                
+                showModal('Berhasil!', `Status admin berhasil ${makeAdmin ? 'diberikan' : 'dihapus'}.`, 'success');
+                displayAllUsers();
+                
+            } catch (error) {
+                console.error("Error updating admin status:", error);
+                showModal('Gagal!', 'Terjadi kesalahan saat mengubah status admin.', 'error');
+            }
+        }
+        window.toggleAdminStatus = toggleAdminStatus;
+
+        async function deleteUser(userId) {
+            if (!confirm('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan!')) {
+                return;
+            }
+            
+            try {
+                // Hapus data pengguna dari Firestore
+                await deleteDoc(doc(usersCol, userId));
+                
+                // Hapus akun dari Firebase Authentication
+                // Catatan: Untuk menghapus akun dari Authentication, Anda perlu login sebagai user tersebut
+                // atau menggunakan Cloud Functions dengan Firebase Admin SDK
+                
+                showModal('Berhasil!', 'Pengguna berhasil dihapus.', 'success');
+                displayAllUsers();
+                
+            } catch (error) {
+                console.error("Error deleting user:", error);
+                showModal('Gagal!', 'Terjadi kesalahan saat menghapus pengguna.', 'error');
+            }
+        }
+        window.deleteUser = deleteUser;
 
         // --- Fungsi SPESIFIK UNTUK home (BERANDA) ---
         function displayProducts() {
@@ -1369,7 +1622,8 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await setDoc(doc(usersCol, userCredential.user.uid), {
                     username: email,
-                    isAdmin: false
+                    isAdmin: false,
+                    createdAt: new Date().toISOString()
                 });
 
                 showModal('Registrasi Berhasil!', `Akun <strong>${email}</strong> berhasil dibuat. Silakan login.`, 'success');
