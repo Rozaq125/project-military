@@ -530,6 +530,21 @@
             margin-bottom: 15px;
             line-height: 1.5;
         }
+
+        .maintenance-countdown {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--warning-color);
+            margin: 20px 0;
+        }
+
+        .maintenance-reason {
+            background-color: var(--bg-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid var(--warning-color);
+        }
         /* style.css content ends here */
     </style>
 </head>
@@ -579,6 +594,8 @@
     <div id="maintenanceOverlay" class="maintenance-overlay" style="display:none;">
         <div class="maintenance-content">
             <h1>🚧 Website Sedang Dalam Pemeliharaan 🚧</h1>
+            <div id="maintenanceCountdown" class="maintenance-countdown"></div>
+            <div id="maintenanceReason" class="maintenance-reason"></div>
             <p>Kami sedang melakukan perbaikan dan pembaruan untuk meningkatkan pengalaman Anda.</p>
             <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
             <p>Terima kasih atas kesabaran Anda.</p>
@@ -596,7 +613,7 @@
           apiKey: "AIzaSyDS4lE6XNKK_98l7nj807HzXc2WA4zUeHU",
           authDomain: "coderedeemdriftjik.firebaseapp.com",
           projectId: "coderedeemdriftjik",
-          storageBucket: "coderedeemdriftjik.firebasestorage.app",
+          storageBucket: "coderedeemdriftjik.appspot.com",
           messagingSenderId: "106368540191",
           appId: "1:106368540191:web:6674e3e46e8c5b9405bf2a",
           measurementId: "G-0JDXJT6L42"
@@ -615,18 +632,23 @@
         const configCol = collection(db, "config"); // Untuk konfigurasi global (diskon, maintenance)
 
         // --- Variabel Global untuk Data Real-time ---
-        // Variabel-variabel ini akan diisi dan diperbarui secara otomatis
-        // oleh listener `onSnapshot` dari Firebase Firestore.
         let allProducts = {};
-        let allCodes = {}; // Akan berisi objek { productId: [kode1, kode2], ... }
+        let allCodes = {};
         let allUsers = {};
         let allOrders = {};
         let discountConfig = {};
-        let maintenanceConfig = {};
-        let currentUser = null; // Ini akan berisi objek pengguna dari Firebase Authentication
+        let maintenanceConfig = {
+            isActive: false,
+            startTime: null,
+            endTime: null,
+            reason: "",
+            estimatedDuration: ""
+        };
+        let currentUser = null;
+        let countdownInterval = null;
+        let maintenanceCountdownInterval = null;
 
         // --- EXPOSE FUNGSI-FUNGSI INTI FIREBASE KE GLOBAL `window` ---
-        // Ini adalah langkah KRUSIAL untuk fungsi `setupInitialDataInFirestore` yang di-paste di konsol
         window.initializeApp = initializeApp;
         window.getFirestore = getFirestore;
         window.collection = collection;
@@ -648,7 +670,6 @@
         window.signOut = signOut;
 
         // --- EXPOSE INSTANCE FIREBASE KE GLOBAL `window` ---
-        // Ini agar fungsi yang di-paste di konsol bisa mengakses `db` dan `auth` langsung
         window.app = app;
         window.db = db;
         window.auth = auth;
@@ -663,22 +684,16 @@
         // =========================================================================
 
         // --- Fungsi Listener Real-time Firestore ---
-        // Ini adalah jantung dari real-time updates. Setiap kali data di Firestore berubah,
-        // fungsi-fungsi ini akan mendeteksi perubahan dan memperbarui variabel global di atas,
-        // kemudian memicu pembaruan UI (antar muka pengguna).
-
-        // Listener untuk koleksi 'products'
         onSnapshot(productsCol, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added" || change.type === "modified") {
-                    allProducts[change.doc.id] = { ...change.doc.data(), id: change.doc.id }; // Tambahkan ID dokumen
+                    allProducts[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
                 }
                 if (change.type === "removed") {
                     delete allProducts[change.doc.id];
                 }
             });
             console.log("Products updated:", allProducts);
-            // Panggil fungsi-fungsi yang perlu di-refresh saat produk berubah
             if (document.getElementById('productGrid')) { 
               displayProducts(); 
             }
@@ -688,19 +703,16 @@
             if (document.getElementById('discountProductSelect')) { 
               populateDiscountProductSelect(); 
             }
-            displayTopSellingProducts(); // Selalu refresh produk terlaris
+            displayTopSellingProducts();
         });
 
-        // Listener untuk koleksi 'codes'
         onSnapshot(codesCol, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
-                const codeData = { ...change.doc.data(), id: change.doc.id }; // Pastikan ID dokumen ikut
+                const codeData = { ...change.doc.data(), id: change.doc.id };
                 if (change.type === "added" || change.type === "modified") {
-                    // Pastikan array untuk productId ada
                     if (!allCodes[codeData.productId]) {
                         allCodes[codeData.productId] = [];
                     }
-                    // Cari apakah kode sudah ada, jika ya, update; jika tidak, tambahkan
                     const existingIndex = allCodes[codeData.productId].findIndex(c => c.id === codeData.id);
                     if (existingIndex > -1) {
                         allCodes[codeData.productId][existingIndex] = codeData;
@@ -721,7 +733,6 @@
             }
         });
 
-        // Listener untuk koleksi 'users' (data tambahan user di Firestore)
         onSnapshot(usersCol, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added" || change.type === "modified") {
@@ -732,7 +743,6 @@
                 }
             });
             console.log("Users updated:", allUsers);
-            // Jika currentUser sudah terisi (misal setelah login), perbarui propertinya
             if (currentUser && allUsers[currentUser.uid]) { 
                 currentUser = { ...currentUser, ...allUsers[currentUser.uid] }; 
                 updateAuthLinks(); 
@@ -740,7 +750,6 @@
             }
         });
 
-        // Listener untuk koleksi 'orders'
         onSnapshot(ordersCol, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added" || change.type === "modified") {
@@ -754,15 +763,18 @@
             displayTopSellingProducts(); 
         });
 
-        // Listener untuk dokumen konfigurasi global (diskon, maintenance mode)
         onSnapshot(doc(configCol, "global_settings"), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                // Perbarui variabel global
                 discountConfig = data.discount || {};
-                maintenanceConfig = data.maintenance || {};
+                maintenanceConfig = data.maintenance || {
+                    isActive: false,
+                    startTime: null,
+                    endTime: null,
+                    reason: "",
+                    estimatedDuration: ""
+                };
                 console.log("Global config updated:", discountConfig, maintenanceConfig);
-                // Panggil fungsi-fungsi yang bergantung pada konfigurasi ini
                 displayProducts(); 
                 startCountdown(); 
                 checkMaintenanceModeAndRedirect(); 
@@ -770,29 +782,29 @@
                 loadMaintenanceConfig(); 
             } else {
                 console.log("Global settings document does not exist, initializing default in Firestore.");
-                // Jika dokumen 'global_settings' belum ada di Firestore, buat dokumen default
                 setDoc(doc(configCol, "global_settings"), {
                     discount: { isActive: false, percentage: 10, targetType: 'all', targetProducts: [], targetUsers: '', countdownEndTime: null },
-                    maintenance: { isActive: false }
-                }); // Gunakan setDoc untuk membuat, tidak perlu merge:true pada dokumen baru
+                    maintenance: { 
+                        isActive: false,
+                        startTime: null,
+                        endTime: null,
+                        reason: "",
+                        estimatedDuration: ""
+                    }
+                });
             }
         });
 
-        // Firebase Authentication Listener (untuk status login pengguna)
-        onAuthStateChanged(auth, async (user) => { // Tambahkan async untuk bisa pakai await
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Pengguna login
                 console.log("Firebase Auth User:", user.uid, user.email);
-                // Ambil data tambahan user dari koleksi 'users' di Firestore
                 const userDocSnap = await getDoc(doc(usersCol, user.uid));
                 if (userDocSnap.exists()) {
-                    currentUser = { ...user, ...userDocSnap.data() }; // Gabungkan data Auth dan Firestore
+                    currentUser = { ...user, ...userDocSnap.data() };
                 } else {
-                    // Jika data user belum ada di Firestore (misal, user login pertama kali via Google Auth)
-                    // Buat dokumen user di Firestore (misalnya, untuk non-admin)
                     await setDoc(doc(usersCol, user.uid), {
                         username: user.email,
-                        isAdmin: false // Defaultnya bukan admin
+                        isAdmin: false
                     });
                     currentUser = { ...user, username: user.email, isAdmin: false };
                 }
@@ -800,7 +812,6 @@
                 updateAuthLinks();
                 checkMaintenanceModeAndRedirect();
             } else {
-                // Pengguna logout
                 currentUser = null;
                 console.log("User logged out.");
                 updateAuthLinks();
@@ -814,9 +825,6 @@
             "StarCreator", "BloxyKing", "GameFanatic", "VirtualVoyager", "CodeWizard"
         ];
 
-        // Variabel global untuk interval countdown
-        let countdownInterval = null;
-
         // --- Fungsi Helper untuk Pop-up Kustom ---
         function showModal(title, message, type = 'success', textToCopy = '') {
             const modal = document.getElementById('customModal');
@@ -824,7 +832,6 @@
             const modalMessage = document.getElementById('modalMessage');
             const modalCopyButton = document.getElementById('modalCopyButton');
 
-            // Reset classes
             modal.querySelector('.modal-content').className = 'modal-content';
             if (type === 'error') {
                 modal.querySelector('.modal-content').classList.add('error');
@@ -854,14 +861,13 @@
 
             modal.style.display = 'flex';
         }
-        window.showModal = showModal; // WAJIB: Expose ke window agar bisa dipanggil dari onclick/html
+        window.showModal = showModal;
 
         function closeModal() {
             document.getElementById('customModal').style.display = 'none';
         }
-        window.closeModal = closeModal; // WAJIB: Expose ke window
+        window.closeModal = closeModal;
 
-        // --- Fungsi Notifikasi Penjualan Live (Simulasi) ---
         function showSaleNotification(productName) {
             const notificationDiv = document.getElementById('saleNotification');
             const saleMessageSpan = document.getElementById('saleMessage');
@@ -871,85 +877,70 @@
 
             notificationDiv.classList.add('show');
 
-            // Sembunyikan notifikasi setelah beberapa detik
             setTimeout(() => {
                 notificationDiv.classList.remove('show');
-            }, 5000); // Notifikasi akan terlihat selama 5 detik
+            }, 5000);
         }
-        window.showSaleNotification = showSaleNotification; // WAJIB: Expose ke window
+        window.showSaleNotification = showSaleNotification;
 
-        // --- Fungsi Generator ID Pesanan ---
         function generateOrderId() {
             const timestamp = Date.now().toString(36).substring(0, 8);
             const randomPart1 = Math.random().toString(36).substring(2, 8);
             const randomPart2 = Math.random().toString(36).substring(2, 7);
             return `ORD-${timestamp}-${randomPart1}-${randomPart2}`.toUpperCase();
         }
-        // Tidak perlu expose window.generateOrderId lagi karena hanya dipanggil internal di `simulatePurchase`
 
-        // --- Manajemen Sesi Login ---
         function updateAuthLinks() {
             const authLinks = document.getElementById('authLinks');
             const loggedInLinks = document.getElementById('loggedInLinks');
 
-            // `currentUser` sekarang adalah objek dari Firebase Authentication, yang juga punya properti dari Firestore
             if (currentUser) {
                 authLinks.style.display = 'none';
                 loggedInLinks.style.display = 'inline-block';
-                // Opsional: Tampilkan nama pengguna
-                // if (document.getElementById('welcomeUser')) {
-                //   document.getElementById('welcomeUser').textContent = `Halo, ${currentUser.email}`;
-                // }
             } else {
                 authLinks.style.display = 'inline-block';
                 loggedInLinks.style.display = 'none';
             }
         }
-        window.updateAuthLinks = updateAuthLinks; // WAJIB: Expose ke window
+        window.updateAuthLinks = updateAuthLinks;
 
         async function logoutUser() {
             try {
-                await signOut(auth); // Gunakan signOut dari Firebase Auth
+                await signOut(auth);
                 showModal('Logout Berhasil', 'Anda telah berhasil keluar dari akun.', 'success');
-                // updateAuthLinks() akan dipanggil otomatis oleh onAuthStateChanged
-                showPage('home'); // Kembali ke beranda setelah logout
+                showPage('home');
             } catch (error) {
                 console.error("Error logging out:", error.message);
                 showModal('Logout Gagal', 'Terjadi kesalahan saat logout.', 'error');
             }
         }
-        window.logoutUser = logoutUser; // WAJIB: Expose ke window
+        window.logoutUser = logoutUser;
 
         // --- FUNGSI TAMPILAN HALAMAN (SPA Logic) ---
         function showPage(pageName) {
             const appContent = document.getElementById('appContent');
-            // Gunakan `currentUser` dan `maintenanceConfig` yang sudah disinkronkan dari Firebase
             
-            // Hapus kelas 'active' dari semua link navigasi
             document.querySelectorAll('nav a').forEach(link => link.classList.remove('active'));
-            // Tambahkan kelas 'active' ke link yang sedang diklik
             const activeLink = document.querySelector(`nav a[onclick="showPage('${pageName}')"]`);
             if (activeLink) activeLink.classList.add('active');
 
-            // Cek Maintenance Mode
             const isAdminLoggedIn = (currentUser && currentUser.isAdmin === true);
             const maintenanceOverlay = document.getElementById('maintenanceOverlay');
 
-            // Jika dalam maintenance mode dan bukan admin, dan mencoba mengakses halaman selain home
             if (maintenanceConfig.isActive && !isAdminLoggedIn && pageName !== 'home') {
                 maintenanceOverlay.style.display = 'flex';
-                appContent.innerHTML = ''; // Kosongkan konten utama
-                return; // Hentikan eksekusi lebih lanjut
+                appContent.innerHTML = '';
+                return;
             } else {
-                maintenanceOverlay.style.display = 'none'; // Sembunyikan overlay jika tidak dalam maintenance atau admin login
+                maintenanceOverlay.style.display = 'none';
             }
 
-            let htmlContent = ''; // Pindahkan deklarasi ke sini agar scope-nya benar
+            let htmlContent = '';
             switch (pageName) {
                 case 'home':
                     htmlContent = `
-                        <h1>🎮 Toko Item Roblox Anda 💰</h1>
-                        <p>Beli item-item keren untuk game Roblox Anda di sini dan dapatkan kode redeem instan!</p>
+                        <h1>🎮 Item Game Milik Artvive Studio 💰</h1>
+                        <p>Beli item-item keren untuk game milik Artvive studio,Anda di sini dapat item melalui kode redeem instan!</p>
                         <div id="discountCountdownSection" class="discount-countdown-section" style="display:none;">
                             <h2>Penawaran Spesial Berakhir Dalam!</h2>
                             <div class="countdown-timer" id="countdownTimer"></div>
@@ -961,15 +952,15 @@
                             </div>
                     `;
                     appContent.innerHTML = htmlContent;
-                    displayProducts(); // Panggil fungsi untuk mengisi produk
-                    displayTopSellingProducts(); // Panggil fungsi untuk menampilkan produk terlaris
-                    startCountdown(); // Mulai countdown
+                    displayProducts();
+                    displayTopSellingProducts();
+                    startCountdown();
                     break;
 
                 case 'redeem':
                     htmlContent = `
                         <h2>Dapatkan Kode Anda!</h2>
-                        <p>Masukkan ID Pesanan Anda di bawah ini untuk mendapatkan kode redeem unik.</p>
+                        <p>Masukkan ID Pesanan Anda di bawah ini untuk mendapatkan kode redeem sesuai yang kamu beli.</p>
                         <div class="form-group">
                             <label for="orderIdInput">ID Pesanan:</label>
                             <input type="text" id="orderIdInput" placeholder="Tempel ID Pesanan Anda di sini..." autocomplete="off">
@@ -982,7 +973,7 @@
                 case 'login':
                     if (currentUser) {
                         showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.email}. Silakan logout terlebih dahulu jika ingin login dengan akun lain.`, 'warning');
-                        return; // Jangan tampilkan form login jika sudah login
+                        return;
                     }
                     htmlContent = `
                         <h2>Login</h2>
@@ -1003,7 +994,7 @@
                 case 'register':
                     if (currentUser) {
                         showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.email}. Silakan logout terlebih dahulu jika ingin daftar akun baru.`, 'warning');
-                        return; // Jangan tampilkan form register jika sudah login
+                        return;
                     }
                     htmlContent = `
                         <h2>Register Akun Baru</h2>
@@ -1022,14 +1013,13 @@
                     break;
 
                 case 'admin':
-                    // Cek akses admin sebelum menampilkan konten
                     if (!currentUser || !currentUser.isAdmin) {
                         showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk mengakses halaman admin.', 'error');
-                        showPage('home'); // Redirect kembali ke beranda
+                        showPage('home');
                         return;
                     }
                     htmlContent = `
-                        <h2>🛠️ Panel Admin RZKSTUDIO 🔒</h2>
+                        <h2>🛠️ Panel Admin 🔒</h2>
                         <p style="text-align:center; color:var(--text-medium);">Kelola produk dan kode di sini.</p>
 
                         <h3>Tambah Produk Baru</h3>
@@ -1103,55 +1093,65 @@
                             <button onclick="saveDiscountConfig()">Simpan Pengaturan Diskon</button>
                         </div>
 
-                        <h3 style="margin-top: 40px;">🚧 Maintenance Mode 🚧</h3>
+                        <h3 style="margin-top: 40px;">🚧 Pengaturan Maintenance Mode 🚧</h3>
                         <div class="form-group">
                             <label for="maintenanceStatus">Status Maintenance Mode:</label>
-                            <input type="checkbox" id="maintenanceStatus" onchange="saveMaintenanceConfig()"> Aktifkan Mode Pemeliharaan
+                            <input type="checkbox" id="maintenanceStatus" onchange="toggleMaintenanceFields()"> Aktifkan Mode Pemeliharaan
                         </div>
-                        <small style="color:var(--text-medium);">Jika aktif, website akan menampilkan pesan pemeliharaan untuk non-admin.</small>
+                        <div id="maintenanceSettingsFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="maintenanceReason">Alasan Maintenance (Ditampilkan ke Pengguna):</label>
+                                <textarea id="maintenanceReason" rows="3" placeholder="Contoh: Sedang melakukan update sistem pembayaran..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="maintenanceDuration">Perkiraan Durasi (Ditampilkan ke Pengguna):</label>
+                                <input type="text" id="maintenanceDuration" placeholder="Contoh: 2 jam, 30 menit">
+                            </div>
+                            <div class="form-group">
+                                <label for="maintenanceEndTime">Waktu Berakhir Maintenance (Opsional):</label>
+                                <input type="datetime-local" id="maintenanceEndTime">
+                                <small style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
+                            </div>
+                            <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
+                        </div>
                     `;
                     appContent.innerHTML = htmlContent;
-                    populateAdminProductSelects(); // Panggil fungsi untuk mengisi dropdown produk
-                    populateDiscountProductSelect(); // Panggil fungsi untuk mengisi dropdown diskon
-                    loadDiscountConfig(); // Panggil fungsi untuk memuat konfigurasi diskon yang tersimpan
-                    loadMaintenanceConfig(); // Panggil fungsi untuk memuat konfigurasi maintenance
+                    populateAdminProductSelects();
+                    populateDiscountProductSelect();
+                    loadDiscountConfig();
+                    loadMaintenanceConfig();
                     break;
 
                 default:
-                    showPage('home'); // Default ke halaman beranda
+                    showPage('home');
                     break;
             }
-            // Check maintenance mode immediately after page content is set
             checkMaintenanceModeAndRedirect();
         }
-        window.showPage = showPage; // WAJIB: Expose ke window
+        window.showPage = showPage;
 
         // --- Fungsi SPESIFIK UNTUK home (BERANDA) ---
         function displayProducts() {
             const productGrid = document.getElementById('productGrid');
             if (!productGrid) return; 
 
-            productGrid.innerHTML = ''; // Bersihkan grid
-            const products = allProducts; // Gunakan data dari Firebase (allProducts dari scope module)
-            const currentDiscountConfig = discountConfig; // Gunakan data dari Firebase
-            const currentLoggedInUser = currentUser; // Gunakan data dari Firebase Auth
+            productGrid.innerHTML = '';
+            const products = allProducts;
+            const currentDiscountConfig = discountConfig;
+            const currentLoggedInUser = currentUser;
 
-            // Periksa apakah diskon global masih aktif berdasarkan waktu berakhir
             if (currentDiscountConfig.isActive && currentDiscountConfig.countdownEndTime) {
                 const endTime = new Date(currentDiscountConfig.countdownEndTime).getTime();
                 const now = new Date().getTime();
                 if (now >= endTime) {
-                    // Diskon sudah berakhir, nonaktifkan secara otomatis di Firestore
                     saveDiscountConfigToFirestore({
                       isActive: false,
                       countdownEndTime: null
                     });
                     showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
-                    // displayProducts akan dipanggil lagi oleh listener Firestore
                     return; 
                 }
             }
-
 
             const productArray = Object.values(products);
 
@@ -1165,7 +1165,6 @@
                 let originalPriceHtml = '';
                 let discountTag = '';
 
-                // Cek apakah diskon berlaku untuk produk ini dan user ini
                 if (currentDiscountConfig.isActive) {
                     const isUserTargeted = !currentDiscountConfig.targetUsers || (currentLoggedInUser && currentDiscountConfig.targetUsers.toLowerCase().includes(currentLoggedInUser.email.toLowerCase()));
                     const isProductTargeted = 
@@ -1195,16 +1194,16 @@
                 productGrid.appendChild(productCard);
             });
         }
-        window.displayProducts = displayProducts; // WAJIB: Expose ke window
+        window.displayProducts = displayProducts;
 
         // --- Fungsi Konfirmasi Pembelian ---
-        let currentPurchaseProductId = null; // Untuk menyimpan ID produk yang akan dibeli
+        let currentPurchaseProductId = null;
 
         function confirmPurchase(productId) {
-            const products = allProducts; // Gunakan data dari Firebase (allProducts dari scope module)
+            const products = allProducts;
             const product = products[productId];
-            const currentDiscountConfig = discountConfig; // Gunakan data dari Firebase
-            const currentLoggedInUser = currentUser; // Gunakan data dari Firebase Auth
+            const currentDiscountConfig = discountConfig;
+            const currentLoggedInUser = currentUser;
 
             if (!product) {
                 showModal('Error!', 'Produk tidak ditemukan.', 'error');
@@ -1212,7 +1211,6 @@
             }
 
             let finalPrice = product.price;
-            // Cek apakah diskon berlaku untuk produk ini dan user ini
             if (currentDiscountConfig.isActive) {
                 const isUserTargeted = !currentDiscountConfig.targetUsers || (currentLoggedInUser && currentDiscountConfig.targetUsers.toLowerCase().includes(currentLoggedInUser.email.toLowerCase()));
                 const isProductTargeted = 
@@ -1224,38 +1222,35 @@
                 }
             }
 
-            currentPurchaseProductId = productId; // Simpan ID produk
+            currentPurchaseProductId = productId;
             const message = `Apakah Anda yakin ingin membeli <strong>${product.name}</strong> seharga <strong>Rp ${finalPrice.toLocaleString('id-ID')}</strong>?`;
             
             document.getElementById('confirmationMessage').innerHTML = message;
-            document.getElementById('confirmationModal').style.display = 'flex'; // Tampilkan modal konfirmasi
+            document.getElementById('confirmationModal').style.display = 'flex';
         }
-        window.confirmPurchase = confirmPurchase; // WAJIB: Expose ke window
+        window.confirmPurchase = confirmPurchase;
 
         function hideConfirmation() {
             document.getElementById('confirmationModal').style.display = 'none';
-            currentPurchaseProductId = null; // Reset ID produk
+            currentPurchaseProductId = null;
         }
-        window.hideConfirmation = hideConfirmation; // WAJIB: Expose ke window
+        window.hideConfirmation = hideConfirmation;
 
-        // Event listener untuk tombol "Ya, Beli" di modal konfirmasi
         document.getElementById('confirmPurchaseBtn').onclick = function() {
             if (currentPurchaseProductId) {
-                simulatePurchase(currentPurchaseProductId); // Lanjutkan dengan simulasi pembelian
+                simulatePurchase(currentPurchaseProductId);
             }
             hideConfirmation();
         };
 
-        // Event listener untuk tombol "Batal" di modal konfirmasi
         document.getElementById('cancelPurchaseBtn').onclick = function() {
             showModal('Pembelian Dibatalkan', 'Anda telah membatalkan pembelian.', 'warning');
             hideConfirmation();
         };
 
-        async function simulatePurchase(productId) { // Tambahkan `async`
-            const products = allProducts; // Gunakan data dari Firebase (allProducts dari scope module)
+        async function simulatePurchase(productId) {
+            const products = allProducts;
             const product = products[productId];
-            // Pastikan product tidak null (sudah dicek di confirmPurchase, tapi jaga-jaga)
             if (!product) {
                 showModal('Error!', 'Produk tidak ditemukan saat simulasi pembelian.', 'error');
                 return;
@@ -1265,13 +1260,12 @@
             const newOrderData = {
                 productId: productId,
                 isUsed: false,
-                codeGiven: null, // Akan diisi saat kode diberikan
+                codeGiven: null,
                 purchaseDate: new Date().toISOString()
             };
 
             try {
-                // Tulis order ke koleksi 'orders' di Firestore dengan ID kustom
-                await setDoc(doc(ordersCol, orderId), newOrderData); // Menggunakan setDoc dengan ID kustom
+                await setDoc(doc(ordersCol, orderId), newOrderData);
                 console.log("Order added to Firestore:", orderId);
 
                 const message = `
@@ -1283,7 +1277,6 @@
                 showModal('Pembelian Berhasil!', message, 'success', orderId);
 
                 showSaleNotification(product.name);
-                // displayTopSellingProducts() akan otomatis dipanggil oleh listener ordersCol
             } catch (error) {
                 console.error("Error simulating purchase:", error.message);
                 showModal('Pembelian Gagal', 'Terjadi kesalahan saat memproses pembelian.', 'error');
@@ -1291,9 +1284,9 @@
         }
 
         // --- FUNGSI SPESIFIK UNTUK redeem (TUKAR ID PESANAN) ---
-        async function redeemCode() { // Tambahkan `async`
+        async function redeemCode() {
             const orderIdInput = document.getElementById('orderIdInput');
-            if (!orderIdInput) return; // Pastikan elemen ada di halaman ini
+            if (!orderIdInput) return;
 
             const orderId = orderIdInput.value.trim();
 
@@ -1302,7 +1295,6 @@
                 return;
             }
 
-            // Gunakan data dari Firebase (allOrders dan allCodes dari scope module)
             const orders = allOrders;
             const codes = allCodes;
 
@@ -1325,7 +1317,6 @@
                 return;
             }
 
-            // Ambil kode pertama yang belum terpakai (cari di data real-time `allCodes`)
             const availableCode = productCodes.find(code => !code.isUsed);
 
             if (!availableCode) {
@@ -1334,13 +1325,11 @@
             }
 
             try {
-                // Tandai kode sebagai terpakai di Firestore
                 await updateDoc(doc(codesCol, availableCode.id), {
                     isUsed: true,
                     usedAt: new Date().toISOString()
                 });
 
-                // Tandai ID pesanan sebagai terpakai dan simpan kode yang diberikan di Firestore
                 await updateDoc(doc(ordersCol, orderId), {
                     isUsed: true,
                     codeGiven: availableCode.value,
@@ -1354,19 +1343,17 @@
                 `;
                 showModal('Kode Berhasil Didapatkan!', successMessage, 'success', availableCode.value);
 
-                orderIdInput.value = ''; // Bersihkan input setelah sukses
-                // displayTopSellingProducts() akan otomatis dipanggil oleh listener ordersCol
+                orderIdInput.value = '';
             } catch (error) {
                 console.error("Error redeeming code:", error.message);
                 showModal('Redeem Gagal', 'Terjadi kesalahan saat menukar kode.', 'error');
             }
         }
-        window.redeemCode = redeemCode; // WAJIB: Expose ke window
-
+        window.redeemCode = redeemCode;
 
         // --- FUNGSI SPESIFIK UNTUK login & register ---
-        async function registerUser() { // Tambahkan `async`
-            const emailInput = document.getElementById('regEmail'); // Mengubah dari username menjadi email
+        async function registerUser() {
+            const emailInput = document.getElementById('regEmail');
             const passwordInput = document.getElementById('regPassword');
             if (!emailInput || !passwordInput) return;
 
@@ -1380,16 +1367,15 @@
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                // Simpan data user tambahan (seperti isAdmin) di Firestore
                 await setDoc(doc(usersCol, userCredential.user.uid), {
-                    username: email, // Simpan email sebagai username di Firestore
-                    isAdmin: false // User baru defaultnya bukan admin
+                    username: email,
+                    isAdmin: false
                 });
 
                 showModal('Registrasi Berhasil!', `Akun <strong>${email}</strong> berhasil dibuat. Silakan login.`, 'success');
                 emailInput.value = '';
                 passwordInput.value = '';
-                showPage('login'); // Langsung pindah ke halaman login
+                showPage('login');
             } catch (error) {
                 console.error("Error registering user:", error.message);
                 let errorMessage = "Terjadi kesalahan saat pendaftaran.";
@@ -1403,10 +1389,10 @@
                 showModal('Registrasi Gagal', errorMessage, 'error');
             }
         }
-        window.registerUser = registerUser; // WAJIB: Expose ke window
+        window.registerUser = registerUser;
 
-        async function loginUser() { // Tambahkan `async`
-            const emailInput = document.getElementById('loginEmail'); // Mengubah dari username menjadi email
+        async function loginUser() {
+            const emailInput = document.getElementById('loginEmail');
             const passwordInput = document.getElementById('loginPassword');
             if (!emailInput || !passwordInput) return;
 
@@ -1420,16 +1406,13 @@
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // `currentUser` global akan diperbarui oleh `onAuthStateChanged` listener
-
-                // Cek apakah user yang login adalah admin dari data Firestore
                 const userDoc = await getDoc(doc(usersCol, userCredential.user.uid));
                 if (userDoc.exists() && userDoc.data().isAdmin === true) {
                      showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>! Anda adalah admin!`, 'success');
-                     setTimeout(() => showPage('admin'), 1000); // Redirect ke admin panel
+                     setTimeout(() => showPage('admin'), 1000);
                 } else {
                      showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>!`, 'success');
-                     setTimeout(() => showPage('home'), 1000); // Redirect ke beranda
+                     setTimeout(() => showPage('home'), 1000);
                 }
             } catch (error) {
                 console.error("Error logging in:", error.message);
@@ -1442,10 +1425,10 @@
                 showModal('Login Gagal', errorMessage, 'error');
             }
         }
-        window.loginUser = loginUser; // WAJIB: Expose ke window
+        window.loginUser = loginUser;
 
         // --- FUNGSI SPESIFIK UNTUK admin (ADMIN PANEL) ---
-        async function addProduct() { // Tambahkan `async`
+        async function addProduct() {
             const adminProductName = document.getElementById('adminProductName');
             const adminProductPrice = document.getElementById('adminProductPrice');
             const adminProductImage = document.getElementById('adminProductImage');
@@ -1460,9 +1443,8 @@
                 return;
             }
 
-            const productId = name.toLowerCase().replace(/\s/g, '_').replace(/[^a-z0-9_]/g, ''); // Generate ID yang aman
+            const productId = name.toLowerCase().replace(/\s/g, '_').replace(/[^a-z0-9_]/g, '');
 
-            // Cek apakah produk sudah ada di Firestore
             const productDoc = await getDoc(doc(productsCol, productId));
             if (productDoc.exists()) {
                 showModal('Produk Sudah Ada', 'Produk dengan nama ini sudah ada.', 'error');
@@ -1470,9 +1452,8 @@
             }
 
             try {
-                // Tambahkan produk ke Firestore dengan ID kustom
                 await setDoc(doc(productsCol, productId), {
-                    id: productId, // Simpan ID di dalam dokumen juga
+                    id: productId,
                     name: name,
                     price: price,
                     image: image || 'https://via.placeholder.com/150/2a2a2a/f0f0f0?text=Item'
@@ -1483,15 +1464,14 @@
                 adminProductName.value = '';
                 adminProductPrice.value = '';
                 adminProductImage.value = '';
-                // Refresh UI otomatis via listeners
             } catch (error) {
                 console.error("Error adding product:", error.message);
                 showModal('Gagal Menambah Produk', 'Terjadi kesalahan saat menambahkan produk.', 'error');
             }
         }
-        window.addProduct = addProduct; // WAJIB: Expose ke window
+        window.addProduct = addProduct;
 
-        async function addCodes() { // Tambahkan `async`
+        async function addCodes() {
             const selectedProductElement = document.getElementById('adminCodeProductSelect');
             const newCodesTextElement = document.getElementById('adminNewCodes');
             if (!selectedProductElement || !newCodesTextElement) return;
@@ -1517,17 +1497,15 @@
             let codesAddedCount = 0;
             let duplicateCodesCount = 0;
 
-            // Ambil kode yang sudah ada untuk produk ini dari Firestore (data global `allCodes`)
             const existingCodesForProduct = allCodes[selectedProductId] || [];
 
-            for (const codeValue of codesToAdd) { // Gunakan for...of untuk async loop
+            for (const codeValue of codesToAdd) {
                 const trimmedCodeValue = codeValue.toUpperCase();
-                // Hindari duplikasi kode untuk produk yang sama
                 const isDuplicate = existingCodesForProduct.some(c => c.value === trimmedCodeValue);
 
                 if (!isDuplicate) {
                     try {
-                        await addDoc(codesCol, { // Gunakan addDoc untuk ID otomatis
+                        await addDoc(codesCol, {
                             productId: selectedProductId,
                             value: trimmedCodeValue,
                             isUsed: false,
@@ -1537,7 +1515,6 @@
                     } catch (error) {
                         console.error("Error adding code:", error.message);
                         showModal('Gagal Menambahkan Kode', `Terjadi kesalahan saat menambahkan kode ${trimmedCodeValue}.`, 'error');
-                        // Lanjutkan ke kode berikutnya jika ada error
                     }
                 } else {
                     duplicateCodesCount++;
@@ -1552,13 +1529,12 @@
                 showModal('Berhasil!', successMessage, 'success');
             }
             
-            newCodesTextElement.value = ''; // Bersihkan textarea
-            // displayCodesForProduct() akan dipanggil otomatis oleh listener `codesCol`.
+            newCodesTextElement.value = '';
         }
-        window.addCodes = addCodes; // WAJIB: Expose ke window
+        window.addCodes = addCodes;
 
         function populateAdminProductSelects() {
-            const products = allProducts; // Gunakan data dari Firebase
+            const products = allProducts;
             const adminCodeProductSelect = document.getElementById('adminCodeProductSelect');
             const adminViewCodeProductSelect = document.getElementById('adminViewCodeProductSelect');
 
@@ -1582,9 +1558,9 @@
                 }
             }
         }
-        window.populateAdminProductSelects = populateAdminProductSelects; // WAJIB: Expose ke window
+        window.populateAdminProductSelects = populateAdminProductSelects;
 
-        async function displayCodesForProduct() { // Tambahkan async
+        async function displayCodesForProduct() {
             const selectedProductElement = document.getElementById('adminViewCodeProductSelect');
             const codeListDiv = document.getElementById('codeList');
             if (!selectedProductElement || !codeListDiv) return;
@@ -1597,19 +1573,18 @@
                 return;
             }
 
-            const productCodes = allCodes[selectedProductId] || []; // Gunakan data dari Firebase
+            const productCodes = allCodes[selectedProductId] || [];
 
             if (productCodes.length === 0) {
                 codeListDiv.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Belum ada kode untuk produk ini.</p>';
                 return;
             }
 
-            // Urutkan kode berdasarkan status (tersedia dulu) dan tanggal ditambah (terbaru di atas)
             productCodes.sort((a, b) => {
                 if (a.isUsed === b.isUsed) {
-                    return new Date(b.addedAt) - new Date(a.addedAt); // Terbaru di atas
+                    return new Date(b.addedAt) - new Date(a.addedAt);
                 }
-                return a.isUsed ? 1 : -1; // Tersedia (false) di atas Terpakai (true)
+                return a.isUsed ? 1 : -1;
             });
 
             productCodes.forEach((code) => { 
@@ -1626,10 +1601,10 @@
                 const codeValueSpan = document.createElement('span');
                 codeValueSpan.style.fontWeight = 'bold';
                 codeValueSpan.textContent = code.value;
-                codeValueSpan.style.cursor = 'pointer'; // Menunjukkan bisa diklik untuk edit
+                codeValueSpan.style.cursor = 'pointer';
                 codeValueSpan.title = 'Klik untuk mengubah kode';
 
-                codeValueSpan.onclick = async function() { // Tambahkan `async` di sini
+                codeValueSpan.onclick = async function() {
                     const oldCodeValue = code.value;
                     const newCodeValue = prompt('Masukkan kode baru:', oldCodeValue);
 
@@ -1639,10 +1614,9 @@
                             return;
                         }
 
-                        // Cek duplikasi di antara kode untuk produk yang SAMA (dari data global)
                         let currentCodesForProduct = allCodes[selectedProductId];
                         const isDuplicate = currentCodesForProduct.some((c) =>
-                            c.id !== code.id && c.value === trimmedNewCode // Cek ID yang berbeda
+                            c.id !== code.id && c.value === trimmedNewCode
                         );
 
                         if (isDuplicate) {
@@ -1651,7 +1625,6 @@
                             try {
                                 await updateDoc(doc(codesCol, code.id), { value: trimmedNewCode });
                                 showModal('Berhasil!', 'Kode berhasil diubah!', 'success');
-                                // displayCodesForProduct() akan dipanggil otomatis oleh listener `codesCol`
                             } catch (error) {
                                 console.error("Error updating code:", error.message);
                                 showModal('Gagal Mengubah Kode', 'Terjadi kesalahan saat mengubah kode.', 'error');
@@ -1668,19 +1641,17 @@
                 deleteButton.style.padding = '5px 10px';
                 deleteButton.style.fontSize = '0.9em';
                 deleteButton.style.marginLeft = '10px';
-                deleteButton.onclick = async function() { // Tambahkan `async` di sini
+                deleteButton.onclick = async function() {
                     if (confirm('Apakah Anda yakin ingin menghapus kode ini?')) {
                         try {
                             await deleteDoc(doc(codesCol, code.id));
                             showModal('Berhasil!', 'Kode berhasil dihapus!', 'success');
-                            // displayCodesForProduct() akan dipanggil otomatis oleh listener `codesCol`
                         } catch (error) {
                             console.error("Error deleting code:", error.message);
                             showModal('Gagal Menghapus Kode', 'Terjadi kesalahan saat menghapus kode.', 'error');
                         }
                     }
                 };
-
 
                 const statusSpan = document.createElement('span');
                 statusSpan.className = `status ${statusClass}`;
@@ -1689,8 +1660,8 @@
                 const infoDiv = document.createElement('div');
                 infoDiv.style.display = 'flex';
                 infoDiv.style.flexDirection = 'column';
-                infoDiv.style.alignItems = 'flex-start'; // Align text to left
-                infoDiv.style.flexGrow = '1'; // Take available space
+                infoDiv.style.alignItems = 'flex-start';
+                infoDiv.style.flexGrow = '1';
 
                 infoDiv.appendChild(codeValueSpan);
                 const smallDateInfo = document.createElement('small');
@@ -1705,40 +1676,36 @@
                 actionsDiv.appendChild(statusSpan);
                 actionsDiv.appendChild(deleteButton);
 
-
                 codeItem.appendChild(infoDiv);
                 codeItem.appendChild(actionsDiv);
                 codeListDiv.appendChild(codeItem);
             });
         }
-        window.displayCodesForProduct = displayCodesForProduct; // WAJIB: Expose ke window
+        window.displayCodesForProduct = displayCodesForProduct;
 
-        // --- Fungsi untuk Menampilkan Produk Terlaris ---
         function displayTopSellingProducts() {
             const topProductsListDiv = document.getElementById('topProductsList');
             if (!topProductsListDiv) return;
 
-            const orders = allOrders; // Gunakan data dari Firebase
-            const products = allProducts; // Gunakan data dari Firebase
+            const orders = allOrders;
+            const products = allProducts;
 
-            // Hitung frekuensi penjualan untuk setiap produk yang sudah di-redeem
             const salesCount = {};
             for (const orderId in orders) {
                 const order = orders[orderId];
-                if (order.isUsed && order.productId) { // Pastikan sudah di-redeem dan punya productId
+                if (order.isUsed && order.productId) {
                     salesCount[order.productId] = (salesCount[order.productId] || 0) + 1;
                 }
             }
 
-            // Konversi ke array dan urutkan berdasarkan jumlah penjualan
             const sortedProducts = Object.keys(salesCount)
                 .map(productId => ({
                     id: productId,
                     name: products[productId] ? products[productId].name : 'Produk Tidak Dikenal',
                     sales: salesCount[productId]
                 }))
-                .sort((a, b) => b.sales - a.sales) // Urutkan dari yang terbanyak
-                .slice(0, 5); // Ambil 5 produk teratas
+                .sort((a, b) => b.sales - a.sales)
+                .slice(0, 5);
 
             let htmlContent = '<h2>🔥 Produk Terlaris 🔥</h2>';
             if (sortedProducts.length === 0) {
@@ -1752,13 +1719,11 @@
             }
             topProductsListDiv.innerHTML = htmlContent;
         }
-        window.displayTopSellingProducts = displayTopSellingProducts; // WAJIB: Expose ke window
+        window.displayTopSellingProducts = displayTopSellingProducts;
 
         // --- FUNGSI PENGATURAN DISKON ---
-        // loadDiscountConfig akan dipanggil otomatis oleh listener `global_settings`
         function loadDiscountConfig() {
-            // Gunakan `discountConfig` yang sudah disinkronkan dari Firebase
-            const currentDiscountConfig = discountConfig; // Menggunakan variabel lokal agar tidak konflik nama dengan fungsi
+            const currentDiscountConfig = discountConfig;
 
             const discountStatus = document.getElementById('discountStatus');
             const discountPercentage = document.getElementById('discountPercentage');
@@ -1773,9 +1738,7 @@
             if (discountTargetType) discountTargetType.value = currentDiscountConfig.targetType;
             if (discountTargetUsers) discountTargetUsers.value = currentDiscountConfig.targetUsers;
             
-            // Set datetime-local value
             if (discountCountdownEndTime && currentDiscountConfig.countdownEndTime) {
-                // Format ISO string to YYYY-MM-DDTHH:MM for datetime-local input
                 const date = new Date(currentDiscountConfig.countdownEndTime);
                 const year = date.getFullYear();
                 const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -1784,34 +1747,30 @@
                 const minutes = date.getMinutes().toString().padStart(2, '0');
                 discountCountdownEndTime.value = `${year}-${month}-${day}T${hours}:${minutes}`;
             } else if (discountCountdownEndTime) {
-                discountCountdownEndTime.value = ''; // Kosongkan jika tidak ada waktu berakhir
+                discountCountdownEndTime.value = '';
             }
 
-
-            // Load selected products for specific discount
             if (discountProductSelect) {
                 for (let i = 0; i < discountProductSelect.options.length; i++) {
                     const option = discountProductSelect.options[i];
-                    option.selected = currentDiscountConfig.targetProducts && currentDiscountConfig.targetProducts.includes(option.value); // Pastikan targetProducts ada
+                    option.selected = currentDiscountConfig.targetProducts && currentDiscountConfig.targetProducts.includes(option.value);
                 }
             }
 
-            // Tampilkan/sembunyikan field berdasarkan status aktif dan tipe target
             if (discountSettingsFields) discountSettingsFields.style.display = currentDiscountConfig.isActive ? 'block' : 'none';
             if (document.getElementById('discountSpecificProductSelect')) document.getElementById('discountSpecificProductSelect').style.display = (currentDiscountConfig.isActive && currentDiscountConfig.targetType === 'specific') ? 'block' : 'none';
         }
-        window.loadDiscountConfig = loadDiscountConfig; // WAJIB: Expose ke window
+        window.loadDiscountConfig = loadDiscountConfig;
 
         function toggleDiscountFields() {
             const discountStatus = document.getElementById('discountStatus');
             const discountSettingsFields = document.getElementById('discountSettingsFields');
             if (discountStatus && discountSettingsFields) {
                 discountSettingsFields.style.display = discountStatus.checked ? 'block' : 'none';
-                toggleDiscountTargetProductSelect(); // Sesuaikan tampilan produk target juga
+                toggleDiscountTargetProductSelect();
             }
         }
-        window.toggleDiscountFields = toggleDiscountFields; // WAJIB: Expose ke window
-
+        window.toggleDiscountFields = toggleDiscountFields;
 
         function toggleDiscountTargetProductSelect() {
             const discountTargetType = document.getElementById('discountTargetType');
@@ -1820,10 +1779,10 @@
                 discountSpecificProductSelect.style.display = (discountTargetType.value === 'specific' && document.getElementById('discountStatus').checked) ? 'block' : 'none';
             }
         }
-        window.toggleDiscountTargetProductSelect = toggleDiscountTargetProductSelect; // WAJIB: Expose ke window
+        window.toggleDiscountTargetProductSelect = toggleDiscountTargetProductSelect;
 
         function populateDiscountProductSelect() {
-            const products = allProducts; // Gunakan data dari Firebase
+            const products = allProducts;
             const discountProductSelect = document.getElementById('discountProductSelect');
             if (!discountProductSelect) return;
 
@@ -1834,14 +1793,12 @@
                 option.textContent = products[productId].name;
                 discountProductSelect.appendChild(option);
             }
-            loadDiscountConfig(); // Muat ulang konfigurasi setelah populasi
+            loadDiscountConfig();
         }
-        window.populateDiscountProductSelect = populateDiscountProductSelect; // WAJIB: Expose ke window
+        window.populateDiscountProductSelect = populateDiscountProductSelect;
 
-        // Fungsi helper untuk menyimpan diskon ke Firestore
         async function saveDiscountConfigToFirestore(updates) {
             try {
-                // Hanya update bagian 'discount' dari dokumen 'global_settings'
                 await updateDoc(doc(configCol, "global_settings"), { discount: updates });
                 console.log("Discount config updated in Firestore.");
             } catch (error) {
@@ -1850,7 +1807,7 @@
             }
         }
 
-        async function saveDiscountConfig() { // Tambahkan `async`
+        async function saveDiscountConfig() {
             const discountStatus = document.getElementById('discountStatus');
             const discountPercentage = document.getElementById('discountPercentage');
             const discountTargetType = document.getElementById('discountTargetType');
@@ -1873,8 +1830,7 @@
             }
             const targetUsers = discountTargetUsers.value.trim();
             const endTimeValue = discountCountdownEndTime.value;
-            const countdownEndTime = endTimeValue ? new Date(endTimeValue).toISOString() : null; // Simpan sebagai ISO string
-
+            const countdownEndTime = endTimeValue ? new Date(endTimeValue).toISOString() : null;
 
             if (isActive) {
                 if (isNaN(percentage) || percentage <= 0 || percentage > 100) {
@@ -1901,41 +1857,38 @@
             };
 
             try {
-                // Update hanya bagian 'discount' dari dokumen 'global_settings'
                 await updateDoc(doc(configCol, "global_settings"), { discount: newConfig });
                 showModal('Berhasil!', 'Pengaturan diskon berhasil disimpan!', 'success');
-                // displayProducts() dan startCountdown() akan dipanggil otomatis oleh listener `global_settings`
             } catch (error) {
                 console.error("Error saving discount config:", error.message);
                 showModal('Gagal Simpan', 'Terjadi kesalahan saat menyimpan pengaturan diskon.', 'error');
             }
         }
-        window.saveDiscountConfig = saveDiscountConfig; // WAJIB: Expose ke window
+        window.saveDiscountConfig = saveDiscountConfig;
 
         // --- FUNGSI COUNTDOWN ---
         function startCountdown() {
-            // Hentikan interval sebelumnya jika ada
             if (countdownInterval) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
             }
 
-            const currentDiscountConfig = discountConfig; // Gunakan data dari Firebase
+            const currentDiscountConfig = discountConfig;
             const countdownSection = document.getElementById('discountCountdownSection');
             const countdownTimer = document.getElementById('countdownTimer');
             const countdownMessage = document.getElementById('countdownMessage');
 
             if (!countdownSection || !countdownTimer || !countdownMessage) {
-                return; // Pastikan elemen ada di halaman saat ini
+                return;
             }
 
             if (!currentDiscountConfig.isActive || !currentDiscountConfig.countdownEndTime) {
-                countdownSection.style.display = 'none'; // Sembunyikan jika diskon tidak aktif atau tidak ada waktu akhir
+                countdownSection.style.display = 'none';
                 return;
             }
 
             const endTime = new Date(currentDiscountConfig.countdownEndTime).getTime();
-            countdownSection.style.display = 'block'; // Tampilkan section countdown
+            countdownSection.style.display = 'block';
 
             countdownInterval = setInterval(() => {
                 const now = new Date().getTime();
@@ -1949,13 +1902,11 @@
                     countdownTimer.classList.add('expired');
                     countdownMessage.textContent = "Penawaran spesial telah berakhir!";
                     
-                    // Otomatis nonaktifkan diskon jika waktu habis di Firestore
                     saveDiscountConfigToFirestore({
                       isActive: false,
                       countdownEndTime: null
                     });
                     showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
-                    // displayProducts() akan dipanggil oleh listener Firebase
                     return;
                 }
 
@@ -1971,90 +1922,225 @@
                     `${seconds.toString().padStart(2, '0')}`;
                 
                 countdownTimer.classList.remove('expired', 'upcoming');
-                countdownTimer.classList.add('active'); // General class for active countdown
+                countdownTimer.classList.add('active');
 
-                if (distance < (1000 * 60 * 60 * 24)) { // Kurang dari 24 jam
+                if (distance < (1000 * 60 * 60 * 24)) {
                     countdownMessage.textContent = "Buruan! Tinggal kurang dari sehari!";
-                    countdownTimer.classList.add('warning'); // Opsional: warna peringatan
+                    countdownTimer.classList.add('warning');
                 } else {
                     countdownMessage.textContent = "Jangan sampai ketinggalan!";
                 }
 
-            }, 1000); // Update setiap 1 detik
+            }, 1000);
         }
-        window.startCountdown = startCountdown; // WAJIB: Expose ke window
+        window.startCountdown = startCountdown;
 
-        // --- FUNGSI MAINTENANCE MODE ---
-        // loadMaintenanceConfig akan dipanggil otomatis oleh listener `global_settings`
-        function loadMaintenanceConfig() {
-            const currentMaintenanceConfig = maintenanceConfig; // Gunakan data dari Firebase
-            const maintenanceStatusToggle = document.getElementById('maintenanceStatus');
-            if (maintenanceStatusToggle) {
-                maintenanceStatusToggle.checked = currentMaintenanceConfig.isActive;
+        // --- FUNGSI MAINTENANCE MODE YANG DIPERBARUI ---
+        function toggleMaintenanceFields() {
+            const maintenanceStatus = document.getElementById('maintenanceStatus');
+            const maintenanceSettingsFields = document.getElementById('maintenanceSettingsFields');
+            if (maintenanceStatus && maintenanceSettingsFields) {
+                maintenanceSettingsFields.style.display = maintenanceStatus.checked ? 'block' : 'none';
             }
         }
-        window.loadMaintenanceConfig = loadMaintenanceConfig; // WAJIB: Expose ke window
+        window.toggleMaintenanceFields = toggleMaintenanceFields;
 
-        async function saveMaintenanceConfig() { // Tambahkan `async`
+        function loadMaintenanceConfig() {
+            const currentMaintenanceConfig = maintenanceConfig;
             const maintenanceStatusToggle = document.getElementById('maintenanceStatus');
-            if (!maintenanceStatusToggle) return;
+            const maintenanceReason = document.getElementById('maintenanceReason');
+            const maintenanceDuration = document.getElementById('maintenanceDuration');
+            const maintenanceEndTime = document.getElementById('maintenanceEndTime');
+            const maintenanceSettingsFields = document.getElementById('maintenanceSettingsFields');
+
+            if (maintenanceStatusToggle) maintenanceStatusToggle.checked = currentMaintenanceConfig.isActive;
+            if (maintenanceReason) maintenanceReason.value = currentMaintenanceConfig.reason || '';
+            if (maintenanceDuration) maintenanceDuration.value = currentMaintenanceConfig.estimatedDuration || '';
+            
+            if (maintenanceEndTime && currentMaintenanceConfig.endTime) {
+                const date = new Date(currentMaintenanceConfig.endTime);
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                maintenanceEndTime.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            } else if (maintenanceEndTime) {
+                maintenanceEndTime.value = '';
+            }
+
+            if (maintenanceSettingsFields) {
+                maintenanceSettingsFields.style.display = currentMaintenanceConfig.isActive ? 'block' : 'none';
+            }
+        }
+        window.loadMaintenanceConfig = loadMaintenanceConfig;
+
+        async function saveMaintenanceConfig() {
+            const maintenanceStatus = document.getElementById('maintenanceStatus');
+            const maintenanceReason = document.getElementById('maintenanceReason');
+            const maintenanceDuration = document.getElementById('maintenanceDuration');
+            const maintenanceEndTime = document.getElementById('maintenanceEndTime');
+
+            if (!maintenanceStatus || !maintenanceReason || !maintenanceDuration || !maintenanceEndTime) return;
+
+            const isActive = maintenanceStatus.checked;
+            const reason = maintenanceReason.value.trim();
+            const estimatedDuration = maintenanceDuration.value.trim();
+            const endTimeValue = maintenanceEndTime.value;
+            const endTime = endTimeValue ? new Date(endTimeValue).toISOString() : null;
+
+            if (isActive) {
+                if (!reason) {
+                    showModal('Input Kosong', 'Harap masukkan alasan maintenance yang akan ditampilkan ke pengguna.', 'warning');
+                    return;
+                }
+                if (!estimatedDuration) {
+                    showModal('Input Kosong', 'Harap masukkan perkiraan durasi maintenance yang akan ditampilkan ke pengguna.', 'warning');
+                    return;
+                }
+                if (endTime && new Date(endTime).getTime() <= new Date().getTime()) {
+                    showModal('Waktu Berakhir Tidak Valid', 'Waktu berakhir maintenance harus di masa depan jika diatur.', 'warning');
+                    return;
+                }
+            }
 
             const newConfig = {
-                isActive: maintenanceStatusToggle.checked
+                isActive: isActive,
+                startTime: isActive ? new Date().toISOString() : null,
+                endTime: endTime,
+                reason: reason,
+                estimatedDuration: estimatedDuration
             };
 
             try {
-                // Update hanya bagian 'maintenance' dari dokumen 'global_settings'
                 await updateDoc(doc(configCol, "global_settings"), { maintenance: newConfig });
-                showModal('Berhasil!', `Mode pemeliharaan ${newConfig.isActive ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
-                // checkMaintenanceModeAndRedirect() akan dipanggil otomatis oleh listener `global_settings`
+                showModal('Berhasil!', `Mode pemeliharaan ${isActive ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
             } catch (error) {
                 console.error("Error saving maintenance config:", error.message);
                 showModal('Gagal Simpan', 'Terjadi kesalahan saat menyimpan pengaturan pemeliharaan.', 'error');
             }
         }
-        window.saveMaintenanceConfig = saveMaintenanceConfig; // WAJIB: Expose ke window
+        window.saveMaintenanceConfig = saveMaintenanceConfig;
+
+        function startMaintenanceCountdown() {
+            if (maintenanceCountdownInterval) {
+                clearInterval(maintenanceCountdownInterval);
+                maintenanceCountdownInterval = null;
+            }
+
+            const currentMaintenanceConfig = maintenanceConfig;
+            const maintenanceCountdownElement = document.getElementById('maintenanceCountdown');
+            const maintenanceReasonElement = document.getElementById('maintenanceReason');
+
+            if (!maintenanceCountdownElement || !maintenanceReasonElement) return;
+
+            if (!currentMaintenanceConfig.isActive || !currentMaintenanceConfig.endTime) {
+                maintenanceCountdownElement.style.display = 'none';
+                maintenanceReasonElement.style.display = 'none';
+                return;
+            }
+
+            const endTime = new Date(currentMaintenanceConfig.endTime).getTime();
+            maintenanceCountdownElement.style.display = 'block';
+            maintenanceReasonElement.style.display = 'block';
+
+            if (currentMaintenanceConfig.reason) {
+                maintenanceReasonElement.innerHTML = `<strong>Alasan Maintenance:</strong><br>${currentMaintenanceConfig.reason}`;
+            } else {
+                maintenanceReasonElement.innerHTML = '';
+            }
+
+            maintenanceCountdownInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+
+                if (distance < 0) {
+                    clearInterval(maintenanceCountdownInterval);
+                    maintenanceCountdownInterval = null;
+                    maintenanceCountdownElement.textContent = "Maintenance selesai!";
+                    
+                    // Otomatis nonaktifkan maintenance jika waktu habis di Firestore
+                    saveMaintenanceConfigToFirestore({
+                        isActive: false,
+                        endTime: null
+                    });
+                    return;
+                }
+
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                maintenanceCountdownElement.textContent = 
+                    `Perkiraan waktu selesai: ${hours} jam ${minutes} menit ${seconds} detik`;
+                
+            }, 1000);
+        }
+
+        async function saveMaintenanceConfigToFirestore(updates) {
+            try {
+                await updateDoc(doc(configCol, "global_settings"), { maintenance: updates });
+                console.log("Maintenance config updated in Firestore.");
+            } catch (error) {
+                console.error("Error saving maintenance config:", error.message);
+                showModal('Gagal Simpan', 'Terjadi kesalahan saat menyimpan pengaturan maintenance.', 'error');
+            }
+        }
 
         function checkMaintenanceModeAndRedirect() {
-            const currentMaintenanceConfig = maintenanceConfig; // Gunakan data dari Firebase
+            const currentMaintenanceConfig = maintenanceConfig;
             const maintenanceOverlay = document.getElementById('maintenanceOverlay');
             const appContent = document.getElementById('appContent');
-            const currentLoggedInUser = currentUser; // Gunakan data dari Firebase Auth
-            // Asumsi admin adalah user dengan `isAdmin: true` di Firestore `users` collection
-            const isAdminLoggedIn = (currentLoggedInUser && currentLoggedInUser.isAdmin === true); // Perubahan di sini
+            const maintenanceCountdownElement = document.getElementById('maintenanceCountdown');
+            const maintenanceReasonElement = document.getElementById('maintenanceReason');
+            const isAdminLoggedIn = (currentUser && currentUser.isAdmin === true);
 
             if (currentMaintenanceConfig.isActive && !isAdminLoggedIn) {
-                // Jika mode pemeliharaan aktif dan pengguna bukan admin
-                // Sembunyikan konten utama
                 if (appContent) {
                     appContent.style.display = 'none';
                 }
-                // Tampilkan overlay pemeliharaan
                 if (maintenanceOverlay) {
                     maintenanceOverlay.style.display = 'flex';
                 }
-            } else {
-                // Jika mode pemeliharaan tidak aktif atau admin sedang login
-                // Tampilkan kembali konten utama
-                if (appContent) { 
-                    appContent.style.display = 'block'; // Pastikan kembali ditampilkan
+                if (maintenanceCountdownElement && maintenanceReasonElement) {
+                    if (currentMaintenanceConfig.reason) {
+                        maintenanceReasonElement.innerHTML = `<strong>Alasan Maintenance:</strong><br>${currentMaintenanceConfig.reason}`;
+                    } else {
+                        maintenanceReasonElement.innerHTML = '';
+                    }
+                    
+                    if (currentMaintenanceConfig.estimatedDuration) {
+                        maintenanceCountdownElement.textContent = `Perkiraan durasi: ${currentMaintenanceConfig.estimatedDuration}`;
+                    } else {
+                        maintenanceCountdownElement.textContent = '';
+                    }
                 }
-                // Sembunyikan overlay pemeliharaan
+                
+                // Mulai countdown jika ada waktu berakhir
+                if (currentMaintenanceConfig.endTime) {
+                    startMaintenanceCountdown();
+                }
+            } else {
+                if (appContent) { 
+                    appContent.style.display = 'block';
+                }
                 if (maintenanceOverlay) {
                     maintenanceOverlay.style.display = 'none';
                 }
+                if (maintenanceCountdownInterval) {
+                    clearInterval(maintenanceCountdownInterval);
+                    maintenanceCountdownInterval = null;
+                }
             }
         }
-        window.checkMaintenanceModeAndRedirect = checkMaintenanceModeAndRedirect; // WAJIB: Expose ke window
-
+        window.checkMaintenanceModeAndRedirect = checkMaintenanceModeAndRedirect;
 
         // --- Inisialisasi saat halaman dimuat ---
         document.addEventListener('DOMContentLoaded', () => {
-            // initializeStore() dihilangkan, karena data diinisialisasi dan di-listen dari Firebase
-            updateAuthLinks(); // Perbarui link login/logout saat halaman dimuat
-            checkMaintenanceModeAndRedirect(); // Cek maintenance mode sangat awal
-            showPage('home'); // Tampilkan halaman beranda secara default saat pertama kali dimuat
+            updateAuthLinks();
+            checkMaintenanceModeAndRedirect();
+            showPage('home');
         });
     </script>
-    </body>
+</body>
 </html>
