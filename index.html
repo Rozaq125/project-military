@@ -1361,7 +1361,7 @@
                             <div class="form-group">
                                 <label for="maintenanceEndTime">Waktu Berakhir Maintenance (Opsional):</label>
                                 <input type="datetime-local" id="maintenanceEndTime">
-                                <small style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
+                                <small id="maintenanceEndTimeHelperText" style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
                             </div>
                             <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
                         </div>
@@ -2404,8 +2404,16 @@
         function toggleMaintenanceFields() {
             const maintenanceStatus = document.getElementById('maintenanceStatus');
             const maintenanceSettingsFields = document.getElementById('maintenanceSettingsFields');
+            const maintenanceEndTimeHelperText = document.getElementById('maintenanceEndTimeHelperText'); // Get the helper text element
+
             if (maintenanceStatus && maintenanceSettingsFields) {
                 maintenanceSettingsFields.style.display = maintenanceStatus.checked ? 'block' : 'none';
+                // Update helper text based on checkbox state
+                if (maintenanceEndTimeHelperText) {
+                    maintenanceEndTimeHelperText.textContent = maintenanceStatus.checked ? 
+                        'Maintenance akan otomatis berakhir setelah waktu ini.' : 
+                        'Waktu berakhir tidak relevan saat maintenance nonaktif.';
+                }
             }
         }
         window.toggleMaintenanceFields = toggleMaintenanceFields;
@@ -2437,6 +2445,8 @@
             if (maintenanceSettingsFields) {
                 maintenanceSettingsFields.style.display = currentMaintenanceConfig.isActive ? 'block' : 'none';
             }
+            // Call this to update the helper text on load
+            toggleMaintenanceFields();
         }
         window.loadMaintenanceConfig = loadMaintenanceConfig;
 
@@ -2451,8 +2461,13 @@
             const isActive = maintenanceStatus.checked;
             const reason = maintenanceReason.value.trim();
             const estimatedDuration = maintenanceDuration.value.trim();
-            const endTimeValue = maintenanceEndTime.value;
-            const endTime = endTimeValue ? new Date(endTimeValue).toISOString() : null;
+            let endTimeValue = maintenanceEndTime.value;
+            let endTime = endTimeValue ? new Date(endTimeValue).toISOString() : null;
+
+            // If maintenance is being deactivated, explicitly set endTime to null
+            if (!isActive) {
+                endTime = null;
+            }
 
             if (isActive) {
                 if (!reason) {
@@ -2463,6 +2478,7 @@
                     showModal('Input Kosong', 'Harap masukkan perkiraan durasi maintenance yang akan ditampilkan ke pengguna.', 'warning');
                     return;
                 }
+                // Only validate endTime if it's active and a value is provided
                 if (endTime && new Date(endTime).getTime() <= new Date().getTime()) {
                     showModal('Waktu Berakhir Tidak Valid', 'Waktu berakhir maintenance harus di masa depan jika diatur.', 'warning');
                     return;
@@ -2471,7 +2487,7 @@
 
             const newConfig = {
                 isActive: isActive,
-                startTime: isActive ? new Date().toISOString() : null,
+                startTime: isActive ? new Date().toISOString() : null, // Set startTime only if activating
                 endTime: endTime,
                 reason: reason,
                 estimatedDuration: estimatedDuration
