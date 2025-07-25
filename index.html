@@ -850,13 +850,13 @@
             });
             console.log("Products updated:", allProducts);
             if (document.getElementById('productGrid')) { 
-              displayProducts(); 
+                displayProducts(); 
             }
             if (document.getElementById('adminCodeProductSelect')) { 
-              populateAdminProductSelects(); 
+                populateAdminProductSelects(); 
             }
             if (document.getElementById('discountProductSelect')) { 
-              populateDiscountProductSelect(); 
+                populateDiscountProductSelect(); 
             }
             displayTopSellingProducts();
         });
@@ -884,7 +884,7 @@
             });
             console.log("Codes updated:", allCodes);
             if (document.getElementById('codeList')) { 
-              displayCodesForProduct(); 
+                displayCodesForProduct(); 
             }
         });
 
@@ -997,6 +997,7 @@
                 adminLogin.appendChild(closeBtn);
             }
         }
+        window.showAdminSecretLogin = showAdminSecretLogin; // Tambahkan baris ini
 
         function hideAdminSecretLogin() {
             document.getElementById('adminSecretLogin').style.display = 'none';
@@ -1005,6 +1006,7 @@
             document.getElementById('adminSecretCode').value = '';
             document.getElementById('adminSecretLoginError').textContent = '';
         }
+        window.hideAdminSecretLogin = hideAdminSecretLogin; // Tambahkan baris ini
 
         async function verifyAdminSecretLogin() {
             const email = document.getElementById('adminSecretEmail').value.trim();
@@ -1045,6 +1047,7 @@
                 errorElement.textContent = errorMessage;
             }
         }
+        window.verifyAdminSecretLogin = verifyAdminSecretLogin; // Tambahkan baris ini
 
         // --- Data Dummy untuk Notifikasi Penjualan ---
         const DUMMY_BUYER_NAMES = [
@@ -1075,12 +1078,8 @@
                 modalCopyButton.style.display = 'inline-block';
                 modalCopyButton.textContent = 'Salin Kode/ID';
                 modalCopyButton.onclick = () => {
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        showModal('Berhasil Disalin!', 'Teks berhasil disalin ke clipboard Anda.', 'success');
-                    }).catch(err => {
-                        showModal('Gagal Menyalin!', 'Maaf, gagal menyalin teks.', 'error');
-                        console.error('Failed to copy text: ', err);
-                    });
+                    document.execCommand('copy', false, textToCopy); // Menggunakan document.execCommand
+                    showModal('Berhasil Disalin!', 'Teks berhasil disalin ke clipboard Anda.', 'success');
                 };
             } else {
                 modalCopyButton.style.display = 'none';
@@ -1500,45 +1499,72 @@
         window.displayAllUsers = displayAllUsers;
 
         async function toggleAdminStatus(userId, makeAdmin) {
-            if (!confirm(`Apakah Anda yakin ingin ${makeAdmin ? 'menjadikan' : 'menghapus status admin'} pengguna ini?`)) {
-                return;
-            }
-            
-            try {
-                await updateDoc(doc(usersCol, userId), {
-                    isAdmin: makeAdmin
-                });
-                
-                showModal('Berhasil!', `Status admin berhasil ${makeAdmin ? 'diberikan' : 'dihapus'}.`, 'success');
-                displayAllUsers();
-                
-            } catch (error) {
-                console.error("Error updating admin status:", error);
-                showModal('Gagal!', 'Terjadi kesalahan saat mengubah status admin.', 'error');
-            }
+            // Menggunakan showModal untuk konfirmasi
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
+            const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+            const confirmationMessage = document.getElementById('confirmationMessage');
+
+            confirmationModal.querySelector('.modal-content').className = 'modal-content warning';
+            confirmationMessage.innerHTML = `Apakah Anda yakin ingin ${makeAdmin ? 'menjadikan' : 'menghapus status admin'} pengguna ini?`;
+            confirmationModal.style.display = 'flex';
+
+            confirmPurchaseBtn.onclick = async () => {
+                try {
+                    await updateDoc(doc(usersCol, userId), {
+                        isAdmin: makeAdmin
+                    });
+                    showModal('Berhasil!', `Status admin berhasil ${makeAdmin ? 'diberikan' : 'dihapus'}.`, 'success');
+                    displayAllUsers();
+                } catch (error) {
+                    console.error("Error updating admin status:", error);
+                    showModal('Gagal!', 'Terjadi kesalahan saat mengubah status admin.', 'error');
+                } finally {
+                    hideConfirmation();
+                }
+            };
+
+            cancelPurchaseBtn.onclick = () => {
+                showModal('Dibatalkan', 'Perubahan status admin dibatalkan.', 'warning');
+                hideConfirmation();
+            };
         }
         window.toggleAdminStatus = toggleAdminStatus;
 
         async function deleteUser(userId) {
-            if (!confirm('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan!')) {
-                return;
-            }
-            
-            try {
-                // Hapus data pengguna dari Firestore
-                await deleteDoc(doc(usersCol, userId));
-                
-                // Hapus akun dari Firebase Authentication
-                // Catatan: Untuk menghapus akun dari Authentication, Anda perlu login sebagai user tersebut
-                // atau menggunakan Cloud Functions dengan Firebase Admin SDK
-                
-                showModal('Berhasil!', 'Pengguna berhasil dihapus.', 'success');
-                displayAllUsers();
-                
-            } catch (error) {
-                console.error("Error deleting user:", error);
-                showModal('Gagal!', 'Terjadi kesalahan saat menghapus pengguna.', 'error');
-            }
+            // Menggunakan showModal untuk konfirmasi
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
+            const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+            const confirmationMessage = document.getElementById('confirmationMessage');
+
+            confirmationModal.querySelector('.modal-content').className = 'modal-content error'; // Gunakan warna error untuk penghapusan
+            confirmationMessage.innerHTML = 'Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan!';
+            confirmationModal.style.display = 'flex';
+
+            confirmPurchaseBtn.onclick = async () => {
+                try {
+                    // Hapus data pengguna dari Firestore
+                    await deleteDoc(doc(usersCol, userId));
+                    
+                    // Catatan: Untuk menghapus akun dari Authentication, Anda perlu login sebagai user tersebut
+                    // atau menggunakan Cloud Functions dengan Firebase Admin SDK.
+                    // Di sini, kita hanya menghapus dari Firestore.
+
+                    showModal('Berhasil!', 'Pengguna berhasil dihapus.', 'success');
+                    displayAllUsers();
+                } catch (error) {
+                    console.error("Error deleting user:", error);
+                    showModal('Gagal!', 'Terjadi kesalahan saat menghapus pengguna.', 'error');
+                } finally {
+                    hideConfirmation();
+                }
+            };
+
+            cancelPurchaseBtn.onclick = () => {
+                showModal('Dibatalkan', 'Penghapusan pengguna dibatalkan.', 'warning');
+                hideConfirmation();
+            };
         }
         window.deleteUser = deleteUser;
 
@@ -1558,10 +1584,14 @@
                 if (now >= endTime) {
                     saveDiscountConfigToFirestore({
                       isActive: false,
+                      percentage: 0, // Reset percentage
+                      targetType: 'all', // Reset target type
+                      targetProducts: [], // Reset target products
+                      targetUsers: '', // Reset target users
                       countdownEndTime: null
                     });
                     showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
-                    return; 
+                    // Tidak perlu return di sini, biarkan produk ditampilkan dengan harga normal
                 }
             }
 
@@ -1630,7 +1660,8 @@
                     (currentDiscountConfig.targetType === 'specific' && currentDiscountConfig.targetProducts.includes(product.id));
 
                 if (isUserTargeted && isProductTargeted) {
-                    finalPrice = product.price * (1 - currentDiscountConfig.percentage / 100);
+                    const discountedPrice = product.price * (1 - currentDiscountConfig.percentage / 100);
+                    finalPrice = discountedPrice;
                 }
             }
 
@@ -1821,11 +1852,11 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const userDoc = await getDoc(doc(usersCol, userCredential.user.uid));
                 if (userDoc.exists() && userDoc.data().isAdmin === true) {
-                     showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>! Anda adalah admin!`, 'success');
-                     setTimeout(() => showPage('admin'), 1000);
+                    showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>! Anda adalah admin!`, 'success');
+                    setTimeout(() => showPage('admin'), 1000);
                 } else {
-                     showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>!`, 'success');
-                     setTimeout(() => showPage('home'), 1000);
+                    showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>!`, 'success');
+                    setTimeout(() => showPage('home'), 1000);
                 }
             } catch (error) {
                 console.error("Error logging in:", error.message);
@@ -2055,15 +2086,32 @@
                 deleteButton.style.fontSize = '0.9em';
                 deleteButton.style.marginLeft = '10px';
                 deleteButton.onclick = async function() {
-                    if (confirm('Apakah Anda yakin ingin menghapus kode ini?')) {
+                    // Menggunakan showModal untuk konfirmasi
+                    const confirmationModal = document.getElementById('confirmationModal');
+                    const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
+                    const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+                    const confirmationMessage = document.getElementById('confirmationMessage');
+
+                    confirmationModal.querySelector('.modal-content').className = 'modal-content error'; // Gunakan warna error untuk penghapusan
+                    confirmationMessage.innerHTML = 'Apakah Anda yakin ingin menghapus kode ini? Tindakan ini tidak dapat dibatalkan!';
+                    confirmationModal.style.display = 'flex';
+
+                    confirmPurchaseBtn.onclick = async () => {
                         try {
                             await deleteDoc(doc(codesCol, code.id));
                             showModal('Berhasil!', 'Kode berhasil dihapus!', 'success');
                         } catch (error) {
                             console.error("Error deleting code:", error.message);
                             showModal('Gagal Menghapus Kode', 'Terjadi kesalahan saat menghapus kode.', 'error');
+                        } finally {
+                            hideConfirmation();
                         }
-                    }
+                    };
+
+                    cancelPurchaseBtn.onclick = () => {
+                        showModal('Dibatalkan', 'Penghapusan kode dibatalkan.', 'warning');
+                        hideConfirmation();
+                    };
                 };
 
                 const statusSpan = document.createElement('span');
@@ -2317,6 +2365,10 @@
                     
                     saveDiscountConfigToFirestore({
                       isActive: false,
+                      percentage: 0, // Reset percentage
+                      targetType: 'all', // Reset target type
+                      targetProducts: [], // Reset target products
+                      targetUsers: '', // Reset target users
                       countdownEndTime: null
                     });
                     showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
@@ -2551,6 +2603,12 @@
                 const adminLoginBtn = document.querySelector('.hidden-admin-login');
                 if (adminLoginBtn) {
                     adminLoginBtn.style.display = 'block';
+                }
+            } else {
+                // Sembunyikan tombol admin login jika tidak dalam maintenance mode
+                const adminLoginBtn = document.querySelector('.hidden-admin-login');
+                if (adminLoginBtn) {
+                    adminLoginBtn.style.display = 'none';
                 }
             }
         }
