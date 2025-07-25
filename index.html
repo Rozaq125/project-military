@@ -615,15 +615,19 @@
             position: fixed;
             bottom: 10px;
             left: 10px;
-            color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.3);
             font-size: 12px;
             cursor: pointer;
             transition: color 0.3s;
-            z-index: 2001;
+            z-index: 9999;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 3px;
         }
 
         .hidden-admin-login:hover {
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(0, 0, 0, 0.8);
         }
 
         .admin-secret-login {
@@ -731,8 +735,9 @@
             <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
             <p>Terima kasih atas kesabaran Anda.</p>
         </div>
-        <div class="hidden-admin-login" onclick="showAdminSecretLogin()">Login for admin</div>
     </div>
+
+    <div class="hidden-admin-login" onclick="showAdminSecretLogin()">Login for admin</div>
 
     <div id="adminSecretLogin" class="admin-secret-login">
         <h2>🔐 Admin Secret Login</h2>
@@ -977,7 +982,20 @@
 
         // --- Fungsi untuk Admin Secret Login ---
         function showAdminSecretLogin() {
-            document.getElementById('adminSecretLogin').style.display = 'block';
+            const adminLogin = document.getElementById('adminSecretLogin');
+            adminLogin.style.display = 'block';
+            
+            // Tambahkan tombol close jika belum ada
+            if (!adminLogin.querySelector('.close-button')) {
+                const closeBtn = document.createElement('span');
+                closeBtn.className = 'close-button';
+                closeBtn.innerHTML = '&times;';
+                closeBtn.style.position = 'absolute';
+                closeBtn.style.top = '10px';
+                closeBtn.style.right = '20px';
+                closeBtn.onclick = hideAdminSecretLogin;
+                adminLogin.appendChild(closeBtn);
+            }
         }
 
         function hideAdminSecretLogin() {
@@ -2525,6 +2543,14 @@
                 if (maintenanceCountdownInterval) {
                     clearInterval(maintenanceCountdownInterval);
                     maintenanceCountdownInterval = null;
+                }
+            }
+            
+            // SELALU tampilkan tombol admin login jika dalam maintenance mode
+            if (currentMaintenanceConfig.isActive) {
+                const adminLoginBtn = document.querySelector('.hidden-admin-login');
+                if (adminLoginBtn) {
+                    adminLoginBtn.style.display = 'block';
                 }
             }
         }
