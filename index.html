@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toko Item Roblox Anda - RZKSTUDIO</title>
     
-    <!-- Link Font Awesome untuk ikon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
     <style>
         /* style.css content starts here */
 
@@ -26,15 +23,6 @@
             --warning-color: #ffc107; /* Kuning untuk peringatan */
             --discount-color: #00ff00; /* Hijau terang untuk diskon */
             --old-price-color: #888; /* Warna abu-abu untuk harga lama */
-
-            /* Warna baru untuk Admin Panel */
-            --admin-sidebar-bg: #34225d; /* Ungu gelap */
-            --admin-sidebar-hover: #4a307a; /* Ungu lebih terang */
-            --admin-header-bg: #4a307a; /* Ungu lebih terang */
-            --admin-text-light: #f0f0f0;
-            --admin-text-dark: #a0a0a0;
-            --admin-active-item: #6a4a9a; /* Ungu aktif */
-            --admin-border-color: #5d428b; /* Border ungu */
         }
 
         body {
@@ -693,412 +681,10 @@
         }
 
         /* style.css content ends here */
-
-        /* --- NEW ADMIN PANEL STYLES --- */
-        body {
-            /* Remove default body flex for admin panel to allow full layout control */
-            display: block;
-            min-height: 100vh;
-        }
-
-        .dashboard-layout {
-            display: flex;
-            min-height: 100vh;
-            background-color: var(--bg-dark); /* Overall background */
-            width: 100%;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 250px; /* Fixed width for sidebar */
-            background-color: var(--admin-sidebar-bg);
-            color: var(--admin-text-light);
-            padding: 20px 0;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: fixed; /* Fixed sidebar */
-            height: 100vh;
-            top: 0;
-            left: 0;
-            z-index: 100; /* Ensure it's above content */
-            transition: transform 0.3s ease-in-out; /* For responsive toggle */
-            transform: translateX(0);
-        }
-
-        .sidebar.hidden {
-            transform: translateX(-100%);
-        }
-
-        .sidebar-header {
-            padding: 0 20px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--admin-border-color);
-            margin-bottom: 20px;
-        }
-
-        .sidebar-header .logo {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: var(--warning-color); /* Use warning color for logo */
-        }
-
-        .sidebar-header .toggle-sidebar-btn {
-            background: none;
-            border: none;
-            color: var(--admin-text-light);
-            font-size: 1.5em;
-            cursor: pointer;
-            display: none; /* Hidden on desktop, shown on mobile */
-        }
-
-        .sidebar-nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar-nav li {
-            margin-bottom: 5px;
-        }
-
-        .sidebar-nav .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: var(--admin-text-light);
-            text-decoration: none;
-            font-size: 1.05em;
-            transition: background-color 0.2s ease, color 0.2s ease;
-            border-radius: 5px;
-            margin: 0 10px;
-        }
-
-        .sidebar-nav .nav-item i {
-            margin-right: 10px;
-            width: 20px; /* Fixed width for icons */
-            text-align: center;
-        }
-
-        .sidebar-nav .nav-item:hover {
-            background-color: var(--admin-sidebar-hover);
-        }
-
-        .sidebar-nav .nav-item.active {
-            background-color: var(--admin-active-item);
-            font-weight: bold;
-        }
-
-        .sidebar-nav .has-submenu .nav-item {
-            justify-content: space-between;
-        }
-
-        .sidebar-nav .submenu {
-            list-style: none;
-            padding: 0;
-            margin: 5px 0 5px 20px;
-            background-color: rgba(0, 0, 0, 0.2); /* Slightly darker for submenu */
-            border-radius: 5px;
-            overflow: hidden;
-            max-height: 0;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .sidebar-nav .submenu.open {
-            max-height: 500px; /* Arbitrary large value to allow full expansion */
-        }
-
-        .sidebar-nav .submenu li a {
-            padding: 10px 20px 10px 45px; /* Indent submenu items */
-            font-size: 0.95em;
-            color: var(--admin-text-dark);
-        }
-
-        .sidebar-nav .submenu li a:hover {
-            background-color: var(--admin-sidebar-hover);
-            color: var(--admin-text-light);
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid var(--admin-border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .sidebar-footer .user-profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar-footer .user-profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid var(--accent-color);
-        }
-
-        .sidebar-footer .user-profile span {
-            font-weight: bold;
-            color: var(--admin-text-light);
-        }
-
-        .sidebar-footer .settings-btn {
-            background: none;
-            border: none;
-            color: var(--admin-text-dark);
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .sidebar-footer .settings-btn:hover {
-            color: var(--accent-color);
-        }
-
-        /* Main Content Wrapper */
-        .main-content-wrapper {
-            flex-grow: 1;
-            margin-left: 250px; /* Offset for fixed sidebar */
-            transition: margin-left 0.3s ease-in-out;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-dark); /* Main content background */
-        }
-
-        .main-content-wrapper.full-width {
-            margin-left: 0;
-        }
-
-        /* Top Navbar */
-        .top-navbar {
-            background-color: var(--admin-header-bg);
-            color: var(--admin-text-light);
-            padding: 15px 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 50; /* Below sidebar, above content */
-        }
-
-        .top-navbar .hamburger-menu {
-            background: none;
-            border: none;
-            color: var(--admin-text-light);
-            font-size: 1.5em;
-            cursor: pointer;
-            margin-right: 15px;
-            display: none; /* Hidden on desktop, shown on mobile */
-        }
-
-        .top-navbar .breadcrumbs {
-            font-size: 1.1em;
-            color: var(--admin-text-dark);
-        }
-
-        .top-navbar .breadcrumbs span:last-child {
-            font-weight: bold;
-            color: var(--admin-text-light);
-        }
-
-        .top-navbar .top-nav-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .top-navbar .user-dropdown {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .top-navbar .user-dropdown img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 8px;
-            border: 1px solid var(--accent-color);
-        }
-
-        .top-navbar .user-dropdown span {
-            font-weight: bold;
-        }
-
-        /* Page Content */
-        .page-content {
-            flex-grow: 1;
-            padding: 20px;
-            background-color: var(--bg-dark); /* Match body bg for content area */
-            color: var(--text-light);
-        }
-
-        /* General Admin Panel Section Styling */
-        .admin-panel-section {
-            background-color: var(--bg-medium);
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px var(--shadow-color);
-            margin-bottom: 20px;
-        }
-
-        .admin-panel-section h3 {
-            text-align: left;
-            color: var(--accent-color);
-            margin-top: 0;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        /* Table specific styles for admin panel */
-        .admin-panel-section .user-table,
-        .admin-panel-section .data-table { /* Generic table class */
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background-color: var(--bg-light); /* Table background */
-            border-radius: 8px;
-            overflow: hidden; /* For rounded corners on table */
-        }
-
-        .admin-panel-section .user-table th,
-        .admin-panel-section .data-table th,
-        .admin-panel-section .user-table td,
-        .admin-panel-section .data-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .admin-panel-section .user-table th,
-        .admin-panel-section .data-table th {
-            background-color: var(--admin-header-bg); /* Table header background */
-            color: var(--admin-text-light);
-            font-weight: bold;
-        }
-
-        .admin-panel-section .user-table tr:hover,
-        .admin-panel-section .data-table tr:hover {
-            background-color: var(--bg-medium); /* Hover for table rows */
-        }
-
-        /* Toggle Switch for 'Aktif' column */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--error-color); /* Off color */
-            transition: .4s;
-            border-radius: 20px;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .toggle-slider {
-            background-color: var(--success-color); /* On color */
-        }
-
-        input:focus + .toggle-slider {
-            box-shadow: 0 0 1px var(--success-color);
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(20px);
-        }
-
-        /* Responsive adjustments for admin panel */
-        @media (max-width: 992px) {
-            .sidebar {
-                width: 200px;
-            }
-            .main-content-wrapper {
-                margin-left: 200px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative; /* Allow sidebar to flow */
-                transform: translateX(0); /* Always visible on small screens */
-                padding-bottom: 0;
-            }
-            .sidebar.hidden { /* Override hidden state on small screens */
-                transform: translateX(0);
-            }
-            .sidebar-header .toggle-sidebar-btn {
-                display: block; /* Show hamburger on small screens */
-            }
-            .sidebar-nav {
-                display: none; /* Hide nav by default on small screens */
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.3s ease-out;
-            }
-            .sidebar-nav.open {
-                display: block; /* Show nav when toggled */
-                max-height: 500px; /* Adjust as needed */
-            }
-            .sidebar-footer {
-                display: none; /* Hide footer on small screens */
-            }
-            .main-content-wrapper {
-                margin-left: 0; /* No offset */
-                width: 100%; /* Take full width */
-            }
-            .top-navbar .hamburger-menu {
-                display: block; /* Show hamburger on mobile */
-            }
-            .top-navbar .breadcrumbs {
-                font-size: 0.9em;
-            }
-            .top-navbar .user-dropdown span {
-                display: none; /* Hide username on very small screens */
-            }
-            .admin-panel-section {
-                padding: 15px;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Main application content (for home, redeem, login, register) -->
-    <header id="mainHeader">
+    <header>
         <nav>
             <a href="#" onclick="showPage('home')">Beranda</a>
             <a href="#" onclick="showPage('redeem')">Tukar ID Pesanan</a>
@@ -1114,82 +700,8 @@
     </header>
 
     <main class="container" id="appContent">
-        <!-- Content for home, redeem, login, register pages will be loaded here -->
     </main>
 
-    <!-- Admin Dashboard Layout (initially hidden) -->
-    <div class="dashboard-layout" id="adminDashboardLayout" style="display: none;">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="adminSidebar">
-            <div>
-                <div class="sidebar-header">
-                    <span class="logo">RZKSTUDIO</span>
-                    <button class="toggle-sidebar-btn" id="toggleSidebarBtn">☰</button>
-                </div>
-                <nav class="sidebar-nav" id="sidebarNav">
-                    <ul>
-                        <li><a href="#" class="nav-item active" data-page="home-admin"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                        <li class="has-submenu">
-                            <a href="#" class="nav-item" data-submenu="website-settings"><i class="fas fa-globe"></i> Website <i class="fas fa-chevron-down submenu-arrow"></i></a>
-                            <ul class="submenu" id="website-settings-submenu">
-                                <li><a href="#" class="nav-item" data-page="product-management">Manajemen Produk</a></li>
-                                <li><a href="#" class="nav-item" data-page="code-management">Manajemen Kode</a></li>
-                                <li><a href="#" class="nav-item" data-page="discount-settings">Pengaturan Diskon</a></li>
-                                <li><a href="#" class="nav-item" data-page="maintenance-settings">Mode Pemeliharaan</a></li>
-                            </ul>
-                        </li>
-                        <li><a href="#" class="nav-item" data-page="user-management"><i class="fas fa-users"></i> Pengguna</a></li>
-                        <li><a href="#" class="nav-item" data-page="order-history"><i class="fas fa-history"></i> Riwayat Pesanan</a></li>
-                        <!-- Placeholder for other menu items from the image if needed in the future -->
-                        <!-- <li><a href="#" class="nav-item"><i class="fas fa-cube"></i> Module</a></li>
-                        <li><a href="#" class="nav-item"><i class="fas fa-user-tag"></i> Role</a></li>
-                        <li><a href="#" class="nav-item"><i class="fas fa-bars"></i> Menu</a></li>
-                        <li class="has-submenu">
-                            <a href="#" class="nav-item" data-submenu="assign-role"><i class="fas fa-user-shield"></i> Assign Role <i class="fas fa-chevron-down submenu-arrow"></i></a>
-                            <ul class="submenu" id="assign-role-submenu">
-                                <li><a href="#" class="nav-item">Submenu 1</a></li>
-                                <li><a href="#" class="nav-item">Submenu 2</a></li>
-                            </ul>
-                        </li>
-                        <li><a href="#" class="nav-item"><i class="fas fa-cogs"></i> Setting Website</a></li>
-                        <li><a href="#" class="nav-item"><i class="fas fa-paint-brush"></i> Layout Setting</a></li> -->
-                    </ul>
-                </nav>
-            </div>
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <img src="https://placehold.co/40x40/cccccc/333333?text=AD" alt="User Avatar">
-                    <span id="adminSidebarUsername">Admin</span>
-                </div>
-                <button class="settings-btn" onclick="showModal('Pengaturan Profil', 'Fitur pengaturan profil akan datang segera!', 'info')"><i class="fas fa-cog"></i></button>
-            </div>
-        </aside>
-
-        <!-- Main Content Wrapper -->
-        <div class="main-content-wrapper" id="mainContentWrapper">
-            <!-- Top Navbar -->
-            <header class="top-navbar">
-                <button class="hamburger-menu" id="hamburgerMenuBtn">☰</button>
-                <div class="breadcrumbs" id="adminBreadcrumbs">
-                    <span>Home</span> / <span>Dashboard</span>
-                </div>
-                <div class="top-nav-right">
-                    <div class="user-dropdown">
-                        <img src="https://placehold.co/30x30/cccccc/333333?text=AD" alt="User Avatar">
-                        <span id="adminTopNavUsername">Admin</span>
-                    </div>
-                    <button class="settings-btn" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i></button>
-                </div>
-            </header>
-
-            <!-- Page Content -->
-            <main class="page-content" id="adminPanelContent">
-                <!-- Dynamic admin content will be loaded here -->
-            </main>
-        </div>
-    </div>
-
-    <!-- Modals and Notifications (remain global) -->
     <div id="customModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">&times;</span>
@@ -1337,7 +849,6 @@
                 }
             });
             console.log("Products updated:", allProducts);
-            // Hanya update jika elemen ada di DOM saat ini
             if (document.getElementById('productGrid')) { 
                 displayProducts(); 
             }
@@ -1348,10 +859,6 @@
                 populateDiscountProductSelect(); 
             }
             displayTopSellingProducts();
-            // Jika di halaman admin dan melihat manajemen produk, perbarui
-            if (document.getElementById('productManagementSection')) {
-                renderProductManagement();
-            }
         });
 
         onSnapshot(codesCol, (snapshot) => {
@@ -1379,10 +886,6 @@
             if (document.getElementById('codeList')) { 
                 displayCodesForProduct(); 
             }
-            // Jika di halaman admin dan melihat manajemen kode, perbarui
-            if (document.getElementById('codeManagementSection')) {
-                renderCodeManagement();
-            }
         });
 
         onSnapshot(usersCol, (snapshot) => {
@@ -1403,7 +906,7 @@
             
             // Update user table if on admin page
             if (document.getElementById('userManagementSection')) {
-                renderUserManagement(); // Panggil renderUserManagement untuk memperbarui tabel
+                displayAllUsers();
             }
         });
 
@@ -1418,9 +921,6 @@
             });
             console.log("Orders updated:", allOrders);
             displayTopSellingProducts(); 
-            if (document.getElementById('orderHistorySection')) {
-                renderOrderHistory(); // Perbarui riwayat pesanan jika sedang dilihat
-            }
         });
 
         onSnapshot(doc(configCol, "global_settings"), (docSnap) => {
@@ -1440,13 +940,6 @@
                 checkMaintenanceModeAndRedirect(); 
                 loadDiscountConfig(); 
                 loadMaintenanceConfig(); 
-                // Perbarui tampilan admin jika sedang di halaman pengaturan diskon/maintenance
-                if (document.getElementById('discountSettingsSection')) {
-                    renderDiscountSettings();
-                }
-                if (document.getElementById('maintenanceSettingsSection')) {
-                    renderMaintenanceSettings();
-                }
             } else {
                 console.log("Global settings document does not exist, initializing default in Firestore.");
                 setDoc(doc(configCol, "global_settings"), {
@@ -1479,11 +972,6 @@
                 console.log("Current User (Firebase Auth + Firestore):", currentUser);
                 updateAuthLinks();
                 checkMaintenanceModeAndRedirect();
-                // Update admin panel username displays
-                if (document.getElementById('adminSidebarUsername')) {
-                    document.getElementById('adminSidebarUsername').textContent = currentUser.email;
-                    document.getElementById('adminTopNavUsername').textContent = currentUser.email;
-                }
             } else {
                 currentUser = null;
                 console.log("User logged out.");
@@ -1509,7 +997,7 @@
                 adminLogin.appendChild(closeBtn);
             }
         }
-        window.showAdminSecretLogin = showAdminSecretLogin;
+        window.showAdminSecretLogin = showAdminSecretLogin; // Tambahkan baris ini
 
         function hideAdminSecretLogin() {
             document.getElementById('adminSecretLogin').style.display = 'none';
@@ -1518,7 +1006,7 @@
             document.getElementById('adminSecretCode').value = '';
             document.getElementById('adminSecretLoginError').textContent = '';
         }
-        window.hideAdminSecretLogin = hideAdminSecretLogin;
+        window.hideAdminSecretLogin = hideAdminSecretLogin; // Tambahkan baris ini
 
         async function verifyAdminSecretLogin() {
             const email = document.getElementById('adminSecretEmail').value.trim();
@@ -1543,7 +1031,7 @@
                 if (userDoc.exists() && userDoc.data().isAdmin === true) {
                     showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>! Anda adalah admin!`, 'success');
                     hideAdminSecretLogin();
-                    showPage('admin'); // Redirect to admin panel
+                    showPage('admin');
                 } else {
                     await signOut(auth);
                     errorElement.textContent = 'Akun ini bukan admin atau tidak memiliki akses!';
@@ -1559,7 +1047,7 @@
                 errorElement.textContent = errorMessage;
             }
         }
-        window.verifyAdminSecretLogin = verifyAdminSecretLogin;
+        window.verifyAdminSecretLogin = verifyAdminSecretLogin; // Tambahkan baris ini
 
         // --- Data Dummy untuk Notifikasi Penjualan ---
         const DUMMY_BUYER_NAMES = [
@@ -1579,10 +1067,7 @@
                 modal.querySelector('.modal-content').classList.add('error');
             } else if (type === 'warning') {
                 modal.querySelector('.modal-content').classList.add('warning');
-            } else if (type === 'info') { // Add info type
-                modal.querySelector('.modal-content').classList.add('warning'); // Use warning style for info
-            }
-            else {
+            } else {
                 modal.querySelector('.modal-content').classList.add('success');
             }
 
@@ -1634,19 +1119,13 @@
         function updateAuthLinks() {
             const authLinks = document.getElementById('authLinks');
             const loggedInLinks = document.getElementById('loggedInLinks');
-            const adminSidebarUsername = document.getElementById('adminSidebarUsername');
-            const adminTopNavUsername = document.getElementById('adminTopNavUsername');
 
             if (currentUser) {
                 authLinks.style.display = 'none';
                 loggedInLinks.style.display = 'inline-block';
-                if (adminSidebarUsername) adminSidebarUsername.textContent = currentUser.email;
-                if (adminTopNavUsername) adminTopNavUsername.textContent = currentUser.email;
             } else {
                 authLinks.style.display = 'inline-block';
                 loggedInLinks.style.display = 'none';
-                if (adminSidebarUsername) adminSidebarUsername.textContent = 'Guest';
-                if (adminTopNavUsername) adminTopNavUsername.textContent = 'Guest';
             }
         }
         window.updateAuthLinks = updateAuthLinks;
@@ -1666,12 +1145,7 @@
         // --- FUNGSI TAMPILAN HALAMAN (SPA Logic) ---
         function showPage(pageName) {
             const appContent = document.getElementById('appContent');
-            const mainHeader = document.getElementById('mainHeader');
-            const adminDashboardLayout = document.getElementById('adminDashboardLayout');
-            const adminPanelContent = document.getElementById('adminPanelContent');
-            const adminBreadcrumbs = document.getElementById('adminBreadcrumbs');
-
-            // Reset active links in main nav
+            
             document.querySelectorAll('nav a').forEach(link => link.classList.remove('active'));
             const activeLink = document.querySelector(`nav a[onclick="showPage('${pageName}')"]`);
             if (activeLink) activeLink.classList.add('active');
@@ -1679,266 +1153,236 @@
             const isAdminLoggedIn = (currentUser && currentUser.isAdmin === true);
             const maintenanceOverlay = document.getElementById('maintenanceOverlay');
 
-            // Handle maintenance mode redirection for non-admin users
-            if (maintenanceConfig.isActive && !isAdminLoggedIn && pageName !== 'home' && pageName !== 'admin') { // Admin can access admin page during maintenance
+            if (maintenanceConfig.isActive && !isAdminLoggedIn && pageName !== 'home') {
                 maintenanceOverlay.style.display = 'flex';
-                appContent.style.display = 'none';
-                if (adminDashboardLayout) adminDashboardLayout.style.display = 'none';
+                appContent.innerHTML = '';
                 return;
             } else {
                 maintenanceOverlay.style.display = 'none';
             }
 
-            // Determine which layout to show
-            if (pageName === 'admin') {
-                if (!isAdminLoggedIn) {
-                    showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk mengakses halaman admin.', 'error');
+            let htmlContent = '';
+            switch (pageName) {
+                case 'home':
+                    htmlContent = `
+                        <h1>🎮 Item Game Milik Artvive Studio 💰</h1>
+                        <p>Beli item-item keren untuk game milik Artvive studio,Anda di sini dapat item melalui kode redeem instan!</p>
+                        <div id="discountCountdownSection" class="discount-countdown-section" style="display:none;">
+                            <h2>Penawaran Spesial Berakhir Dalam!</h2>
+                            <div class="countdown-timer" id="countdownTimer"></div>
+                            <p id="countdownMessage"></p>
+                        </div>
+                        <div class="product-grid" id="productGrid">
+                            </div>
+                        <div class="top-products-list" id="topProductsList">
+                            </div>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    displayProducts();
+                    displayTopSellingProducts();
+                    startCountdown();
+                    break;
+
+                case 'redeem':
+                    htmlContent = `
+                        <h2>Dapatkan Kode Anda!</h2>
+                        <p>Masukkan ID Pesanan Anda di bawah ini untuk mendapatkan kode redeem sesuai yang kamu beli.</p>
+                        <div class="form-group">
+                            <label for="orderIdInput">ID Pesanan:</label>
+                            <input type="text" id="orderIdInput" placeholder="Tempel ID Pesanan Anda di sini..." autocomplete="off">
+                        </div>
+                        <button onclick="redeemCode()">Dapatkan Kode</button>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    break;
+
+                case 'login':
+                    if (currentUser) {
+                        showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.email}. Silakan logout terlebih dahulu jika ingin login dengan akun lain.`, 'warning');
+                        return;
+                    }
+                    htmlContent = `
+                        <h2>Login</h2>
+                        <div class="form-group">
+                            <label for="loginEmail">Email:</label>
+                            <input type="email" id="loginEmail" placeholder="Masukkan email Anda">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password:</label>
+                            <input type="password" id="loginPassword" placeholder="Masukkan password Anda">
+                        </div>
+                        <button onclick="loginUser()">Login</button>
+                        <p style="text-align:center; margin-top:20px; color:var(--text-medium);">Belum punya akun? <a href="#" onclick="showPage('register')" style="color:var(--accent-color);">Daftar di sini</a></p>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    break;
+
+                case 'register':
+                    if (currentUser) {
+                        showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.email}. Silakan logout terlebih dahulu jika ingin daftar akun baru.`, 'warning');
+                        return;
+                    }
+                    htmlContent = `
+                        <h2>Register Akun Baru</h2>
+                        <div class="form-group">
+                            <label for="regEmail">Email:</label>
+                            <input type="email" id="regEmail" placeholder="Gunakan email Anda sebagai username">
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Password:</label>
+                            <input type="password" id="regPassword" placeholder="Buat password Anda (minimal 6 karakter)">
+                        </div>
+                        <button onclick="registerUser()">Daftar</button>
+                        <p style="text-align:center; margin-top:20px; color:var(--text-medium);">Sudah punya akun? <a href="#" onclick="showPage('login')" style="color:var(--accent-color);">Login di sini</a></p>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    break;
+
+                case 'admin':
+                    if (!currentUser || !currentUser.isAdmin) {
+                        showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk mengakses halaman admin.', 'error');
+                        showPage('home');
+                        return;
+                    }
+                    htmlContent = `
+                        <h2>🛠️ Panel Admin 🔒</h2>
+                        <p style="text-align:center; color:var(--text-medium);">Kelola produk, kode, dan pengguna di sini.</p>
+
+                        <div id="userManagementSection">
+                            <h3>Manajemen Pengguna</h3>
+                            <div class="form-group">
+                                <label for="newUserEmail">Email Pengguna Baru:</label>
+                                <input type="email" id="newUserEmail" placeholder="Masukkan email pengguna baru">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserPassword">Password:</label>
+                                <input type="password" id="newUserPassword" placeholder="Buat password untuk pengguna">
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserIsAdmin">Jenis Akun:</label>
+                                <select id="newUserIsAdmin">
+                                    <option value="false">Pengguna Biasa</option>
+                                    <option value="true">Admin</option>
+                                </select>
+                            </div>
+                            <button onclick="createUserFromAdmin()">Buat Akun</button>
+
+                            <h3 style="margin-top: 30px;">Daftar Semua Pengguna</h3>
+                            <div id="usersTableContainer">
+                                <!-- Tabel pengguna akan dimuat di sini -->
+                            </div>
+                        </div>
+
+                        <h3 style="margin-top: 40px;">Tambah Produk Baru</h3>
+                        <div class="form-group">
+                            <label for="adminProductName">Nama Produk:</label>
+                            <input type="text" id="adminProductName" placeholder="Contoh: Gamepass VIP">
+                        </div>
+                        <div class="form-group">
+                            <label for="adminProductPrice">Harga (IDR):</label>
+                            <input type="number" id="adminProductPrice" placeholder="Contoh: 50000">
+                        </div>
+                        <div class="form-group">
+                            <label for="adminProductImage">URL Gambar Produk (Opsional):</label>
+                            <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/gambar_produk.png">
+                        </div>
+                        <button onclick="addProduct()">Tambah Produk</button>
+
+                        <h3>Tambah Kode untuk Produk</h3>
+                        <div class="form-group">
+                            <label for="adminCodeProductSelect">Pilih Produk:</label>
+                            <select id="adminCodeProductSelect">
+                                </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="adminNewCodes">Kode Baru (satu per baris):</label>
+                            <textarea id="adminNewCodes" rows="10" placeholder="Masukkan kode baru, satu per baris. Contoh:&#10;KODE_VIP_123&#10;KODE_GAMEPASS_ABC&#10;KODE_UANG_XYZ"></textarea>
+                        </div>
+                        <button onclick="addCodes()">Tambah Kode</button>
+
+                        <h3>Daftar Kode (Per Produk)</h3>
+                        <div class="form-group">
+                            <label for="adminViewCodeProductSelect">Pilih Produk untuk Melihat Kode:</label>
+                            <select id="adminViewCodeProductSelect" onchange="displayCodesForProduct()">
+                                </select>
+                        </div>
+                        <div id="codeList">
+                            <p style="text-align:center; color:var(--text-medium);">Pilih produk untuk melihat daftar kodenya.</p>
+                        </div>
+
+                        <h3 style="margin-top: 40px;">💰 Pengaturan Diskon 💰</h3>
+                        <div class="form-group">
+                            <label for="discountStatus">Status Diskon:</label>
+                            <input type="checkbox" id="discountStatus" onchange="toggleDiscountFields()"> Aktifkan Diskon
+                        </div>
+                        <div id="discountSettingsFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="discountPercentage">Persentase Diskon (%):</label>
+                                <input type="number" id="discountPercentage" min="1" max="100" value="10">
+                            </div>
+                            <div class="form-group">
+                                <label for="discountCountdownEndTime">Waktu Berakhir Diskon (Opsional):</label>
+                                <input type="datetime-local" id="discountCountdownEndTime">
+                                <small style="color:var(--text-medium);">Diskon akan otomatis nonaktif setelah waktu ini.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="discountTargetType">Target Diskon:</label>
+                                <select id="discountTargetType" onchange="toggleDiscountTargetProductSelect()">
+                                    <option value="all">Semua Produk</option>
+                                    <option value="specific">Produk Tertentu</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="discountSpecificProductSelect" style="display: none;">
+                                <label for="discountProductSelect">Pilih Produk (CTRL+klik untuk pilih banyak):</label>
+                                <select id="discountProductSelect" multiple size="5">
+                                    </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="discountTargetUsers">Target Pengguna (pisahkan dengan koma, kosongkan untuk semua):</label>
+                                <input type="text" id="discountTargetUsers" placeholder="contoh: user1@email.com, user2@email.com">
+                            </div>
+                            <button onclick="saveDiscountConfig()">Simpan Pengaturan Diskon</button>
+                        </div>
+
+                        <h3 style="margin-top: 40px;">🚧 Pengaturan Maintenance Mode 🚧</h3>
+                        <div class="form-group">
+                            <label for="maintenanceStatus">Status Maintenance Mode:</label>
+                            <input type="checkbox" id="maintenanceStatus" onchange="toggleMaintenanceFields()"> Aktifkan Mode Pemeliharaan
+                        </div>
+                        <div id="maintenanceSettingsFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="maintenanceReason">Alasan Maintenance (Ditampilkan ke Pengguna):</label>
+                                <textarea id="maintenanceReason" rows="3" placeholder="Contoh: Sedang melakukan update sistem pembayaran..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="maintenanceDuration">Perkiraan Durasi (Ditampilkan ke Pengguna):</label>
+                                <input type="text" id="maintenanceDuration" placeholder="Contoh: 2 jam, 30 menit">
+                            </div>
+                            <div class="form-group">
+                                <label for="maintenanceEndTime">Waktu Berakhir Maintenance (Opsional):</label>
+                                <input type="datetime-local" id="maintenanceEndTime">
+                                <small id="maintenanceEndTimeHelperText" style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
+                            </div>
+                            <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
+                        </div>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    populateAdminProductSelects();
+                    populateDiscountProductSelect();
+                    loadDiscountConfig();
+                    loadMaintenanceConfig();
+                    displayAllUsers();
+                    break;
+
+                default:
                     showPage('home');
-                    return;
-                }
-                mainHeader.style.display = 'none';
-                appContent.style.display = 'none';
-                adminDashboardLayout.style.display = 'flex'; // Show admin layout
-                // Set default admin page content
-                renderAdminPage('dashboard'); // Default to dashboard or first admin section
-            } else {
-                mainHeader.style.display = 'flex'; // Show main header
-                appContent.style.display = 'block'; // Show main content area
-                if (adminDashboardLayout) adminDashboardLayout.style.display = 'none'; // Hide admin layout
-                appContent.innerHTML = ''; // Clear main content
-
-                let htmlContent = '';
-                switch (pageName) {
-                    case 'home':
-                        htmlContent = `
-                            <h1>🎮 Item Game Milik Artvive Studio 💰</h1>
-                            <p>Beli item-item keren untuk game milik Artvive studio,Anda di sini dapat item melalui kode redeem instan!</p>
-                            <div id="discountCountdownSection" class="discount-countdown-section" style="display:none;">
-                                <h2>Penawaran Spesial Berakhir Dalam!</h2>
-                                <div class="countdown-timer" id="countdownTimer"></div>
-                                <p id="countdownMessage"></p>
-                            </div>
-                            <div class="product-grid" id="productGrid">
-                            </div>
-                            <div class="top-products-list" id="topProductsList">
-                            </div>
-                        `;
-                        appContent.innerHTML = htmlContent;
-                        displayProducts();
-                        displayTopSellingProducts();
-                        startCountdown();
-                        break;
-
-                    case 'redeem':
-                        htmlContent = `
-                            <h2>Dapatkan Kode Anda!</h2>
-                            <p>Masukkan ID Pesanan Anda di bawah ini untuk mendapatkan kode redeem sesuai yang kamu beli.</p>
-                            <div class="form-group">
-                                <label for="orderIdInput">ID Pesanan:</label>
-                                <input type="text" id="orderIdInput" placeholder="Tempel ID Pesanan Anda di sini..." autocomplete="off">
-                            </div>
-                            <button onclick="redeemCode()">Dapatkan Kode</button>
-                        `;
-                        appContent.innerHTML = htmlContent;
-                        break;
-
-                    case 'login':
-                        if (currentUser) {
-                            showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.email}. Silakan logout terlebih dahulu jika ingin login dengan akun lain.`, 'warning');
-                            return;
-                        }
-                        htmlContent = `
-                            <h2>Login</h2>
-                            <div class="form-group">
-                                <label for="loginEmail">Email:</label>
-                                <input type="email" id="loginEmail" placeholder="Masukkan email Anda">
-                            </div>
-                            <div class="form-group">
-                                <label for="loginPassword">Password:</label>
-                                <input type="password" id="loginPassword" placeholder="Masukkan password Anda">
-                            </div>
-                            <button onclick="loginUser()">Login</button>
-                            <p style="text-align:center; margin-top:20px; color:var(--text-medium);">Belum punya akun? <a href="#" onclick="showPage('register')" style="color:var(--accent-color);">Daftar di sini</a></p>
-                        `;
-                        appContent.innerHTML = htmlContent;
-                        break;
-
-                    case 'register':
-                        if (currentUser) {
-                            showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.email}. Silakan logout terlebih dahulu jika ingin daftar akun baru.`, 'warning');
-                            return;
-                        }
-                        htmlContent = `
-                            <h2>Register Akun Baru</h2>
-                            <div class="form-group">
-                                <label for="regEmail">Email:</label>
-                                <input type="email" id="regEmail" placeholder="Gunakan email Anda sebagai username">
-                            </div>
-                            <div class="form-group">
-                                <label for="regPassword">Password:</label>
-                                <input type="password" id="regPassword" placeholder="Buat password Anda (minimal 6 karakter)">
-                            </div>
-                            <button onclick="registerUser()">Daftar</button>
-                            <p style="text-align:center; margin-top:20px; color:var(--text-medium);">Sudah punya akun? <a href="#" onclick="showPage('login')" style="color:var(--accent-color);">Login di sini</a></p>
-                        `;
-                        appContent.innerHTML = htmlContent;
-                        break;
-                }
+                    break;
             }
             checkMaintenanceModeAndRedirect();
         }
         window.showPage = showPage;
 
-        // --- FUNGSI NAVIGASI ADMIN PANEL ---
-        function renderAdminPage(adminPageName) {
-            const adminPanelContent = document.getElementById('adminPanelContent');
-            const adminBreadcrumbs = document.getElementById('adminBreadcrumbs');
-            if (!adminPanelContent || !adminBreadcrumbs) return;
-
-            // Update active state in sidebar
-            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => item.classList.remove('active'));
-            document.querySelectorAll('.sidebar-nav .submenu').forEach(submenu => submenu.classList.remove('open'));
-
-            let breadcrumbPath = 'Home / ';
-            let currentActiveLink = null;
-
-            switch (adminPageName) {
-                case 'dashboard':
-                    adminPanelContent.innerHTML = `
-                        <div class="admin-panel-section">
-                            <h3>Selamat Datang di Dashboard Admin!</h3>
-                            <p>Gunakan menu di samping untuk mengelola toko Anda.</p>
-                            <p>Email Admin: <strong>${currentUser.email}</strong></p>
-                            <p>ID Pengguna: <strong>${currentUser.uid}</strong></p>
-                        </div>
-                    `;
-                    breadcrumbPath += 'Dashboard';
-                    currentActiveLink = document.querySelector('[data-page="home-admin"]');
-                    break;
-                case 'product-management':
-                    renderProductManagement();
-                    breadcrumbPath += 'Website / Manajemen Produk';
-                    currentActiveLink = document.querySelector('[data-page="product-management"]');
-                    break;
-                case 'code-management':
-                    renderCodeManagement();
-                    breadcrumbPath += 'Website / Manajemen Kode';
-                    currentActiveLink = document.querySelector('[data-page="code-management"]');
-                    break;
-                case 'discount-settings':
-                    renderDiscountSettings();
-                    breadcrumbPath += 'Website / Pengaturan Diskon';
-                    currentActiveLink = document.querySelector('[data-page="discount-settings"]');
-                    break;
-                case 'maintenance-settings':
-                    renderMaintenanceSettings();
-                    breadcrumbPath += 'Website / Mode Pemeliharaan';
-                    currentActiveLink = document.querySelector('[data-page="maintenance-settings"]');
-                    break;
-                case 'user-management':
-                    renderUserManagement();
-                    breadcrumbPath += 'Pengguna';
-                    currentActiveLink = document.querySelector('[data-page="user-management"]');
-                    break;
-                case 'order-history':
-                    renderOrderHistory();
-                    breadcrumbPath += 'Riwayat Pesanan';
-                    currentActiveLink = document.querySelector('[data-page="order-history"]');
-                    break;
-                default:
-                    adminPanelContent.innerHTML = `
-                        <div class="admin-panel-section">
-                            <h3>Halaman Tidak Ditemukan</h3>
-                            <p>Konten untuk halaman ini belum tersedia.</p>
-                        </div>
-                    `;
-                    breadcrumbPath += 'Halaman Tidak Dikenal';
-                    break;
-            }
-
-            if (currentActiveLink) {
-                currentActiveLink.classList.add('active');
-                // Open parent submenu if it's a submenu item
-                const parentSubmenu = currentActiveLink.closest('.submenu');
-                if (parentSubmenu) {
-                    parentSubmenu.classList.add('open');
-                    const parentNavItem = parentSubmenu.previousElementSibling;
-                    if (parentNavItem) {
-                        parentNavItem.classList.add('active'); // Highlight parent too
-                    }
-                }
-            }
-            adminBreadcrumbs.innerHTML = breadcrumbPath;
-        }
-        window.renderAdminPage = renderAdminPage; // Expose to global scope for onclick
-
-        // Event listeners for sidebar navigation
-        document.addEventListener('click', (event) => {
-            if (event.target.matches('.sidebar-nav .nav-item[data-page]')) {
-                event.preventDefault();
-                const page = event.target.dataset.page;
-                renderAdminPage(page);
-            } else if (event.target.matches('.sidebar-nav .nav-item[data-submenu]')) {
-                event.preventDefault();
-                const submenuId = event.target.dataset.submenu + '-submenu';
-                const submenu = document.getElementById(submenuId);
-                if (submenu) {
-                    submenu.classList.toggle('open');
-                    event.target.classList.toggle('active'); // Toggle active state for parent
-                }
-            }
-        });
-
-        // Toggle sidebar for mobile
-        document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
-            const sidebar = document.getElementById('adminSidebar');
-            const mainContentWrapper = document.getElementById('mainContentWrapper');
-            sidebar.classList.toggle('hidden');
-            mainContentWrapper.classList.toggle('full-width');
-        });
-
-        // Hamburger menu for mobile top nav
-        document.getElementById('hamburgerMenuBtn').addEventListener('click', () => {
-            const sidebar = document.getElementById('adminSidebar');
-            const sidebarNav = document.getElementById('sidebarNav');
-            sidebar.classList.toggle('hidden'); // This might be redundant if sidebar is relative
-            sidebarNav.classList.toggle('open');
-        });
-
-
         // --- FUNGSI MANAJEMEN PENGGUNA ---
-        async function renderUserManagement() {
-            const adminPanelContent = document.getElementById('adminPanelContent');
-            adminPanelContent.innerHTML = `
-                <div class="admin-panel-section">
-                    <h3>Manajemen Pengguna</h3>
-                    <div class="form-group">
-                        <label for="newUserEmail">Email Pengguna Baru:</label>
-                        <input type="email" id="newUserEmail" placeholder="Masukkan email pengguna baru">
-                    </div>
-                    <div class="form-group">
-                        <label for="newUserPassword">Password:</label>
-                        <input type="password" id="newUserPassword" placeholder="Buat password untuk pengguna">
-                    </div>
-                    <div class="form-group">
-                        <label for="newUserIsAdmin">Jenis Akun:</label>
-                        <select id="newUserIsAdmin">
-                            <option value="false">Pengguna Biasa</option>
-                            <option value="true">Admin</option>
-                        </select>
-                    </div>
-                    <button onclick="createUserFromAdmin()">Buat Akun</button>
-
-                    <h3 style="margin-top: 30px;">Daftar Semua Pengguna</h3>
-                    <div id="usersTableContainer">
-                        <!-- Tabel pengguna akan dimuat di sini -->
-                    </div>
-                </div>
-            `;
-            displayAllUsers();
-        }
-        window.renderUserManagement = renderUserManagement; // Expose for direct call
-
         async function createUserFromAdmin() {
             const emailInput = document.getElementById('newUserEmail');
             const passwordInput = document.getElementById('newUserPassword');
@@ -2020,7 +1464,7 @@
                     }
                     
                     const createdAt = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('id-ID') : '-';
-                    const createdBy = userData.createdBy ? (allUsers[userData.createdBy]?.username || 'System') : 'System'; // Default to 'System' if createdBy not found
+                    const createdBy = userData.createdBy ? (allUsers[userData.createdBy]?.username || 'Admin') : 'System';
                     
                     html += `
                         <tr>
@@ -2180,7 +1624,7 @@
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 productCard.innerHTML = `
-                    <img src="${product.image || 'https://placehold.co/150/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}">
+                    <img src="${product.image || 'https://via.placeholder.com/150/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}">
                     <h3>${product.name}</h3>
                     <p class="price-info">
                         ${originalPriceHtml}
@@ -2427,161 +1871,7 @@
         }
         window.loginUser = loginUser;
 
-        // --- FUNGSI SPESIFIK UNTUK ADMIN PANEL SECTIONS ---
-
-        // Render Product Management Section
-        async function renderProductManagement() {
-            const adminPanelContent = document.getElementById('adminPanelContent');
-            adminPanelContent.innerHTML = `
-                <div class="admin-panel-section" id="productManagementSection">
-                    <h3>Manajemen Produk</h3>
-                    <div class="form-group">
-                        <label for="adminProductName">Nama Produk:</label>
-                        <input type="text" id="adminProductName" placeholder="Contoh: Gamepass VIP">
-                    </div>
-                    <div class="form-group">
-                        <label for="adminProductPrice">Harga (IDR):</label>
-                        <input type="number" id="adminProductPrice" placeholder="Contoh: 50000">
-                    </div>
-                    <div class="form-group">
-                        <label for="adminProductImage">URL Gambar Produk (Opsional):</label>
-                        <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/gambar_produk.png">
-                    </div>
-                    <button onclick="addProduct()">Tambah Produk</button>
-
-                    <h3 style="margin-top: 40px;">Daftar Produk</h3>
-                    <div id="productsTableContainer">
-                        <!-- Product list will be loaded here -->
-                    </div>
-                </div>
-            `;
-            displayProductListForAdmin();
-        }
-        window.renderProductManagement = renderProductManagement;
-
-        // Display product list in admin panel
-        async function displayProductListForAdmin() {
-            const productsTableContainer = document.getElementById('productsTableContainer');
-            if (!productsTableContainer) return;
-
-            const products = allProducts;
-            const productArray = Object.values(products);
-
-            if (productArray.length === 0) {
-                productsTableContainer.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Belum ada produk yang tersedia.</p>';
-                return;
-            }
-
-            let html = `
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nama Produk</th>
-                            <th>Harga</th>
-                            <th>Gambar</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            productArray.forEach(product => {
-                html += `
-                    <tr>
-                        <td>${product.name}</td>
-                        <td>Rp ${product.price.toLocaleString('id-ID')}</td>
-                        <td><img src="${product.image || 'https://placehold.co/50x50/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
-                        <td>
-                            <button class="action-btn make-admin-btn" onclick="editProduct('${product.id}')">Edit</button>
-                            <button class="action-btn delete-user-btn" onclick="deleteProduct('${product.id}')">Hapus</button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            html += `
-                    </tbody>
-                </table>
-            `;
-            productsTableContainer.innerHTML = html;
-        }
-        window.displayProductListForAdmin = displayProductListForAdmin;
-
-        // Edit product function (simplified for now, full form can be implemented)
-        async function editProduct(productId) {
-            const product = allProducts[productId];
-            if (!product) {
-                showModal('Error', 'Produk tidak ditemukan.', 'error');
-                return;
-            }
-
-            const newName = prompt(`Edit nama produk untuk "${product.name}":`, product.name);
-            if (newName === null || newName.trim() === '') {
-                showModal('Dibatalkan', 'Pengeditan nama produk dibatalkan.', 'warning');
-                return;
-            }
-            const newPrice = prompt(`Edit harga produk untuk "${product.name}" (saat ini Rp ${product.price.toLocaleString('id-ID')}):`, product.price);
-            if (newPrice === null || isNaN(parseFloat(newPrice)) || parseFloat(newPrice) <= 0) {
-                showModal('Dibatalkan', 'Pengeditan harga produk dibatalkan atau input tidak valid.', 'warning');
-                return;
-            }
-            const newImage = prompt(`Edit URL gambar produk untuk "${product.name}" (saat ini ${product.image || 'tidak ada'}):`, product.image || '');
-
-            try {
-                await updateDoc(doc(productsCol, productId), {
-                    name: newName.trim(),
-                    price: parseFloat(newPrice),
-                    image: newImage ? newImage.trim() : ''
-                });
-                showModal('Berhasil!', `Produk "${newName.trim()}" berhasil diperbarui.`, 'success');
-            } catch (error) {
-                console.error("Error updating product:", error.message);
-                showModal('Gagal!', 'Terjadi kesalahan saat memperbarui produk.', 'error');
-            }
-        }
-        window.editProduct = editProduct;
-
-        // Delete product function
-        async function deleteProduct(productId) {
-            const product = allProducts[productId];
-            if (!product) {
-                showModal('Error', 'Produk tidak ditemukan.', 'error');
-                return;
-            }
-
-            const confirmationModal = document.getElementById('confirmationModal');
-            const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
-            const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
-            const confirmationMessage = document.getElementById('confirmationMessage');
-
-            confirmationModal.querySelector('.modal-content').className = 'modal-content error';
-            confirmationMessage.innerHTML = `Apakah Anda yakin ingin menghapus produk <strong>${product.name}</strong>? Ini juga akan menghapus semua kode terkait produk ini!`;
-            confirmationModal.style.display = 'flex';
-
-            confirmPurchaseBtn.onclick = async () => {
-                try {
-                    await deleteDoc(doc(productsCol, productId));
-                    // Hapus semua kode yang terkait dengan produk ini
-                    const codesToDelete = allCodes[productId] || [];
-                    for (const code of codesToDelete) {
-                        await deleteDoc(doc(codesCol, code.id));
-                    }
-                    showModal('Berhasil!', `Produk "${product.name}" dan semua kodenya berhasil dihapus.`, 'success');
-                } catch (error) {
-                    console.error("Error deleting product:", error.message);
-                    showModal('Gagal!', 'Terjadi kesalahan saat menghapus produk.', 'error');
-                } finally {
-                    hideConfirmation();
-                }
-            };
-            cancelPurchaseBtn.onclick = () => {
-                showModal('Dibatalkan', 'Penghapusan produk dibatalkan.', 'warning');
-                hideConfirmation();
-            };
-        }
-        window.deleteProduct = deleteProduct;
-
-
+        // --- FUNGSI SPESIFIK UNTUK admin (ADMIN PANEL) ---
         async function addProduct() {
             const adminProductName = document.getElementById('adminProductName');
             const adminProductPrice = document.getElementById('adminProductPrice');
@@ -2610,7 +1900,7 @@
                     id: productId,
                     name: name,
                     price: price,
-                    image: image || 'https://placehold.co/150/2a2a2a/f0f0f0?text=Item'
+                    image: image || 'https://via.placeholder.com/150/2a2a2a/f0f0f0?text=Item'
                 });
                 console.log("Product added to Firestore:", productId);
 
@@ -2624,39 +1914,6 @@
             }
         }
         window.addProduct = addProduct;
-
-        // Render Code Management Section
-        async function renderCodeManagement() {
-            const adminPanelContent = document.getElementById('adminPanelContent');
-            adminPanelContent.innerHTML = `
-                <div class="admin-panel-section" id="codeManagementSection">
-                    <h3>Manajemen Kode</h3>
-                    <h3>Tambah Kode untuk Produk</h3>
-                    <div class="form-group">
-                        <label for="adminCodeProductSelect">Pilih Produk:</label>
-                        <select id="adminCodeProductSelect">
-                            </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminNewCodes">Kode Baru (satu per baris):</label>
-                        <textarea id="adminNewCodes" rows="10" placeholder="Masukkan kode baru, satu per baris. Contoh:&#10;KODE_VIP_123&#10;KODE_GAMEPASS_ABC&#10;KODE_UANG_XYZ"></textarea>
-                    </div>
-                    <button onclick="addCodes()">Tambah Kode</button>
-
-                    <h3 style="margin-top: 40px;">Daftar Kode (Per Produk)</h3>
-                    <div class="form-group">
-                        <label for="adminViewCodeProductSelect">Pilih Produk untuk Melihat Kode:</label>
-                        <select id="adminViewCodeProductSelect" onchange="displayCodesForProduct()">
-                            </select>
-                    </div>
-                    <div id="codeList">
-                        <p style="text-align:center; color:var(--text-medium);">Pilih produk untuk melihat daftar kodenya.</p>
-                    </div>
-                </div>
-            `;
-            populateAdminProductSelects();
-        }
-        window.renderCodeManagement = renderCodeManagement;
 
         async function addCodes() {
             const selectedProductElement = document.getElementById('adminCodeProductSelect');
@@ -2886,154 +2143,6 @@
             });
         }
         window.displayCodesForProduct = displayCodesForProduct;
-
-        // Render Discount Settings Section
-        async function renderDiscountSettings() {
-            const adminPanelContent = document.getElementById('adminPanelContent');
-            adminPanelContent.innerHTML = `
-                <div class="admin-panel-section" id="discountSettingsSection">
-                    <h3>💰 Pengaturan Diskon 💰</h3>
-                    <div class="form-group">
-                        <label for="discountStatus">Status Diskon:</label>
-                        <input type="checkbox" id="discountStatus" onchange="toggleDiscountFields()"> Aktifkan Diskon
-                    </div>
-                    <div id="discountSettingsFields" style="display: none;">
-                        <div class="form-group">
-                            <label for="discountPercentage">Persentase Diskon (%):</label>
-                            <input type="number" id="discountPercentage" min="1" max="100" value="10">
-                        </div>
-                        <div class="form-group">
-                            <label for="discountCountdownEndTime">Waktu Berakhir Diskon (Opsional):</label>
-                            <input type="datetime-local" id="discountCountdownEndTime">
-                            <small style="color:var(--text-medium);">Diskon akan otomatis nonaktif setelah waktu ini.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="discountTargetType">Target Diskon:</label>
-                            <select id="discountTargetType" onchange="toggleDiscountTargetProductSelect()">
-                                <option value="all">Semua Produk</option>
-                                <option value="specific">Produk Tertentu</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="discountSpecificProductSelect" style="display: none;">
-                            <label for="discountProductSelect">Pilih Produk (CTRL+klik untuk pilih banyak):</label>
-                            <select id="discountProductSelect" multiple size="5">
-                                </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="discountTargetUsers">Target Pengguna (pisahkan dengan koma, kosongkan untuk semua):</label>
-                            <input type="text" id="discountTargetUsers" placeholder="contoh: user1@email.com, user2@email.com">
-                        </div>
-                        <button onclick="saveDiscountConfig()">Simpan Pengaturan Diskon</button>
-                    </div>
-                </div>
-            `;
-            populateDiscountProductSelect();
-            loadDiscountConfig();
-        }
-        window.renderDiscountSettings = renderDiscountSettings;
-
-        // Render Maintenance Settings Section
-        async function renderMaintenanceSettings() {
-            const adminPanelContent = document.getElementById('adminPanelContent');
-            adminPanelContent.innerHTML = `
-                <div class="admin-panel-section" id="maintenanceSettingsSection">
-                    <h3>🚧 Pengaturan Maintenance Mode 🚧</h3>
-                    <div class="form-group">
-                        <label for="maintenanceStatus">Status Maintenance Mode:</label>
-                        <input type="checkbox" id="maintenanceStatus" onchange="toggleMaintenanceFields()"> Aktifkan Mode Pemeliharaan
-                    </div>
-                    <div id="maintenanceSettingsFields" style="display: none;">
-                        <div class="form-group">
-                            <label for="maintenanceReason">Alasan Maintenance (Ditampilkan ke Pengguna):</label>
-                            <textarea id="maintenanceReason" rows="3" placeholder="Contoh: Sedang melakukan update sistem pembayaran..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="maintenanceDuration">Perkiraan Durasi (Ditampilkan ke Pengguna):</label>
-                            <input type="text" id="maintenanceDuration" placeholder="Contoh: 2 jam, 30 menit">
-                        </div>
-                        <div class="form-group">
-                            <label for="maintenanceEndTime">Waktu Berakhir Maintenance (Opsional):</label>
-                            <input type="datetime-local" id="maintenanceEndTime">
-                            <small id="maintenanceEndTimeHelperText" style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
-                        </div>
-                        <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
-                    </div>
-                </div>
-            `;
-            loadMaintenanceConfig();
-        }
-        window.renderMaintenanceSettings = renderMaintenanceSettings;
-
-        // Render Order History Section
-        async function renderOrderHistory() {
-            const adminPanelContent = document.getElementById('adminPanelContent');
-            adminPanelContent.innerHTML = `
-                <div class="admin-panel-section" id="orderHistorySection">
-                    <h3>Riwayat Pesanan</h3>
-                    <div id="ordersTableContainer">
-                        <!-- Order list will be loaded here -->
-                    </div>
-                </div>
-            `;
-            displayOrderHistoryForAdmin();
-        }
-        window.renderOrderHistory = renderOrderHistory;
-
-        // Display order history in admin panel
-        async function displayOrderHistoryForAdmin() {
-            const ordersTableContainer = document.getElementById('ordersTableContainer');
-            if (!ordersTableContainer) return;
-
-            const orders = allOrders;
-            const products = allProducts; // To get product names
-            const orderArray = Object.values(orders).sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
-
-            if (orderArray.length === 0) {
-                ordersTableContainer.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Belum ada riwayat pesanan.</p>';
-                return;
-            }
-
-            let html = `
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID Pesanan</th>
-                            <th>Produk</th>
-                            <th>Status Kode</th>
-                            <th>Kode Diberikan</th>
-                            <th>Tanggal Beli</th>
-                            <th>Tanggal Redeem</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            orderArray.forEach(order => {
-                const productName = products[order.productId] ? products[order.productId].name : 'Produk Tidak Dikenal';
-                const statusText = order.isUsed ? 'Sudah Dipakai' : 'Belum Dipakai';
-                const statusClass = order.isUsed ? 'used' : 'available'; // Use existing status classes or define new ones
-                const redeemDate = order.redeemDate ? new Date(order.redeemDate).toLocaleDateString('id-ID') : '-';
-
-                html += `
-                    <tr>
-                        <td>${order.id}</td>
-                        <td>${productName}</td>
-                        <td><span class="status ${statusClass}">${statusText}</span></td>
-                        <td>${order.codeGiven || '-'}</td>
-                        <td>${new Date(order.purchaseDate).toLocaleDateString('id-ID')}</td>
-                        <td>${redeemDate}</td>
-                    </tr>
-                `;
-            });
-
-            html += `
-                    </tbody>
-                </table>
-            `;
-            ordersTableContainer.innerHTML = html;
-        }
-        window.displayOrderHistoryForAdmin = displayOrderHistoryForAdmin;
-
 
         function displayTopSellingProducts() {
             const topProductsListDiv = document.getElementById('topProductsList');
@@ -3370,9 +2479,7 @@
                     return;
                 }
                 // Only validate endTime if it's active and a value is provided
-                // Allow setting an end time in the past if it's being deactivated,
-                // but if active, it must be in the future.
-                if (isActive && endTime && new Date(endTime).getTime() <= new Date().getTime()) {
+                if (endTime && new Date(endTime).getTime() <= new Date().getTime()) {
                     showModal('Waktu Berakhir Tidak Valid', 'Waktu berakhir maintenance harus di masa depan jika diatur.', 'warning');
                     return;
                 }
@@ -3471,8 +2578,6 @@
             const currentMaintenanceConfig = maintenanceConfig;
             const maintenanceOverlay = document.getElementById('maintenanceOverlay');
             const appContent = document.getElementById('appContent');
-            const mainHeader = document.getElementById('mainHeader');
-            const adminDashboardLayout = document.getElementById('adminDashboardLayout');
             const maintenanceCountdownElement = document.getElementById('maintenanceCountdown');
             const maintenanceReasonElement = document.getElementById('maintenanceReason');
             const isAdminLoggedIn = (currentUser && currentUser.isAdmin === true);
@@ -3480,12 +2585,6 @@
             if (currentMaintenanceConfig.isActive && !isAdminLoggedIn) {
                 if (appContent) {
                     appContent.style.display = 'none';
-                }
-                if (mainHeader) {
-                    mainHeader.style.display = 'none';
-                }
-                if (adminDashboardLayout) {
-                    adminDashboardLayout.style.display = 'none';
                 }
                 if (maintenanceOverlay) {
                     maintenanceOverlay.style.display = 'flex';
@@ -3509,38 +2608,26 @@
                     startMaintenanceCountdown();
                 }
             } else {
-                // If maintenance is inactive or admin is logged in, hide overlay
+                if (appContent) { 
+                    appContent.style.display = 'block';
+                }
                 if (maintenanceOverlay) {
                     maintenanceOverlay.style.display = 'none';
                 }
-                // Stop maintenance countdown if it's running
                 if (maintenanceCountdownInterval) {
                     clearInterval(maintenanceCountdownInterval);
                     maintenanceCountdownInterval = null;
                 }
-                // Restore main content or admin panel based on current page
-                const currentPage = window.location.hash.substring(1) || 'home';
-                if (currentPage === 'admin' && isAdminLoggedIn) {
-                    if (mainHeader) mainHeader.style.display = 'none';
-                    if (appContent) appContent.style.display = 'none';
-                    if (adminDashboardLayout) adminDashboardLayout.style.display = 'flex';
-                } else {
-                    if (mainHeader) mainHeader.style.display = 'flex';
-                    if (appContent) appContent.style.display = 'block';
-                    if (adminDashboardLayout) adminDashboardLayout.style.display = 'none';
-                }
             }
             
             // SELALU tampilkan tombol admin login jika dalam maintenance mode
-            // atau jika admin tidak login dan tidak ada di halaman admin
-            if (currentMaintenanceConfig.isActive && !isAdminLoggedIn) {
+            if (currentMaintenanceConfig.isActive) {
                 const adminLoginBtn = document.querySelector('.hidden-admin-login');
                 if (adminLoginBtn) {
                     adminLoginBtn.style.display = 'block';
                 }
             } else {
                 // Sembunyikan tombol admin login jika tidak dalam maintenance mode
-                // atau jika admin sudah login
                 const adminLoginBtn = document.querySelector('.hidden-admin-login');
                 if (adminLoginBtn) {
                     adminLoginBtn.style.display = 'none';
@@ -3553,8 +2640,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateAuthLinks();
             checkMaintenanceModeAndRedirect();
-            const initialPage = window.location.hash.substring(1) || 'home';
-            showPage(initialPage);
+            showPage('home');
         });
     </script>
 </body>
