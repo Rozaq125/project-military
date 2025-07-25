@@ -2478,6 +2478,12 @@
             };
 
             try {
+                // Hentikan interval countdown maintenance yang sedang berjalan sebelum menyimpan konfigurasi baru
+                if (maintenanceCountdownInterval) {
+                    clearInterval(maintenanceCountdownInterval);
+                    maintenanceCountdownInterval = null;
+                }
+
                 await updateDoc(doc(configCol, "global_settings"), { maintenance: newConfig });
                 showModal('Berhasil!', `Mode pemeliharaan ${isActive ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
             } catch (error) {
