@@ -570,6 +570,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
+            overflow-y: auto; /* Enable scrolling */
         }
 
         .maintenance-content {
@@ -579,6 +580,7 @@
             box-shadow: 0 10px 30px var(--shadow-color);
             max-width: 600px;
             border: 2px solid var(--warning-color);
+            margin: 50px 0; /* Add margin for scrolling */
         }
 
         .maintenance-content h1 {
@@ -607,6 +609,73 @@
             margin: 20px 0;
             border-left: 4px solid var(--warning-color);
         }
+
+        /* Hidden Admin Login */
+        .hidden-admin-login {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.3s;
+            z-index: 2001;
+        }
+
+        .hidden-admin-login:hover {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .admin-secret-login {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--bg-dark);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            width: 90%;
+            max-width: 400px;
+            display: none;
+        }
+
+        .admin-secret-login h2 {
+            color: var(--warning-color);
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .admin-secret-login .form-group {
+            margin-bottom: 15px;
+        }
+
+        .admin-secret-login input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 5px;
+        }
+
+        .admin-secret-login button {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--warning-color);
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .admin-secret-login button:hover {
+            background-color: #e0a800;
+        }
+
         /* style.css content ends here */
     </style>
 </head>
@@ -662,6 +731,22 @@
             <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
             <p>Terima kasih atas kesabaran Anda.</p>
         </div>
+        <div class="hidden-admin-login" onclick="showAdminSecretLogin()">Login for admin</div>
+    </div>
+
+    <div id="adminSecretLogin" class="admin-secret-login">
+        <h2>🔐 Admin Secret Login</h2>
+        <div class="form-group">
+            <input type="email" id="adminSecretEmail" placeholder="Admin Email">
+        </div>
+        <div class="form-group">
+            <input type="password" id="adminSecretPassword" placeholder="Admin Password">
+        </div>
+        <div class="form-group">
+            <input type="text" id="adminSecretCode" placeholder="Secret Admin Code">
+        </div>
+        <button onclick="verifyAdminSecretLogin()">Login</button>
+        <p id="adminSecretLoginError" style="color: var(--error-color); text-align: center; margin-top: 10px;"></p>
     </div>
 
     <script type="module">
@@ -709,6 +794,9 @@
         let currentUser = null;
         let countdownInterval = null;
         let maintenanceCountdownInterval = null;
+        
+        // Secret admin code (6748303865593375593_573=47.6,;'584`~)
+        const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
 
         // --- EXPOSE FUNGSI-FUNGSI INTI FIREBASE KE GLOBAL `window` ---
         window.initializeApp = initializeApp;
@@ -886,6 +974,59 @@
                 checkMaintenanceModeAndRedirect();
             }
         });
+
+        // --- Fungsi untuk Admin Secret Login ---
+        function showAdminSecretLogin() {
+            document.getElementById('adminSecretLogin').style.display = 'block';
+        }
+
+        function hideAdminSecretLogin() {
+            document.getElementById('adminSecretLogin').style.display = 'none';
+            document.getElementById('adminSecretEmail').value = '';
+            document.getElementById('adminSecretPassword').value = '';
+            document.getElementById('adminSecretCode').value = '';
+            document.getElementById('adminSecretLoginError').textContent = '';
+        }
+
+        async function verifyAdminSecretLogin() {
+            const email = document.getElementById('adminSecretEmail').value.trim();
+            const password = document.getElementById('adminSecretPassword').value.trim();
+            const secretCode = document.getElementById('adminSecretCode').value.trim();
+            const errorElement = document.getElementById('adminSecretLoginError');
+
+            if (!email || !password || !secretCode) {
+                errorElement.textContent = 'Harap isi semua field!';
+                return;
+            }
+
+            if (secretCode !== SECRET_ADMIN_CODE) {
+                errorElement.textContent = 'Kode admin tidak valid!';
+                return;
+            }
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const userDoc = await getDoc(doc(usersCol, userCredential.user.uid));
+                
+                if (userDoc.exists() && userDoc.data().isAdmin === true) {
+                    showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>! Anda adalah admin!`, 'success');
+                    hideAdminSecretLogin();
+                    showPage('admin');
+                } else {
+                    await signOut(auth);
+                    errorElement.textContent = 'Akun ini bukan admin atau tidak memiliki akses!';
+                }
+            } catch (error) {
+                console.error("Error logging in:", error.message);
+                let errorMessage = "Terjadi kesalahan saat login.";
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = "Email atau password salah.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Format email tidak valid.";
+                }
+                errorElement.textContent = errorMessage;
+            }
+        }
 
         // --- Data Dummy untuk Notifikasi Penjualan ---
         const DUMMY_BUYER_NAMES = [
