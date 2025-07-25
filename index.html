@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toko Artivive Studio </title>
-    
+    <title>Toko Artivive Studio</title>
+
     <style>
         /* style.css content starts here */
 
@@ -707,6 +707,7 @@
             <span class="close-button" onclick="closeModal()">&times;</span>
             <h2 id="modalTitle"></h2>
             <p id="modalMessage"></p>
+            <div id="modalAttachment" style="margin-top: 15px; text-align: center;"></div>
             <button id="modalCopyButton" style="display:none;"></button>
             <button onclick="closeModal()">Tutup</button>
         </div>
@@ -782,6 +783,7 @@
         const usersCol = collection(db, "users"); // Untuk menyimpan data user custom (misal: isAdmin)
         const ordersCol = collection(db, "orders"); // Untuk riwayat pesanan
         const configCol = collection(db, "config"); // Untuk konfigurasi global (diskon, maintenance)
+        const warningsCol = collection(db, "warnings"); // NEW: Koleksi untuk peringatan
 
         // --- Variabel Global untuk Data Real-time ---
         let allProducts = {};
@@ -833,6 +835,7 @@
         window.usersCol = usersCol;
         window.ordersCol = ordersCol;
         window.configCol = configCol;
+        window.warningsCol = warningsCol; // NEW: Expose warningsCol
 
         // =========================================================================
         // KODE JAVASCRIPT ASLI ANDA, DISATUKAN DAN DISESUAIKAN UNTUK FIREBASE
@@ -908,6 +911,10 @@
             if (document.getElementById('userManagementSection')) {
                 displayAllUsers();
             }
+            // NEW: Populate user select for warnings
+            if (document.getElementById('warningTargetUsers')) {
+                populateUserSelectForWarning();
+            }
         });
 
         onSnapshot(ordersCol, (snapshot) => {
@@ -955,6 +962,7 @@
             }
         });
 
+        // NEW: Listener for warnings
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log("Firebase Auth User:", user.uid, user.email);
@@ -972,13 +980,50 @@
                 console.log("Current User (Firebase Auth + Firestore):", currentUser);
                 updateAuthLinks();
                 checkMaintenanceModeAndRedirect();
+
+                // Setup warning listener for the current user
+                setupWarningListener(currentUser.uid);
+
             } else {
                 currentUser = null;
                 console.log("User logged out.");
                 updateAuthLinks();
                 checkMaintenanceModeAndRedirect();
+                // Clear warning listener if user logs out
+                if (window.warningUnsubscribe) {
+                    window.warningUnsubscribe();
+                    window.warningUnsubscribe = null;
+                }
             }
         });
+
+        // NEW: Function to set up the warning listener
+        function setupWarningListener(userId) {
+            if (window.warningUnsubscribe) {
+                window.warningUnsubscribe(); // Unsubscribe from previous listener if exists
+            }
+
+            // Query for warnings: either global (empty targetUserIds) or targeted at the current user
+            const q = query(warningsCol, 
+                where('isRead.' + userId, '==', false) // Check if this specific user hasn't read it
+            );
+
+            window.warningUnsubscribe = onSnapshot(q, (snapshot) => {
+                snapshot.docChanges().forEach(async (change) => {
+                    if (change.type === "added") {
+                        const warningData = { ...change.doc.data(), id: change.doc.id };
+                        // Check if the warning is global or specifically for this user
+                        const isGlobal = !warningData.targetUserIds || warningData.targetUserIds.length === 0;
+                        const isTargeted = warningData.targetUserIds && warningData.targetUserIds.includes(userId);
+
+                        if (isGlobal || isTargeted) {
+                            displayWarningModal(warningData);
+                        }
+                    }
+                });
+            });
+            console.log("Warning listener set up for user:", userId);
+        }
 
         // --- Fungsi untuk Admin Secret Login ---
         function showAdminSecretLogin() {
@@ -1056,11 +1101,12 @@
         ];
 
         // --- Fungsi Helper untuk Pop-up Kustom ---
-        function showModal(title, message, type = 'success', textToCopy = '') {
+        function showModal(title, message, type = 'success', textToCopy = '', attachmentHtml = '') {
             const modal = document.getElementById('customModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalMessage = document.getElementById('modalMessage');
             const modalCopyButton = document.getElementById('modalCopyButton');
+            const modalAttachment = document.getElementById('modalAttachment');
 
             modal.querySelector('.modal-content').className = 'modal-content';
             if (type === 'error') {
@@ -1073,6 +1119,7 @@
 
             modalTitle.textContent = title;
             modalMessage.innerHTML = message;
+            modalAttachment.innerHTML = attachmentHtml; // NEW: Set attachment HTML
 
             if (textToCopy) {
                 modalCopyButton.style.display = 'inline-block';
@@ -1091,8 +1138,38 @@
 
         function closeModal() {
             document.getElementById('customModal').style.display = 'none';
+            document.getElementById('modalAttachment').innerHTML = ''; // Clear attachment on close
         }
         window.closeModal = closeModal;
+
+        // NEW: Function to display a warning modal
+        async function displayWarningModal(warningData) {
+            const modalTitle = "Peringatan Admin!";
+            let modalMessage = `<p>${warningData.message}</p>`;
+            let attachmentHtml = '';
+
+            if (warningData.fileUrl) {
+                const fileExtension = warningData.fileUrl.split('.').pop().toLowerCase();
+                if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
+                    attachmentHtml = `<img src="${warningData.fileUrl}" alt="Lampiran" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px;">`;
+                } else {
+                    attachmentHtml = `<p><a href="${warningData.fileUrl}" target="_blank" style="color: var(--accent-color); text-decoration: underline;">Lihat Lampiran Dokumen</a></p>`;
+                }
+            }
+
+            showModal(modalTitle, modalMessage, 'warning', '', attachmentHtml);
+
+            // Mark the warning as read for the current user
+            if (currentUser) {
+                const warningDocRef = doc(warningsCol, warningData.id);
+                const currentReadBy = warningData.isRead || {};
+                currentReadBy[currentUser.uid] = true; // Mark as read for current user
+                await updateDoc(warningDocRef, { isRead: currentReadBy });
+                console.log(`Warning ${warningData.id} marked as read by ${currentUser.uid}`);
+            }
+        }
+        window.displayWarningModal = displayWarningModal;
+
 
         function showSaleNotification(productName) {
             const notificationDiv = document.getElementById('saleNotification');
@@ -1365,6 +1442,25 @@
                             </div>
                             <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
                         </div>
+
+                        <h3 style="margin-top: 40px;">📢 Kirim Peringatan ke Pengguna 📢</h3>
+                        <div class="form-group">
+                            <label for="warningMessage">Pesan Peringatan:</label>
+                            <textarea id="warningMessage" rows="5" placeholder="Tulis pesan peringatan di sini..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="warningFileUrl">URL Gambar/Dokumen (Opsional):</label>
+                            <input type="text" id="warningFileUrl" placeholder="Contoh: https://i.imgur.com/warning.png atau https://example.com/document.pdf">
+                            <small style="color:var(--text-medium);">Masukkan URL langsung ke gambar atau dokumen. Untuk upload file, Anda memerlukan layanan penyimpanan seperti Firebase Storage.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="warningTargetUsers">Target Pengguna (pilih satu atau lebih, kosongkan untuk semua pengguna):</label>
+                            <select id="warningTargetUsers" multiple size="5">
+                                <!-- Users will be populated here by JavaScript -->
+                            </select>
+                            <small style="color:var(--text-medium);">Tekan CTRL (Windows) / Command (Mac) untuk memilih beberapa pengguna.</small>
+                        </div>
+                        <button onclick="sendWarning()">Kirim Peringatan</button>
                     `;
                     appContent.innerHTML = htmlContent;
                     populateAdminProductSelects();
@@ -1372,6 +1468,7 @@
                     loadDiscountConfig();
                     loadMaintenanceConfig();
                     displayAllUsers();
+                    populateUserSelectForWarning(); // NEW: Populate user select for warnings
                     break;
 
                 default:
@@ -1568,7 +1665,7 @@
         }
         window.deleteUser = deleteUser;
 
-        // --- Fungsi SPESIFIK UNTUK home (BERANDA) ---
+        // --- FUNGSI SPESIFIK UNTUK home (BERANDA) ---
         function displayProducts() {
             const productGrid = document.getElementById('productGrid');
             if (!productGrid) return; 
@@ -1583,12 +1680,12 @@
                 const now = new Date().getTime();
                 if (now >= endTime) {
                     saveDiscountConfigToFirestore({
-                      isActive: false,
-                      percentage: 0, // Reset percentage
-                      targetType: 'all', // Reset target type
-                      targetProducts: [], // Reset target products
-                      targetUsers: '', // Reset target users
-                      countdownEndTime: null
+                        isActive: false,
+                        percentage: 0, // Reset percentage
+                        targetType: 'all', // Reset target type
+                        targetProducts: [], // Reset target products
+                        targetUsers: '', // Reset target users
+                        countdownEndTime: null
                     });
                     showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
                     // Tidak perlu return di sini, biarkan produk ditampilkan dengan harga normal
@@ -2364,12 +2461,12 @@
                     countdownMessage.textContent = "Penawaran spesial telah berakhir!";
                     
                     saveDiscountConfigToFirestore({
-                      isActive: false,
-                      percentage: 0, // Reset percentage
-                      targetType: 'all', // Reset target type
-                      targetProducts: [], // Reset target products
-                      targetUsers: '', // Reset target users
-                      countdownEndTime: null
+                        isActive: false,
+                        percentage: 0, // Reset percentage
+                        targetType: 'all', // Reset target type
+                        targetProducts: [], // Reset target products
+                        targetUsers: '', // Reset target users
+                        countdownEndTime: null
                     });
                     showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
                     return;
@@ -2635,6 +2732,64 @@
             }
         }
         window.checkMaintenanceModeAndRedirect = checkMaintenanceModeAndRedirect;
+
+        // NEW: Fungsi untuk mengisi dropdown target pengguna di panel admin
+        function populateUserSelectForWarning() {
+            const warningTargetUsersSelect = document.getElementById('warningTargetUsers');
+            if (!warningTargetUsersSelect) return;
+
+            warningTargetUsersSelect.innerHTML = '<option value="">-- Pilih Pengguna (Kosongkan untuk Semua) --</option>';
+            // Sort users by email for easier selection
+            const sortedUsers = Object.values(allUsers).sort((a, b) => (a.username || '').localeCompare(b.username || ''));
+
+            sortedUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id; // Use user's UID as value
+                option.textContent = user.username; // Display email/username
+                warningTargetUsersSelect.appendChild(option);
+            });
+        }
+        window.populateUserSelectForWarning = populateUserSelectForWarning;
+
+        // NEW: Fungsi untuk mengirim peringatan
+        async function sendWarning() {
+            const warningMessageInput = document.getElementById('warningMessage');
+            const warningFileUrlInput = document.getElementById('warningFileUrl');
+            const warningTargetUsersSelect = document.getElementById('warningTargetUsers');
+
+            if (!warningMessageInput || !warningFileUrlInput || !warningTargetUsersSelect) return;
+
+            const message = warningMessageInput.value.trim();
+            const fileUrl = warningFileUrlInput.value.trim();
+            const selectedUserIds = Array.from(warningTargetUsersSelect.selectedOptions).map(option => option.value);
+
+            if (!message) {
+                showModal('Peringatan Kosong', 'Pesan peringatan tidak boleh kosong.', 'warning');
+                return;
+            }
+
+            const newWarning = {
+                message: message,
+                fileUrl: fileUrl || null,
+                targetUserIds: selectedUserIds, // Array of UIDs
+                sentAt: new Date().toISOString(),
+                isRead: {} // Map to track read status for each user
+            };
+
+            try {
+                await addDoc(warningsCol, newWarning);
+                showModal('Peringatan Terkirim!', 'Peringatan berhasil dikirim ke pengguna yang dipilih (atau semua pengguna).', 'success');
+                warningMessageInput.value = '';
+                warningFileUrlInput.value = '';
+                warningTargetUsersSelect.value = ''; // Reset select
+                populateUserSelectForWarning(); // Re-populate to clear selection
+            } catch (error) {
+                console.error("Error sending warning:", error.message);
+                showModal('Gagal Mengirim Peringatan', 'Terjadi kesalahan saat mengirim peringatan.', 'error');
+            }
+        }
+        window.sendWarning = sendWarning;
+
 
         // --- Inisialisasi saat halaman dimuat ---
         document.addEventListener('DOMContentLoaded', () => {
