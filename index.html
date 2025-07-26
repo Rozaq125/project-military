@@ -145,6 +145,8 @@
         button:disabled {
             background-color: var(--border-color);
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         /* Product Grid */
@@ -277,7 +279,7 @@
         }
 
         .user-table tr:hover {
-            background-color: var(--bg-light);
+            background-color: var(--bg-medium);
         }
 
         .user-table .admin-badge {
@@ -680,7 +682,82 @@
             background-color: #e0a800;
         }
 
-        /* style.css content ends here */
+        /* Gacha specific styles */
+        .gacha-section {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--bg-light);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            margin-top: 30px;
+        }
+
+        .gacha-section h3 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .gacha-info p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        .gacha-spin-button {
+            background-color: #ff4500; /* OrangeRed */
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        .gacha-spin-button:hover {
+            background-color: #e03c00;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .gacha-spin-button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .gacha-rewards-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .gacha-rewards-list table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .gacha-rewards-list th, .gacha-rewards-list td {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .gacha-rewards-list th {
+            background-color: var(--bg-medium);
+            color: var(--accent-color);
+        }
+
+        .gacha-rewards-list tr:hover {
+            background-color: var(--bg-medium);
+        }
+
+        .gacha-rewards-list .action-btn {
+            padding: 5px 10px;
+            font-size: 0.8em;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -693,6 +770,7 @@
                 <a href="#" onclick="showPage('register')">Register</a>
             </span>
             <span id="loggedInLinks" style="display:none;">
+                <a href="#" onclick="showPage('gacha')">Gacha</a> <!-- NEW: Gacha Link -->
                 <a href="#" onclick="showPage('admin')">Admin Panel</a>
                 <a href="#" onclick="logoutUser()">Logout</a>
             </span>
@@ -783,7 +861,9 @@
         const usersCol = collection(db, "users"); // Untuk menyimpan data user custom (misal: isAdmin)
         const ordersCol = collection(db, "orders"); // Untuk riwayat pesanan
         const configCol = collection(db, "config"); // Untuk konfigurasi global (diskon, maintenance)
-        const warningsCol = collection(db, "warnings"); // NEW: Koleksi untuk peringatan
+        const warningsCol = collection(db, "warnings"); // Koleksi untuk peringatan
+        const gachaRewardsCol = collection(db, "gachaRewards"); // NEW: Koleksi untuk hadiah gacha
+        const gachaHistoryCol = collection(db, "gachaHistory"); // NEW: Koleksi untuk riwayat gacha
 
         // --- Variabel Global untuk Data Real-time ---
         let allProducts = {};
@@ -801,7 +881,8 @@
         let currentUser = null;
         let countdownInterval = null;
         let maintenanceCountdownInterval = null;
-        
+        let allGachaRewards = {}; // NEW: Global variable for gacha rewards
+
         // Secret admin code (6748303865593375593_573=47.6,;'584`~)
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
 
@@ -835,7 +916,9 @@
         window.usersCol = usersCol;
         window.ordersCol = ordersCol;
         window.configCol = configCol;
-        window.warningsCol = warningsCol; // NEW: Expose warningsCol
+        window.warningsCol = warningsCol;
+        window.gachaRewardsCol = gachaRewardsCol; // NEW: Expose gachaRewardsCol
+        window.gachaHistoryCol = gachaHistoryCol; // NEW: Expose gachaHistoryCol
 
         // =========================================================================
         // KODE JAVASCRIPT ASLI ANDA, DISATUKAN DAN DISESUAIKAN UNTUK FIREBASE
@@ -911,9 +994,13 @@
             if (document.getElementById('userManagementSection')) {
                 displayAllUsers();
             }
-            // NEW: Populate user select for warnings
+            // Populate user select for warnings
             if (document.getElementById('warningTargetUsers')) {
                 populateUserSelectForWarning();
+            }
+            // NEW: Update gacha page if visible
+            if (document.getElementById('gachaPageContent')) {
+                displayGachaPage();
             }
         });
 
@@ -962,20 +1049,26 @@
             }
         });
 
-        // NEW: Listener for warnings
+        // Listener for warnings
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log("Firebase Auth User:", user.uid, user.email);
                 const userDocSnap = await getDoc(doc(usersCol, user.uid));
                 if (userDocSnap.exists()) {
                     currentUser = { ...user, ...userDocSnap.data() };
+                    // NEW: Ensure coins field exists
+                    if (typeof currentUser.coins === 'undefined') {
+                        await updateDoc(doc(usersCol, user.uid), { coins: 0 });
+                        currentUser.coins = 0;
+                    }
                 } else {
                     await setDoc(doc(usersCol, user.uid), {
                         username: user.email,
                         isAdmin: false,
-                        createdAt: new Date().toISOString()
+                        createdAt: new Date().toISOString(),
+                        coins: 0 // NEW: Initialize coins for new users
                     });
-                    currentUser = { ...user, username: user.email, isAdmin: false };
+                    currentUser = { ...user, username: user.email, isAdmin: false, coins: 0 };
                 }
                 console.log("Current User (Firebase Auth + Firestore):", currentUser);
                 updateAuthLinks();
@@ -997,7 +1090,24 @@
             }
         });
 
-        // NEW: Function to set up the warning listener
+        // NEW: Listener for gacha rewards
+        onSnapshot(gachaRewardsCol, (snapshot) => {
+            allGachaRewards = {}; // Clear existing rewards
+            snapshot.forEach(doc => {
+                allGachaRewards[doc.id] = { ...doc.data(), id: doc.id };
+            });
+            console.log("Gacha Rewards updated:", allGachaRewards);
+            // Update admin gacha rewards list if visible
+            if (document.getElementById('gachaRewardsList')) {
+                displayGachaRewardsAdmin();
+            }
+            // Update gacha page if visible
+            if (document.getElementById('gachaPageContent')) {
+                displayGachaPage();
+            }
+        });
+
+        // Function to set up the warning listener
         function setupWarningListener(userId) {
             if (window.warningUnsubscribe) {
                 window.warningUnsubscribe(); // Unsubscribe from previous listener if exists
@@ -1119,7 +1229,7 @@
 
             modalTitle.textContent = title;
             modalMessage.innerHTML = message;
-            modalAttachment.innerHTML = attachmentHtml; // NEW: Set attachment HTML
+            modalAttachment.innerHTML = attachmentHtml; // Set attachment HTML
 
             if (textToCopy) {
                 modalCopyButton.style.display = 'inline-block';
@@ -1142,7 +1252,7 @@
         }
         window.closeModal = closeModal;
 
-        // NEW: Function to display a warning modal
+        // Function to display a warning modal
         async function displayWarningModal(warningData) {
             const modalTitle = "Peringatan Admin!";
             let modalMessage = `<p>${warningData.message}</p>`;
@@ -1314,6 +1424,30 @@
                     `;
                     appContent.innerHTML = htmlContent;
                     break;
+                
+                case 'gacha': // NEW: Gacha Page
+                    if (!currentUser) {
+                        showModal('Akses Ditolak', 'Anda harus login untuk mengakses Gacha.', 'error');
+                        showPage('login');
+                        return;
+                    }
+                    htmlContent = `
+                        <div id="gachaPageContent" class="gacha-section">
+                            <h2>🎰 Putar Gacha! 🎰</h2>
+                            <p class="gacha-info">Koin Anda: <strong id="userCoins">${currentUser.coins || 0}</strong></p>
+                            <p>Putar gacha untuk kesempatan memenangkan kode gratis atau diskon spesial!</p>
+                            <button class="gacha-spin-button" id="gachaSpinButton" onclick="gachaSpin()">Putar Gacha (Biaya: 10 Koin)</button>
+                            <p id="gachaResult" style="margin-top: 20px; font-size: 1.1em; font-weight: bold; color: var(--text-light);"></p>
+                            
+                            <h3 style="margin-top: 40px;">Hadiah Gacha yang Tersedia</h3>
+                            <div class="gacha-rewards-list" id="availableGachaRewardsList">
+                                <!-- List of available gacha rewards will be loaded here -->
+                            </div>
+                        </div>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    displayGachaPage(); // Call function to populate gacha page details
+                    break;
 
                 case 'admin':
                     if (!currentUser || !currentUser.isAdmin) {
@@ -1462,6 +1596,39 @@
                             <small style="color:var(--text-medium);">Tekan CTRL (Windows) / Command (Mac) untuk memilih beberapa pengguna.</small>
                         </div>
                         <button onclick="sendWarning()">Kirim Peringatan</button>
+
+                        <h3 style="margin-top: 40px;">🎁 Manajemen Hadiah Gacha 🎁</h3>
+                        <div class="form-group">
+                            <label for="gachaRewardName">Nama Hadiah:</label>
+                            <input type="text" id="gachaRewardName" placeholder="Contoh: Kode VIP Gratis, Diskon 20%">
+                        </div>
+                        <div class="form-group">
+                            <label for="gachaRewardType">Tipe Hadiah:</label>
+                            <select id="gachaRewardType" onchange="toggleGachaRewardFields()">
+                                <option value="">-- Pilih Tipe --</option>
+                                <option value="free_code">Kode Gratis (Acak)</option>
+                                <option value="percentage_discount">Diskon Persentase</option>
+                            </select>
+                        </div>
+                        <div id="gachaRewardValueField" class="form-group" style="display: none;">
+                            <label for="gachaRewardValue">Nilai Hadiah (Persentase untuk Diskon):</label>
+                            <input type="number" id="gachaRewardValue" min="1" max="100" placeholder="Contoh: 10 (untuk 10% diskon)">
+                        </div>
+                        <div id="gachaRewardDurationField" class="form-group" style="display: none;">
+                            <label for="gachaRewardDuration">Durasi Diskon (Hari):</label>
+                            <input type="number" id="gachaRewardDuration" min="1" value="7" placeholder="Contoh: 7">
+                        </div>
+                        <div class="form-group">
+                            <label for="gachaRewardWeight">Bobot Probabilitas (Angka lebih tinggi = lebih sering muncul):</label>
+                            <input type="number" id="gachaRewardWeight" min="1" value="10" placeholder="Contoh: 10">
+                        </div>
+                        <button onclick="addGachaReward()">Tambah Hadiah Gacha</button>
+
+                        <h3 style="margin-top: 30px;">Daftar Hadiah Gacha</h3>
+                        <div class="gacha-rewards-list" id="gachaRewardsList">
+                            <!-- Gacha rewards will be loaded here -->
+                            <p style="text-align:center; color:var(--text-medium);">Belum ada hadiah gacha yang tersedia.</p>
+                        </div>
                     `;
                     appContent.innerHTML = htmlContent;
                     populateAdminProductSelects();
@@ -1469,7 +1636,8 @@
                     loadDiscountConfig();
                     loadMaintenanceConfig();
                     displayAllUsers();
-                    populateUserSelectForWarning(); // NEW: Populate user select for warnings
+                    populateUserSelectForWarning();
+                    displayGachaRewardsAdmin(); // NEW: Display gacha rewards in admin panel
                     break;
 
                 default:
@@ -1506,7 +1674,7 @@
                     username: email,
                     isAdmin: isAdmin,
                     createdAt: new Date().toISOString(),
-                    createdBy: currentUser.uid
+                    coins: 0 // NEW: Initialize coins for new users created by admin
                 });
                 
                 showModal('Berhasil!', `Akun ${email} berhasil dibuat sebagai ${isAdmin ? 'Admin' : 'Pengguna Biasa'}.`, 'success');
@@ -1545,6 +1713,7 @@
                             <tr>
                                 <th>Email</th>
                                 <th>Status</th>
+                                <th>Koin</th> <!-- NEW: Koin Column -->
                                 <th>Tanggal Dibuat</th>
                                 <th>Aksi</th>
                             </tr>
@@ -1562,7 +1731,7 @@
                     }
                     
                     const createdAt = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('id-ID') : '-';
-                    const createdBy = userData.createdBy ? (allUsers[userData.createdBy]?.username || 'Admin') : 'System';
+                    const createdBy = userData.createdBy ? (allUsers[userData.createdBy]?.username || 'System') : 'System';
                     
                     html += `
                         <tr>
@@ -1570,6 +1739,7 @@
                             <td>
                                 ${userData.isAdmin ? '<span class="admin-badge">Admin</span>' : 'Pengguna'}
                             </td>
+                            <td>${userData.coins || 0}</td> <!-- NEW: Display coins -->
                             <td>${createdAt} (oleh ${createdBy})</td>
                             <td>
                                 ${!userData.isAdmin ? 
@@ -1676,6 +1846,24 @@
             const currentDiscountConfig = discountConfig;
             const currentLoggedInUser = currentUser;
 
+            // Check and apply gacha discount if active
+            let gachaDiscountPercentage = 0;
+            let gachaDiscountActive = false;
+            if (currentUser && currentUser.activeGachaDiscount && new Date(currentUser.activeGachaDiscount.expiryDate).getTime() > new Date().getTime()) {
+                gachaDiscountPercentage = currentUser.activeGachaDiscount.percentage;
+                gachaDiscountActive = true;
+            } else if (currentUser && currentUser.activeGachaDiscount && new Date(currentUser.activeGachaDiscount.expiryDate).getTime() <= new Date().getTime()) {
+                // If gacha discount expired, clear it from user's document
+                updateDoc(doc(usersCol, currentUser.uid), {
+                    activeGachaDiscount: null
+                }).then(() => {
+                    console.log("Expired gacha discount cleared for user.");
+                    currentUser.activeGachaDiscount = null; // Update local state
+                }).catch(error => {
+                    console.error("Error clearing expired gacha discount:", error);
+                });
+            }
+
             if (currentDiscountConfig.isActive && currentDiscountConfig.countdownEndTime) {
                 const endTime = new Date(currentDiscountConfig.countdownEndTime).getTime();
                 const now = new Date().getTime();
@@ -1704,7 +1892,9 @@
                 let displayPrice = product.price;
                 let originalPriceHtml = '';
                 let discountTag = '';
+                let appliedDiscountPercentage = 0;
 
+                // Apply global discount first
                 if (currentDiscountConfig.isActive) {
                     const isUserTargeted = !currentDiscountConfig.targetUsers || (currentLoggedInUser && currentDiscountConfig.targetUsers.toLowerCase().includes(currentLoggedInUser.email.toLowerCase()));
                     const isProductTargeted = 
@@ -1712,11 +1902,20 @@
                         (currentDiscountConfig.targetType === 'specific' && currentDiscountConfig.targetProducts.includes(product.id));
 
                     if (isUserTargeted && isProductTargeted) {
-                        const discountedPrice = product.price * (1 - currentDiscountConfig.percentage / 100);
-                        originalPriceHtml = `<span class="original-price">Rp ${product.price.toLocaleString('id-ID')}</span>`;
-                        displayPrice = discountedPrice;
-                        discountTag = `<span class="discount-tag">-${currentDiscountConfig.percentage}%</span>`;
+                        appliedDiscountPercentage = currentDiscountConfig.percentage;
                     }
+                }
+
+                // Apply gacha discount if active and higher than global, or if no global discount
+                if (gachaDiscountActive && gachaDiscountPercentage > appliedDiscountPercentage) {
+                    appliedDiscountPercentage = gachaDiscountPercentage;
+                }
+
+                if (appliedDiscountPercentage > 0) {
+                    const discountedPrice = product.price * (1 - appliedDiscountPercentage / 100);
+                    originalPriceHtml = `<span class="original-price">Rp ${product.price.toLocaleString('id-ID')}</span>`;
+                    displayPrice = discountedPrice;
+                    discountTag = `<span class="discount-tag">-${appliedDiscountPercentage}%</span>`;
                 }
 
                 const productCard = document.createElement('div');
@@ -1751,6 +1950,9 @@
             }
 
             let finalPrice = product.price;
+            let appliedDiscountPercentage = 0;
+
+            // Apply global discount first
             if (currentDiscountConfig.isActive) {
                 const isUserTargeted = !currentDiscountConfig.targetUsers || (currentLoggedInUser && currentDiscountConfig.targetUsers.toLowerCase().includes(currentLoggedInUser.email.toLowerCase()));
                 const isProductTargeted = 
@@ -1758,9 +1960,19 @@
                     (currentDiscountConfig.targetType === 'specific' && currentDiscountConfig.targetProducts.includes(product.id));
 
                 if (isUserTargeted && isProductTargeted) {
-                    const discountedPrice = product.price * (1 - currentDiscountConfig.percentage / 100);
-                    finalPrice = discountedPrice;
+                    appliedDiscountPercentage = currentDiscountConfig.percentage;
                 }
+            }
+
+            // Apply gacha discount if active and higher than global, or if no global discount
+            if (currentUser && currentUser.activeGachaDiscount && new Date(currentUser.activeGachaDiscount.expiryDate).getTime() > new Date().getTime()) {
+                if (currentUser.activeGachaDiscount.percentage > appliedDiscountPercentage) {
+                    appliedDiscountPercentage = currentUser.activeGachaDiscount.percentage;
+                }
+            }
+
+            if (appliedDiscountPercentage > 0) {
+                finalPrice = product.price * (1 - appliedDiscountPercentage / 100);
             }
 
             currentPurchaseProductId = productId;
@@ -1809,8 +2021,18 @@
                 await setDoc(doc(ordersCol, orderId), newOrderData);
                 console.log("Order added to Firestore:", orderId);
 
+                // NEW: Add coins for purchase
+                const coinsEarned = Math.floor(product.price / 1000); // 1 coin per 1000 IDR
+                if (currentUser) {
+                    const newCoins = (currentUser.coins || 0) + coinsEarned;
+                    await updateDoc(doc(usersCol, currentUser.uid), { coins: newCoins });
+                    currentUser.coins = newCoins; // Update local state
+                    console.log(`User ${currentUser.email} earned ${coinsEarned} coins. Total: ${newCoins}`);
+                }
+
                 const message = `
                     <p>Terima kasih telah membeli <strong>${product.name}</strong>!</p>
+                    <p>Anda mendapatkan <strong>${coinsEarned} koin</strong>!</p>
                     <p>Silakan salin ID Pesanan Anda:</p>
                     <p><strong>${orderId}</strong></p>
                     <p>Lalu, klik tombol di bawah atau navigasi ke "Tukar ID Pesanan" untuk menerima kode redeem Anda.</p>
@@ -1911,7 +2133,8 @@
                 await setDoc(doc(usersCol, userCredential.user.uid), {
                     username: email,
                     isAdmin: false,
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    coins: 0 // NEW: Initialize coins for new users
                 });
 
                 showModal('Registrasi Berhasil!', `Akun <strong>${email}</strong> berhasil dibuat. Silakan login.`, 'success');
@@ -1949,6 +2172,16 @@
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const userDoc = await getDoc(doc(usersCol, userCredential.user.uid));
+                
+                // NEW: Add coins for login (if not already added today, or just a flat amount)
+                if (currentUser && currentUser.uid === userCredential.user.uid) { // Ensure it's the same user logging in
+                    const loginCoins = 5; // Example: 5 coins per login
+                    const newCoins = (currentUser.coins || 0) + loginCoins;
+                    await updateDoc(doc(usersCol, currentUser.uid), { coins: newCoins });
+                    currentUser.coins = newCoins; // Update local state
+                    console.log(`User ${currentUser.email} earned ${loginCoins} coins for login. Total: ${newCoins}`);
+                }
+
                 if (userDoc.exists() && userDoc.data().isAdmin === true) {
                     showModal('Login Berhasil!', `Selamat datang, <strong>${userCredential.user.email}</strong>! Anda adalah admin!`, 'success');
                     setTimeout(() => showPage('admin'), 1000);
@@ -2607,7 +2840,7 @@
         }
         window.saveMaintenanceConfig = saveMaintenanceConfig;
 
-        // NEW: Function to stop maintenance immediately
+        // Function to stop maintenance immediately
         async function stopMaintenance() {
             // Confirm with the user
             const confirmationModal = document.getElementById('confirmationModal');
@@ -2643,7 +2876,7 @@
             };
 
             cancelPurchaseBtn.onclick = () => {
-                showModal('Dibatalkan', 'Penghentian mode pemeliharaan dibatalkan.', 'info'); // 'info' is not defined, should be 'warning' or 'success'
+                showModal('Dibatalkan', 'Penghentian mode pemeliharaan dibatalkan.', 'warning');
                 hideConfirmation();
             };
         }
@@ -2777,7 +3010,7 @@
         }
         window.checkMaintenanceModeAndRedirect = checkMaintenanceModeAndRedirect;
 
-        // NEW: Fungsi untuk mengisi dropdown target pengguna di panel admin
+        // Fungsi untuk mengisi dropdown target pengguna di panel admin
         function populateUserSelectForWarning() {
             const warningTargetUsersSelect = document.getElementById('warningTargetUsers');
             if (!warningTargetUsersSelect) return;
@@ -2795,7 +3028,7 @@
         }
         window.populateUserSelectForWarning = populateUserSelectForWarning;
 
-        // NEW: Fungsi untuk mengirim peringatan
+        // Fungsi untuk mengirim peringatan
         async function sendWarning() {
             const warningMessageInput = document.getElementById('warningMessage');
             const warningFileUrlInput = document.getElementById('warningFileUrl');
@@ -2834,6 +3067,323 @@
         }
         window.sendWarning = sendWarning;
 
+        // NEW: Gacha System Functions
+        function displayGachaPage() {
+            const userCoinsElement = document.getElementById('userCoins');
+            const gachaSpinButton = document.getElementById('gachaSpinButton');
+            const availableGachaRewardsList = document.getElementById('availableGachaRewardsList');
+
+            if (!userCoinsElement || !gachaSpinButton || !availableGachaRewardsList) return;
+
+            userCoinsElement.textContent = currentUser.coins || 0;
+            gachaSpinButton.disabled = (currentUser.coins || 0) < 10; // Gacha cost is 10 coins
+
+            let rewardsHtml = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Hadiah</th>
+                            <th>Tipe</th>
+                            <th>Nilai</th>
+                            <th>Probabilitas (Bobot)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            const rewardsArray = Object.values(allGachaRewards);
+            if (rewardsArray.length === 0) {
+                rewardsHtml += `<tr><td colspan="4" style="text-align: center;">Belum ada hadiah gacha yang tersedia.</td></tr>`;
+            } else {
+                rewardsArray.forEach(reward => {
+                    const valueDisplay = reward.type === 'percentage_discount' ? `${reward.value}%` : 'Kode Gratis';
+                    rewardsHtml += `
+                        <tr>
+                            <td>${reward.rewardName}</td>
+                            <td>${reward.type === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td>${valueDisplay}</td>
+                            <td>${reward.weight}</td>
+                        </tr>
+                    `;
+                });
+            }
+            rewardsHtml += `</tbody></table>`;
+            availableGachaRewardsList.innerHTML = rewardsHtml;
+        }
+        window.displayGachaPage = displayGachaPage;
+
+        async function gachaSpin() {
+            if (!currentUser) {
+                showModal('Error', 'Anda harus login untuk memutar gacha.', 'error');
+                return;
+            }
+
+            const gachaSpinButton = document.getElementById('gachaSpinButton');
+            const gachaResultElement = document.getElementById('gachaResult');
+
+            // Add null checks for elements
+            if (!gachaSpinButton || !gachaResultElement) {
+                console.error("Gacha spin button or result element not found.");
+                showModal('Error', 'Terjadi kesalahan pada halaman Gacha. Mohon refresh.', 'error');
+                return;
+            }
+
+            const spinCost = 10;
+            if ((currentUser.coins || 0) < spinCost) {
+                showModal('Koin Tidak Cukup', `Anda membutuhkan ${spinCost} koin untuk memutar gacha. Koin Anda: ${currentUser.coins || 0}.`, 'warning');
+                return;
+            }
+
+            gachaSpinButton.disabled = true; // Disable button during spin
+            gachaResultElement.textContent = 'Memutar...';
+
+            try {
+                // Deduct coins
+                const newCoins = currentUser.coins - spinCost;
+                await updateDoc(doc(usersCol, currentUser.uid), { coins: newCoins });
+                currentUser.coins = newCoins; // Update local state
+                document.getElementById('userCoins').textContent = newCoins; // Update UI immediately
+
+                // Select a random reward based on weights
+                const rewards = Object.values(allGachaRewards);
+                if (rewards.length === 0) {
+                    showModal('Gacha Kosong', 'Tidak ada hadiah gacha yang tersedia. Silakan hubungi admin.', 'error');
+                    gachaResultElement.textContent = '';
+                    gachaSpinButton.disabled = false;
+                    return;
+                }
+
+                let totalWeight = 0;
+                rewards.forEach(r => totalWeight += r.weight);
+
+                let randomNum = Math.random() * totalWeight;
+                let chosenReward = null;
+                for (const reward of rewards) {
+                    if (randomNum < reward.weight) {
+                        chosenReward = reward;
+                        break;
+                    }
+                    randomNum -= reward.weight;
+                }
+
+                if (!chosenReward) {
+                    // Fallback if somehow no reward is chosen (shouldn't happen with correct weights)
+                    chosenReward = rewards[Math.floor(Math.random() * rewards.length)];
+                }
+
+                let rewardMessage = '';
+                let rewardValueForHistory = chosenReward.value;
+                let rewardTypeForHistory = chosenReward.type;
+
+                if (chosenReward.type === 'free_code') {
+                    // Find an unused code
+                    let availableCode = null;
+                    for (const productId in allCodes) {
+                        availableCode = allCodes[productId].find(code => !code.isUsed);
+                        if (availableCode) break;
+                    }
+
+                    if (availableCode) {
+                        await updateDoc(doc(codesCol, availableCode.id), {
+                            isUsed: true,
+                            usedAt: new Date().toISOString(),
+                            usedByGacha: currentUser.uid
+                        });
+                        rewardMessage = `Selamat! Anda memenangkan kode gratis: <strong>${availableCode.value}</strong>`;
+                        rewardValueForHistory = availableCode.value;
+                        showModal('Anda Menang Gacha!', rewardMessage, 'success', availableCode.value);
+                    } else {
+                        rewardMessage = `Anda memenangkan kode gratis, tetapi tidak ada kode yang tersedia saat ini. Silakan coba lagi nanti atau hubungi admin.`;
+                        rewardValueForHistory = 'No Code Available';
+                        showModal('Gacha Berhasil (Tapi Stok Kosong)', rewardMessage, 'warning');
+                    }
+                } else if (chosenReward.type === 'percentage_discount') {
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + (chosenReward.durationDays || 7)); // Default 7 days
+                    
+                    await updateDoc(doc(usersCol, currentUser.uid), {
+                        activeGachaDiscount: {
+                            percentage: chosenReward.value,
+                            expiryDate: expiryDate.toISOString()
+                        }
+                    });
+                    currentUser.activeGachaDiscount = {
+                        percentage: chosenReward.value,
+                        expiryDate: expiryDate.toISOString()
+                    }; // Update local state
+                    rewardMessage = `Selamat! Anda memenangkan diskon <strong>${chosenReward.value}%</strong> untuk semua produk! Diskon berlaku hingga ${expiryDate.toLocaleDateString('id-ID')}.`;
+                    showModal('Anda Menang Gacha!', rewardMessage, 'success');
+                } else {
+                    rewardMessage = `Anda memenangkan: ${chosenReward.rewardName}!`;
+                    showModal('Anda Menang Gacha!', rewardMessage, 'success');
+                }
+
+                gachaResultElement.textContent = `Anda memenangkan: ${chosenReward.rewardName}!`;
+
+                // Record gacha history
+                await addDoc(gachaHistoryCol, {
+                    userId: currentUser.uid,
+                    rewardId: chosenReward.id,
+                    rewardName: chosenReward.rewardName,
+                    rewardType: rewardTypeForHistory,
+                    rewardValue: rewardValueForHistory,
+                    spinDate: new Date().toISOString()
+                });
+
+            } catch (error) {
+                console.error("Error during gacha spin:", error.message);
+                showModal('Gacha Gagal', 'Terjadi kesalahan saat memutar gacha. Silakan coba lagi.', 'error');
+                gachaResultElement.textContent = 'Gagal memutar gacha.';
+            } finally {
+                gachaSpinButton.disabled = false; // Re-enable button
+            }
+        }
+        window.gachaSpin = gachaSpin;
+
+        // Admin functions for Gacha Rewards
+        function toggleGachaRewardFields() {
+            const gachaRewardType = document.getElementById('gachaRewardType');
+            const gachaRewardValueField = document.getElementById('gachaRewardValueField');
+            const gachaRewardDurationField = document.getElementById('gachaRewardDurationField');
+
+            if (!gachaRewardType || !gachaRewardValueField || !gachaRewardDurationField) return;
+
+            if (gachaRewardType.value === 'percentage_discount') {
+                gachaRewardValueField.style.display = 'block';
+                gachaRewardDurationField.style.display = 'block';
+            } else {
+                gachaRewardValueField.style.display = 'none';
+                gachaRewardDurationField.style.display = 'none';
+            }
+        }
+        window.toggleGachaRewardFields = toggleGachaRewardFields;
+
+        async function addGachaReward() {
+            const rewardNameInput = document.getElementById('gachaRewardName');
+            const rewardTypeSelect = document.getElementById('gachaRewardType');
+            const rewardValueInput = document.getElementById('gachaRewardValue');
+            const rewardDurationInput = document.getElementById('gachaRewardDuration');
+            const rewardWeightInput = document.getElementById('gachaRewardWeight');
+
+            if (!rewardNameInput || !rewardTypeSelect || !rewardWeightInput) return;
+
+            const rewardName = rewardNameInput.value.trim();
+            const rewardType = rewardTypeSelect.value;
+            const rewardWeight = parseInt(rewardWeightInput.value);
+
+            if (!rewardName || !rewardType || isNaN(rewardWeight) || rewardWeight <= 0) {
+                showModal('Input Tidak Valid', 'Nama hadiah, tipe, dan bobot harus diisi dengan benar.', 'warning');
+                return;
+            }
+
+            let rewardData = {
+                rewardName: rewardName,
+                type: rewardType,
+                weight: rewardWeight
+            };
+
+            if (rewardType === 'percentage_discount') {
+                const rewardValue = parseInt(rewardValueInput.value);
+                const rewardDuration = parseInt(rewardDurationInput.value);
+                if (isNaN(rewardValue) || rewardValue <= 0 || rewardValue > 100 || isNaN(rewardDuration) || rewardDuration <= 0) {
+                    showModal('Input Tidak Valid', 'Nilai diskon harus antara 1-100 dan durasi harus angka positif.', 'warning');
+                    return;
+                }
+                rewardData.value = rewardValue;
+                rewardData.durationDays = rewardDuration;
+            } else if (rewardType === 'free_code') {
+                // For free_code, value is implicitly handled by finding an unused code later
+                rewardData.value = 0; // Placeholder value
+            }
+
+            try {
+                await addDoc(gachaRewardsCol, rewardData);
+                showModal('Berhasil!', `Hadiah gacha "${rewardName}" berhasil ditambahkan.`, 'success');
+                rewardNameInput.value = '';
+                rewardTypeSelect.value = '';
+                rewardValueInput.value = '';
+                rewardDurationInput.value = '7';
+                rewardWeightInput.value = '10';
+                toggleGachaRewardFields(); // Hide fields
+            } catch (error) {
+                console.error("Error adding gacha reward:", error.message);
+                showModal('Gagal Menambah Hadiah Gacha', 'Terjadi kesalahan saat menambahkan hadiah gacha.', 'error');
+            }
+        }
+        window.addGachaReward = addGachaReward;
+
+        async function displayGachaRewardsAdmin() {
+            const gachaRewardsListDiv = document.getElementById('gachaRewardsList');
+            if (!gachaRewardsListDiv) return;
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Hadiah</th>
+                            <th>Tipe</th>
+                            <th>Nilai</th>
+                            <th>Bobot</th>
+                            <th>Durasi (Hari)</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            const rewardsArray = Object.values(allGachaRewards);
+            if (rewardsArray.length === 0) {
+                html += `<tr><td colspan="6" style="text-align: center;">Belum ada hadiah gacha yang tersedia.</td></tr>`;
+            } else {
+                rewardsArray.forEach(reward => {
+                    const valueDisplay = reward.type === 'percentage_discount' ? `${reward.value}%` : 'N/A';
+                    const durationDisplay = reward.type === 'percentage_discount' ? (reward.durationDays || '-') : 'N/A';
+                    
+                    html += `
+                        <tr>
+                            <td>${reward.rewardName}</td>
+                            <td>${reward.type === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td>${valueDisplay}</td>
+                            <td>${reward.weight}</td>
+                            <td>${durationDisplay}</td>
+                            <td>
+                                <button class="action-btn delete-user-btn" onclick="deleteGachaReward('${reward.id}')">Hapus</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            html += `</tbody></table>`;
+            gachaRewardsListDiv.innerHTML = html;
+        }
+        window.displayGachaRewardsAdmin = displayGachaRewardsAdmin;
+
+        async function deleteGachaReward(rewardId) {
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
+            const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+            const confirmationMessage = document.getElementById('confirmationMessage');
+
+            confirmationModal.querySelector('.modal-content').className = 'modal-content error';
+            confirmationMessage.innerHTML = 'Apakah Anda yakin ingin menghapus hadiah gacha ini? Tindakan ini tidak dapat dibatalkan!';
+            confirmationModal.style.display = 'flex';
+
+            confirmPurchaseBtn.onclick = async () => {
+                try {
+                    await deleteDoc(doc(gachaRewardsCol, rewardId));
+                    showModal('Berhasil!', 'Hadiah gacha berhasil dihapus.', 'success');
+                } catch (error) {
+                    console.error("Error deleting gacha reward:", error.message);
+                    showModal('Gagal!', 'Terjadi kesalahan saat menghapus hadiah gacha.', 'error');
+                } finally {
+                    hideConfirmation();
+                }
+            };
+
+            cancelPurchaseBtn.onclick = () => {
+                showModal('Dibatalkan', 'Penghapusan hadiah gacha dibatalkan.', 'warning');
+                hideConfirmation();
+            };
+        }
+        window.deleteGachaReward = deleteGachaReward;
 
         // --- Inisialisasi saat halaman dimuat ---
         document.addEventListener('DOMContentLoaded', () => {
