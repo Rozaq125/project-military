@@ -3177,9 +3177,11 @@
                 if (chosenReward.type === 'free_code') {
                     // Find an unused code
                     let availableCode = null;
-                    for (const productId in allCodes) {
-                        availableCode = allCodes[productId].find(code => !code.isUsed);
-                        if (availableCode) break;
+                    for (const productId in allProducts) { // Iterate through products to find codes
+                        if (allCodes[productId]) { // Check if codes exist for this product
+                            availableCode = allCodes[productId].find(code => !code.isUsed);
+                            if (availableCode) break; // Found an unused code, break loop
+                        }
                     }
 
                     if (availableCode) {
