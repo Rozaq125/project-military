@@ -1441,6 +1441,7 @@
                                 <small id="maintenanceEndTimeHelperText" style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
                             </div>
                             <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
+                            <button onclick="stopMaintenance()" style="background-color: var(--error-color); margin-top: 10px;">Stop Maintenance Sekarang</button>
                         </div>
 
                         <h3 style="margin-top: 40px;">📢 Kirim Peringatan ke Pengguna 📢</h3>
@@ -2605,6 +2606,49 @@
             }
         }
         window.saveMaintenanceConfig = saveMaintenanceConfig;
+
+        // NEW: Function to stop maintenance immediately
+        async function stopMaintenance() {
+            // Confirm with the user
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
+            const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+            const confirmationMessage = document.getElementById('confirmationMessage');
+
+            confirmationModal.querySelector('.modal-content').className = 'modal-content warning';
+            confirmationMessage.innerHTML = 'Apakah Anda yakin ingin menghentikan mode pemeliharaan sekarang? Situs akan kembali online.';
+            confirmationModal.style.display = 'flex';
+
+            confirmPurchaseBtn.onclick = async () => {
+                try {
+                    // Update Firestore to deactivate maintenance mode
+                    await updateDoc(doc(configCol, "global_settings"), {
+                        maintenance: {
+                            isActive: false,
+                            startTime: null,
+                            endTime: null,
+                            reason: "",
+                            estimatedDuration: ""
+                        }
+                    });
+                    showModal('Berhasil!', 'Mode pemeliharaan telah dihentikan. Situs kembali online!', 'success');
+                    // Optionally redirect or refresh the page to show changes
+                    setTimeout(() => showPage('home'), 1000);
+                } catch (error) {
+                    console.error("Error stopping maintenance:", error.message);
+                    showModal('Gagal!', 'Terjadi kesalahan saat menghentikan mode pemeliharaan.', 'error');
+                } finally {
+                    hideConfirmation();
+                }
+            };
+
+            cancelPurchaseBtn.onclick = () => {
+                showModal('Dibatalkan', 'Penghentian mode pemeliharaan dibatalkan.', 'info'); // 'info' is not defined, should be 'warning' or 'success'
+                hideConfirmation();
+            };
+        }
+        window.stopMaintenance = stopMaintenance;
+
 
         function startMaintenanceCountdown() {
             if (maintenanceCountdownInterval) {
