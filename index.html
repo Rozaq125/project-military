@@ -259,6 +259,36 @@
             color: var(--error-color);
         }
 
+        /* Product Management Table */
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .product-table th, .product-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .product-table th {
+            background-color: var(--bg-light);
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .product-table tr:hover {
+            background-color: var(--bg-medium);
+        }
+
+        .product-table img {
+            max-width: 50px;
+            max-height: 50px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
         /* User Management Table */
         .user-table {
             width: 100%;
@@ -290,7 +320,7 @@
             font-size: 0.8em;
         }
 
-        .user-table .action-btn {
+        .user-table .action-btn, .product-table .action-btn {
             padding: 5px 10px;
             margin-right: 5px;
             font-size: 0.9em;
@@ -300,7 +330,7 @@
             transition: background-color 0.3s;
         }
 
-        .user-table .make-admin-btn {
+        .user-table .make-admin-btn, .product-table .edit-btn {
             background-color: var(--success-color);
         }
 
@@ -308,11 +338,11 @@
             background-color: var(--warning-color);
         }
 
-        .user-table .delete-user-btn {
+        .user-table .delete-user-btn, .product-table .delete-btn {
             background-color: var(--error-color);
         }
 
-        .user-table .action-btn:hover {
+        .user-table .action-btn:hover, .product-table .action-btn:hover {
             opacity: 0.9;
         }
 
@@ -331,7 +361,7 @@
                 margin: 0 auto;
             }
             
-            .user-table {
+            .user-table, .product-table {
                 display: block;
                 overflow-x: auto;
             }
@@ -758,6 +788,97 @@
             font-size: 0.8em;
             margin-right: 5px;
         }
+
+        /* Profile Page Specific Styles */
+        .profile-section {
+            background-color: var(--bg-light);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .profile-section h3 {
+            text-align: left;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .profile-info p {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        .profile-info strong {
+            color: var(--accent-color);
+        }
+
+        .profile-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .profile-table th, .profile-table td {
+            padding: 10px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-medium);
+        }
+
+        .profile-table th {
+            background-color: var(--bg-medium);
+            color: var(--text-light);
+            font-weight: bold;
+        }
+
+        .profile-table tr:hover {
+            background-color: var(--bg-medium);
+        }
+
+        .profile-table .status-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .profile-table .status-badge.used {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .profile-table .status-badge.available {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .profile-table .status-badge.expired {
+            background-color: var(--warning-color);
+            color: #333;
+        }
+
+        .profile-table .copy-code-btn {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-table .copy-code-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .profile-table .warning-message {
+            color: var(--text-light);
+        }
     </style>
 </head>
 <body>
@@ -770,7 +891,8 @@
                 <a href="#" onclick="showPage('register')">Register</a>
             </span>
             <span id="loggedInLinks" style="display:none;">
-                <a href="#" onclick="showPage('gacha')">Gacha</a> <!-- NEW: Gacha Link -->
+                <a href="#" onclick="showPage('profile')">Profil</a> <!-- NEW: Profile Link -->
+                <a href="#" onclick="showPage('gacha')">Gacha</a>
                 <a href="#" onclick="showPage('admin')">Admin Panel</a>
                 <a href="#" onclick="logoutUser()">Logout</a>
             </span>
@@ -833,6 +955,29 @@
         <p id="adminSecretLoginError" style="color: var(--error-color); text-align: center; margin-top: 10px;"></p>
     </div>
 
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeEditProductModal()">&times;</span>
+            <h2>✏️ Edit Produk</h2>
+            <input type="hidden" id="editProductId">
+            <div class="form-group">
+                <label for="editProductName">Nama Produk:</label>
+                <input type="text" id="editProductName" placeholder="Nama Produk">
+            </div>
+            <div class="form-group">
+                <label for="editProductPrice">Harga (IDR):</label>
+                <input type="number" id="editProductPrice" placeholder="Harga">
+            </div>
+            <div class="form-group">
+                <label for="editProductImage">URL Gambar Produk (Opsional):</label>
+                <input type="text" id="editProductImage" placeholder="URL Gambar">
+            </div>
+            <button onclick="updateProduct()">Simpan Perubahan</button>
+            <button onclick="closeEditProductModal()" style="background-color: var(--error-color);">Batal</button>
+        </div>
+    </div>
+
     <script type="module">
         // Impor modul Firebase yang diperlukan
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -882,6 +1027,9 @@
         let countdownInterval = null;
         let maintenanceCountdownInterval = null;
         let allGachaRewards = {}; // NEW: Global variable for gacha rewards
+        let userOrders = {}; // NEW: Global variable for current user's orders
+        let userGachaHistory = {}; // NEW: Global variable for current user's gacha history
+        let userWarnings = {}; // NEW: Global variable for current user's warnings
 
         // Secret admin code (6748303865593375593_573=47.6,;'584`~)
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
@@ -944,6 +1092,9 @@
             if (document.getElementById('discountProductSelect')) { 
                 populateDiscountProductSelect(); 
             }
+            if (document.getElementById('allProductsList')) { // Update admin product list
+                displayProductsAdmin();
+            }
             displayTopSellingProducts();
         });
 
@@ -988,6 +1139,10 @@
                 currentUser = { ...currentUser, ...allUsers[currentUser.uid] }; 
                 updateAuthLinks(); 
                 checkMaintenanceModeAndRedirect(); 
+                // NEW: Update profile page if visible
+                if (document.getElementById('userProfileContent')) {
+                    displayUserProfileContent();
+                }
             }
             
             // Update user table if on admin page
@@ -998,7 +1153,7 @@
             if (document.getElementById('warningTargetUsers')) {
                 populateUserSelectForWarning();
             }
-            // NEW: Update gacha page if visible
+            // Update gacha page if visible
             if (document.getElementById('gachaPageContent')) {
                 displayGachaPage();
             }
@@ -1008,13 +1163,24 @@
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added" || change.type === "modified") {
                     allOrders[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
+                    if (currentUser && change.doc.data().userId === currentUser.uid) {
+                        userOrders[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
+                    }
                 }
                 if (change.type === "removed") {
                     delete allOrders[change.doc.id];
+                    if (currentUser && userOrders[change.doc.id]) {
+                        delete userOrders[change.doc.id];
+                    }
                 }
             });
             console.log("Orders updated:", allOrders);
+            console.log("User Orders updated:", userOrders);
             displayTopSellingProducts(); 
+            // NEW: Update profile page if visible
+            if (document.getElementById('userProfileContent')) {
+                displayUserProfileContent();
+            }
         });
 
         onSnapshot(doc(configCol, "global_settings"), (docSnap) => {
@@ -1056,7 +1222,7 @@
                 const userDocSnap = await getDoc(doc(usersCol, user.uid));
                 if (userDocSnap.exists()) {
                     currentUser = { ...user, ...userDocSnap.data() };
-                    // NEW: Ensure coins field exists
+                    // Ensure coins field exists
                     if (typeof currentUser.coins === 'undefined') {
                         await updateDoc(doc(usersCol, user.uid), { coins: 0 });
                         currentUser.coins = 0;
@@ -1066,7 +1232,7 @@
                         username: user.email,
                         isAdmin: false,
                         createdAt: new Date().toISOString(),
-                        coins: 0 // NEW: Initialize coins for new users
+                        coins: 0 // Initialize coins for new users
                     });
                     currentUser = { ...user, username: user.email, isAdmin: false, coins: 0 };
                 }
@@ -1076,6 +1242,9 @@
 
                 // Setup warning listener for the current user
                 setupWarningListener(currentUser.uid);
+                // Setup user-specific orders and gacha history listeners
+                setupUserOrdersListener(currentUser.uid);
+                setupUserGachaHistoryListener(currentUser.uid);
 
             } else {
                 currentUser = null;
@@ -1087,6 +1256,22 @@
                     window.warningUnsubscribe();
                     window.warningUnsubscribe = null;
                 }
+                // Clear user-specific listeners and data
+                if (window.userOrdersUnsubscribe) {
+                    window.userOrdersUnsubscribe();
+                    window.userOrdersUnsubscribe = null;
+                    userOrders = {};
+                }
+                if (window.userGachaHistoryUnsubscribe) {
+                    window.userGachaHistoryUnsubscribe();
+                    window.userGachaHistoryUnsubscribe = null;
+                    userGachaHistory = {};
+                }
+                userWarnings = {}; // Clear warnings data
+            }
+            // NEW: Update profile page if visible after auth state change
+            if (document.getElementById('userProfileContent')) {
+                displayUserProfileContent();
             }
         });
 
@@ -1107,6 +1292,42 @@
             }
         });
 
+        // NEW: Function to set up user-specific orders listener
+        function setupUserOrdersListener(userId) {
+            if (window.userOrdersUnsubscribe) {
+                window.userOrdersUnsubscribe();
+            }
+            const q = query(ordersCol, where("userId", "==", userId));
+            window.userOrdersUnsubscribe = onSnapshot(q, (snapshot) => {
+                userOrders = {}; // Clear existing
+                snapshot.forEach(doc => {
+                    userOrders[doc.id] = { ...doc.data(), id: doc.id };
+                });
+                console.log("User-specific orders updated:", userOrders);
+                if (document.getElementById('userProfileContent')) {
+                    displayUserProfileContent();
+                }
+            });
+        }
+
+        // NEW: Function to set up user-specific gacha history listener
+        function setupUserGachaHistoryListener(userId) {
+            if (window.userGachaHistoryUnsubscribe) {
+                window.userGachaHistoryUnsubscribe();
+            }
+            const q = query(gachaHistoryCol, where("userId", "==", userId));
+            window.userGachaHistoryUnsubscribe = onSnapshot(q, (snapshot) => {
+                userGachaHistory = {}; // Clear existing
+                snapshot.forEach(doc => {
+                    userGachaHistory[doc.id] = { ...doc.data(), id: doc.id };
+                });
+                console.log("User-specific gacha history updated:", userGachaHistory);
+                if (document.getElementById('userProfileContent')) {
+                    displayUserProfileContent();
+                }
+            });
+        }
+
         // Function to set up the warning listener
         function setupWarningListener(userId) {
             if (window.warningUnsubscribe) {
@@ -1119,18 +1340,31 @@
             );
 
             window.warningUnsubscribe = onSnapshot(q, (snapshot) => {
-                snapshot.docChanges().forEach(async (change) => {
-                    if (change.type === "added") {
-                        const warningData = { ...change.doc.data(), id: change.doc.id };
-                        // Check if the warning is global or specifically for this user
-                        const isGlobal = !warningData.targetUserIds || warningData.targetUserIds.length === 0;
-                        const isTargeted = warningData.targetUserIds && warningData.targetUserIds.includes(userId);
-
-                        if (isGlobal || isTargeted) {
-                            displayWarningModal(warningData);
-                        }
+                userWarnings = {}; // Clear existing warnings
+                snapshot.forEach(doc => {
+                    const warningData = { ...doc.data(), id: doc.id }; // Corrected: doc.id instead of doc.doc.id
+                    const isGlobal = !warningData.targetUserIds || warningData.targetUserIds.length === 0;
+                    const isTargeted = warningData.targetUserIds && warningData.targetUserIds.includes(userId);
+                    if (isGlobal || isTargeted) {
+                        userWarnings[doc.id] = warningData;
                     }
                 });
+                console.log("User-specific warnings updated:", userWarnings);
+                if (document.getElementById('userProfileContent')) {
+                    displayUserProfileContent(); // Update profile page if visible
+                } else {
+                    // If not on profile page, display modal for newly added unread warnings
+                    snapshot.docChanges().forEach(async (change) => {
+                        if (change.type === "added") {
+                            const warningData = { ...change.doc.data(), id: change.doc.id };
+                            const isGlobal = !warningData.targetUserIds || warningData.targetUserIds.length === 0;
+                            const isTargeted = warningData.targetUserIds && warningData.targetUserIds.includes(userId);
+                            if ((isGlobal || isTargeted) && !warningData.isRead[userId]) {
+                                displayWarningModal(warningData);
+                            }
+                        }
+                    });
+                }
             });
             console.log("Warning listener set up for user:", userId);
         }
@@ -1202,7 +1436,7 @@
                 errorElement.textContent = errorMessage;
             }
         }
-        window.verifyAdminSecretLogin = verifyAdminSecretLogin; // Tambahkan baris ini
+        window.verifyAdminSecretLogin = verifyAdminSecretLogin; // Perbaikan: Menggunakan nama fungsi yang benar
 
         // --- Data Dummy untuk Notifikasi Penjualan ---
         const DUMMY_BUYER_NAMES = [
@@ -1425,7 +1659,7 @@
                     appContent.innerHTML = htmlContent;
                     break;
                 
-                case 'gacha': // NEW: Gacha Page
+                case 'gacha': // Gacha Page
                     if (!currentUser) {
                         showModal('Akses Ditolak', 'Anda harus login untuk mengakses Gacha.', 'error');
                         showPage('login');
@@ -1447,6 +1681,59 @@
                     `;
                     appContent.innerHTML = htmlContent;
                     displayGachaPage(); // Call function to populate gacha page details
+                    break;
+
+                case 'profile': // NEW: Profile Page
+                    if (!currentUser) {
+                        showModal('Akses Ditolak', 'Anda harus login untuk melihat profil Anda.', 'error');
+                        showPage('login');
+                        return;
+                    }
+                    htmlContent = `
+                        <div id="userProfileContent">
+                            <h2>👤 Profil Pengguna</h2>
+                            <div class="profile-section">
+                                <h3>Informasi Akun</h3>
+                                <p class="profile-info">Email: <strong>${currentUser.email || 'N/A'}</strong></p>
+                                <p class="profile-info">Koin: <strong><span id="profileUserCoins">${currentUser.coins || 0}</span></strong></p>
+                                <p class="profile-info">ID Pengguna: <small>${currentUser.uid}</small></p>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3>Diskon Aktif</h3>
+                                <div id="activeDiscountInfo">
+                                    <!-- Active discount will be loaded here -->
+                                    <p style="color:var(--text-medium);">Tidak ada diskon aktif saat ini.</p>
+                                </div>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3>Riwayat Pembelian</h3>
+                                <div id="purchaseHistoryList">
+                                    <!-- Purchase history will be loaded here -->
+                                    <p style="color:var(--text-medium);">Anda belum melakukan pembelian.</p>
+                                </div>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3>Riwayat Gacha</h3>
+                                <div id="gachaHistoryList">
+                                    <!-- Gacha history will be loaded here -->
+                                    <p style="color:var(--text-medium);">Anda belum pernah memutar gacha.</p>
+                                </div>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3>Peringatan dari Admin</h3>
+                                <div id="userWarningsList">
+                                    <!-- User-specific warnings will be loaded here -->
+                                    <p style="color:var(--text-medium);">Tidak ada peringatan baru.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    displayUserProfileContent(); // Call function to populate profile details
                     break;
 
                 case 'admin':
@@ -1498,6 +1785,12 @@
                             <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/gambar_produk.png">
                         </div>
                         <button onclick="addProduct()">Tambah Produk</button>
+
+                        <h3>Daftar Semua Produk</h3>
+                        <div id="allProductsList">
+                            <!-- Product list will be loaded here -->
+                            <p style="text-align:center; color:var(--text-medium);">Memuat produk...</p>
+                        </div>
 
                         <h3>Tambah Kode untuk Produk</h3>
                         <div class="form-group">
@@ -1637,7 +1930,8 @@
                     loadMaintenanceConfig();
                     displayAllUsers();
                     populateUserSelectForWarning();
-                    displayGachaRewardsAdmin(); // NEW: Display gacha rewards in admin panel
+                    displayGachaRewardsAdmin(); // Display gacha rewards in admin panel
+                    displayProductsAdmin(); // Display products in admin panel
                     break;
 
                 default:
@@ -1713,7 +2007,7 @@
                             <tr>
                                 <th>Email</th>
                                 <th>Status</th>
-                                <th>Koin</th> <!-- NEW: Koin Column -->
+                                <th>Koin</th>
                                 <th>Tanggal Dibuat</th>
                                 <th>Aksi</th>
                             </tr>
@@ -1726,12 +2020,15 @@
                     const userId = doc.id;
                     
                     // Skip current user (admin yang sedang login)
-                    if (userId === currentUser.uid) {
+                    if (currentUser && userId === currentUser.uid) {
                         return;
                     }
                     
                     const createdAt = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('id-ID') : '-';
-                    const createdBy = userData.createdBy ? (allUsers[userData.createdBy]?.username || 'System') : 'System';
+                    // The `createdBy` field is not consistently set in your existing code,
+                    // so I'm simplifying it to just show the creation date.
+                    // If you want to track who created which user, you'd need to add that logic
+                    // when `createUserFromAdmin` is called.
                     
                     html += `
                         <tr>
@@ -1739,8 +2036,8 @@
                             <td>
                                 ${userData.isAdmin ? '<span class="admin-badge">Admin</span>' : 'Pengguna'}
                             </td>
-                            <td>${userData.coins || 0}</td> <!-- NEW: Display coins -->
-                            <td>${createdAt} (oleh ${createdBy})</td>
+                            <td>${userData.coins || 0}</td>
+                            <td>${createdAt}</td>
                             <td>
                                 ${!userData.isAdmin ? 
                                     `<button class="action-btn make-admin-btn" onclick="toggleAdminStatus('${userId}', true)">Jadikan Admin</button>` : 
@@ -1921,7 +2218,7 @@
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 productCard.innerHTML = `
-                    <img src="${product.image || 'https://via.placeholder.com/150/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}">
+                    <img src="${product.image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}">
                     <h3>${product.name}</h3>
                     <p class="price-info">
                         ${originalPriceHtml}
@@ -1967,7 +2264,7 @@
             // Apply gacha discount if active and higher than global, or if no global discount
             if (currentUser && currentUser.activeGachaDiscount && new Date(currentUser.activeGachaDiscount.expiryDate).getTime() > new Date().getTime()) {
                 if (currentUser.activeGachaDiscount.percentage > appliedDiscountPercentage) {
-                    appliedDiscountPercentage = currentUser.activeGachaDiscount.percentage;
+                    appliedDiscountPercentage = gachaDiscountPercentage;
                 }
             }
 
@@ -2014,14 +2311,17 @@
                 productId: productId,
                 isUsed: false,
                 codeGiven: null,
-                purchaseDate: new Date().toISOString()
+                purchaseDate: new Date().toISOString(),
+                userId: currentUser ? currentUser.uid : null, // Store userId with the order
+                productName: product.name, // Store product name for easier display
+                productPrice: product.price // Store product price for easier display
             };
 
             try {
                 await setDoc(doc(ordersCol, orderId), newOrderData);
                 console.log("Order added to Firestore:", orderId);
 
-                // NEW: Add coins for purchase
+                // Add coins for purchase
                 const coinsEarned = Math.floor(product.price / 1000); // 1 coin per 1000 IDR
                 if (currentUser) {
                     const newCoins = (currentUser.coins || 0) + coinsEarned;
@@ -2134,7 +2434,7 @@
                     username: email,
                     isAdmin: false,
                     createdAt: new Date().toISOString(),
-                    coins: 0 // NEW: Initialize coins for new users
+                    coins: 0 // Initialize coins for new users
                 });
 
                 showModal('Registrasi Berhasil!', `Akun <strong>${email}</strong> berhasil dibuat. Silakan login.`, 'success');
@@ -2173,7 +2473,7 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const userDoc = await getDoc(doc(usersCol, userCredential.user.uid));
                 
-                // NEW: Add coins for login (if not already added today, or just a flat amount)
+                // Add coins for login (if not already added today, or just a flat amount)
                 if (currentUser && currentUser.uid === userCredential.user.uid) { // Ensure it's the same user logging in
                     const loginCoins = 5; // Example: 5 coins per login
                     const newCoins = (currentUser.coins || 0) + loginCoins;
@@ -2231,7 +2531,7 @@
                     id: productId,
                     name: name,
                     price: price,
-                    image: image || 'https://via.placeholder.com/150/2a2a2a/f0f0f0?text=Item'
+                    image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Item'
                 });
                 console.log("Product added to Firestore:", productId);
 
@@ -2245,6 +2545,146 @@
             }
         }
         window.addProduct = addProduct;
+
+        // Functions for Product Management (Edit/Delete)
+        async function displayProductsAdmin() {
+            const allProductsListDiv = document.getElementById('allProductsList');
+            if (!allProductsListDiv) return;
+
+            let html = `
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>Gambar</th>
+                            <th>Nama Produk</th>
+                            <th>Harga</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            const productsArray = Object.values(allProducts);
+            if (productsArray.length === 0) {
+                html += `<tr><td colspan="4" style="text-align: center;">Belum ada produk yang tersedia.</td></tr>`;
+            } else {
+                productsArray.forEach(product => {
+                    html += `
+                        <tr>
+                            <td><img src="${product.image || 'https://placehold.co/50x50/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}"></td>
+                            <td>${product.name}</td>
+                            <td>Rp ${product.price.toLocaleString('id-ID')}</td>
+                            <td>
+                                <button class="action-btn edit-btn" onclick="showEditProductModal('${product.id}')">Edit</button>
+                                <button class="action-btn delete-btn" onclick="deleteProduct('${product.id}')">Hapus</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            html += `</tbody></table>`;
+            allProductsListDiv.innerHTML = html;
+        }
+        window.displayProductsAdmin = displayProductsAdmin;
+
+        function showEditProductModal(productId) {
+            const product = allProducts[productId];
+            if (!product) {
+                showModal('Error!', 'Produk tidak ditemukan untuk diedit.', 'error');
+                return;
+            }
+
+            document.getElementById('editProductId').value = product.id;
+            document.getElementById('editProductName').value = product.name;
+            document.getElementById('editProductPrice').value = product.price;
+            document.getElementById('editProductImage').value = product.image || '';
+
+            document.getElementById('editProductModal').style.display = 'flex';
+        }
+        window.showEditProductModal = showEditProductModal;
+
+        function closeEditProductModal() {
+            document.getElementById('editProductModal').style.display = 'none';
+            // Clear fields after closing
+            document.getElementById('editProductId').value = '';
+            document.getElementById('editProductName').value = '';
+            document.getElementById('editProductPrice').value = '';
+            document.getElementById('editProductImage').value = '';
+        }
+        window.closeEditProductModal = closeEditProductModal;
+
+        async function updateProduct() {
+            const productId = document.getElementById('editProductId').value;
+            const name = document.getElementById('editProductName').value.trim();
+            const price = parseFloat(document.getElementById('editProductPrice').value);
+            const image = document.getElementById('editProductImage').value.trim();
+
+            if (!productId || !name || isNaN(price) || price <= 0) {
+                showModal('Input Tidak Valid', 'Nama produk dan harga harus diisi dengan benar.', 'warning');
+                return;
+            }
+
+            try {
+                await updateDoc(doc(productsCol, productId), {
+                    name: name,
+                    price: price,
+                    image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Item'
+                });
+                showModal('Berhasil!', `Produk "<strong>${name}</strong>" berhasil diperbarui!`, 'success');
+                closeEditProductModal();
+            } catch (error) {
+                console.error("Error updating product:", error.message);
+                showModal('Gagal Memperbarui Produk', 'Terjadi kesalahan saat memperbarui produk.', 'error');
+            }
+        }
+        window.updateProduct = updateProduct;
+
+        async function deleteProduct(productId) {
+            const product = allProducts[productId];
+            if (!product) {
+                showModal('Error!', 'Produk tidak ditemukan untuk dihapus.', 'error');
+                return;
+            }
+
+            // Menggunakan showModal untuk konfirmasi
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
+            const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+            const confirmationMessage = document.getElementById('confirmationMessage');
+
+            confirmationModal.querySelector('.modal-content').className = 'modal-content error'; // Use error color for deletion
+            confirmationMessage.innerHTML = `Apakah Anda yakin ingin menghapus produk "<strong>${product.name}</strong>"? Semua kode yang terkait dengan produk ini juga akan terhapus! Tindakan ini tidak dapat dibatalkan!`;
+            confirmationModal.style.display = 'flex';
+
+            confirmPurchaseBtn.onclick = async () => {
+                try {
+                    // Hapus produk dari koleksi products
+                    await deleteDoc(doc(productsCol, productId));
+
+                    // Hapus semua kode yang terkait dengan produk ini
+                    const codesToDeleteQuery = query(codesCol, where("productId", "==", productId));
+                    const codesSnapshot = await getDocs(codesToDeleteQuery);
+                    const deletePromises = [];
+                    codesSnapshot.forEach((codeDoc) => {
+                        deletePromises.push(deleteDoc(doc(codesCol, codeDoc.id)));
+                    });
+                    await Promise.all(deletePromises);
+
+                    showModal('Berhasil!', `Produk "<strong>${product.name}</strong>" dan semua kodenya berhasil dihapus.`, 'success');
+                } catch (error) {
+                    console.error("Error deleting product or associated codes:", error.message);
+                    showModal('Gagal Menghapus Produk', 'Terjadi kesalahan saat menghapus produk atau kodenya.', 'error');
+                } finally {
+                    hideConfirmation();
+                }
+            };
+
+            cancelPurchaseBtn.onclick = () => {
+                showModal('Dibatalkan', 'Penghapusan produk dibatalkan.', 'warning');
+                hideConfirmation();
+            };
+        }
+        window.deleteProduct = deleteProduct;
+
 
         async function addCodes() {
             const selectedProductElement = document.getElementById('adminCodeProductSelect');
@@ -3067,7 +3507,7 @@
         }
         window.sendWarning = sendWarning;
 
-        // NEW: Gacha System Functions
+        // Gacha System Functions
         function displayGachaPage() {
             const userCoinsElement = document.getElementById('userCoins');
             const gachaSpinButton = document.getElementById('gachaSpinButton');
@@ -3106,7 +3546,7 @@
                     `;
                 });
             }
-            rewardsHtml += `</tbody></table>`;
+            html += `</tbody></table>`;
             availableGachaRewardsList.innerHTML = rewardsHtml;
         }
         window.displayGachaPage = displayGachaPage;
@@ -3386,6 +3826,141 @@
             };
         }
         window.deleteGachaReward = deleteGachaReward;
+
+        // NEW: User Profile/Inventory Functions
+        async function displayUserProfileContent() {
+            if (!currentUser) {
+                document.getElementById('userProfileContent').innerHTML = '<p style="text-align:center; color:var(--error-color);">Anda harus login untuk melihat profil.</p>';
+                return;
+            }
+
+            // Update basic user info
+            document.getElementById('profileUserCoins').textContent = currentUser.coins || 0;
+
+            // Display Active Discount
+            const activeDiscountInfoDiv = document.getElementById('activeDiscountInfo');
+            if (currentUser.activeGachaDiscount && new Date(currentUser.activeGachaDiscount.expiryDate).getTime() > new Date().getTime()) {
+                const expiryDate = new Date(currentUser.activeGachaDiscount.expiryDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                activeDiscountInfoDiv.innerHTML = `
+                    <p>Anda memiliki diskon aktif: <strong>${currentUser.activeGachaDiscount.percentage}%</strong></p>
+                    <p>Berlaku hingga: <strong>${expiryDate}</strong></p>
+                    <p style="font-size:0.9em; color:var(--text-medium);">Diskon ini akan otomatis diterapkan pada pembelian yang memenuhi syarat.</p>
+                `;
+            } else {
+                activeDiscountInfoDiv.innerHTML = '<p style="color:var(--text-medium);">Tidak ada diskon aktif saat ini.</p>';
+            }
+
+            // Display Purchase History
+            const purchaseHistoryListDiv = document.getElementById('purchaseHistoryList');
+            const userOrdersArray = Object.values(userOrders).sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate)); // Sort by most recent
+            
+            let purchaseHtml = `
+                <table class="profile-table">
+                    <thead>
+                        <tr>
+                            <th>ID Pesanan</th>
+                            <th>Produk</th>
+                            <th>Harga</th>
+                            <th>Status Kode</th>
+                            <th>Kode Diberikan</th>
+                            <th>Tanggal Beli</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            if (userOrdersArray.length === 0) {
+                purchaseHtml += `<tr><td colspan="6" style="text-align: center; color:var(--text-medium);">Anda belum melakukan pembelian.</td></tr>`;
+            } else {
+                userOrdersArray.forEach(order => {
+                    const statusBadge = order.isUsed ? '<span class="status-badge used">Terpakai</span>' : '<span class="status-badge available">Tersedia</span>';
+                    const codeDisplay = order.codeGiven ? `${order.codeGiven} <button class="copy-code-btn" onclick="document.execCommand(\'copy\', false, \'${order.codeGiven}\'); showModal(\'Disalin!\', \'Kode berhasil disalin.\', \'success\');">Salin</button>` : 'Belum Diberikan';
+                    const purchaseDate = new Date(order.purchaseDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+                    
+                    purchaseHtml += `
+                        <tr>
+                            <td>${order.id}</td>
+                            <td>${order.productName || 'N/A'}</td>
+                            <td>Rp ${order.productPrice ? order.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
+                            <td>${statusBadge}</td>
+                            <td>${codeDisplay}</td>
+                            <td>${purchaseDate}</td>
+                        </tr>
+                    `;
+                });
+            }
+            purchaseHtml += `</tbody></table>`;
+            purchaseHistoryListDiv.innerHTML = purchaseHtml;
+
+            // Display Gacha History
+            const gachaHistoryListDiv = document.getElementById('gachaHistoryList');
+            const userGachaHistoryArray = Object.values(userGachaHistory).sort((a, b) => new Date(b.spinDate) - new Date(a.spinDate)); // Sort by most recent
+
+            let gachaHtml = `
+                <table class="profile-table">
+                    <thead>
+                        <tr>
+                            <th>Hadiah</th>
+                            <th>Tipe Hadiah</th>
+                            <th>Nilai</th>
+                            <th>Tanggal Putar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            if (userGachaHistoryArray.length === 0) {
+                gachaHtml += `<tr><td colspan="4" style="text-align: center; color:var(--text-medium);">Anda belum pernah memutar gacha.</td></tr>`;
+            } else {
+                userGachaHistoryArray.forEach(entry => {
+                    const valueDisplay = entry.rewardType === 'percentage_discount' ? `${entry.rewardValue}%` : (entry.rewardValue || 'N/A');
+                    const spinDate = new Date(entry.spinDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+                    gachaHtml += `
+                        <tr>
+                            <td>${entry.rewardName}</td>
+                            <td>${entry.rewardType === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td>${valueDisplay}</td>
+                            <td>${spinDate}</td>
+                        </tr>
+                    `;
+                });
+            }
+            gachaHtml += `</tbody></table>`;
+            gachaHistoryListDiv.innerHTML = gachaHtml;
+
+            // Display User Warnings
+            const userWarningsListDiv = document.getElementById('userWarningsList');
+            const userWarningsArray = Object.values(userWarnings).sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt)); // Sort by most recent
+
+            let warningsHtml = `
+                <table class="profile-table">
+                    <thead>
+                        <tr>
+                            <th>Pesan Peringatan</th>
+                            <th>Tanggal Dikirim</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            if (userWarningsArray.length === 0) {
+                warningsHtml += `<tr><td colspan="3" style="text-align: center; color:var(--text-medium);">Tidak ada peringatan baru.</td></tr>`;
+            } else {
+                warningsHtml += userWarningsArray.map(warning => {
+                    const sentDate = new Date(warning.sentAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+                    const fileLink = warning.fileUrl ? `<button class="copy-code-btn" onclick="window.open('${warning.fileUrl}', '_blank')">Lihat Lampiran</button>` : '';
+                    return `
+                        <tr>
+                            <td><p class="warning-message">${warning.message}</p></td>
+                            <td>${sentDate}</td>
+                            <td>${fileLink}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+            warningsHtml += `</tbody></table>`;
+            userWarningsListDiv.innerHTML = warningsHtml;
+        }
+        window.displayUserProfileContent = displayUserProfileContent;
+
 
         // --- Inisialisasi saat halaman dimuat ---
         document.addEventListener('DOMContentLoaded', () => {
