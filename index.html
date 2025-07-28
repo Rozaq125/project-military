@@ -228,6 +228,75 @@
 
 
         /* Admin Specific */
+        .admin-section {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 20px;
+            min-height: 600px; /* Ensure content pushes footer down */
+        }
+
+        .admin-sidebar {
+            flex: 0 0 200px; /* Fixed width for sidebar */
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .admin-sidebar h3 {
+            text-align: left;
+            color: var(--text-light);
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-sidebar-nav li {
+            margin-bottom: 10px;
+        }
+
+        .admin-sidebar-nav a {
+            display: block;
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .admin-sidebar-nav a:hover {
+            background-color: var(--bg-medium);
+        }
+
+        .admin-sidebar-nav a.active {
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .admin-content {
+            flex: 1; /* Take remaining space */
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .admin-content > div {
+            display: none; /* Hide all content sections by default */
+        }
+
+        .admin-content > div.active {
+            display: block; /* Show active content section */
+        }
+
         .admin-section h3 {
             text-align: left;
             margin-top: 30px;
@@ -273,7 +342,7 @@
         }
 
         .product-table th {
-            background-color: var(--bg-light);
+            background-color: var(--bg-medium);
             color: var(--accent-color);
             font-weight: bold;
         }
@@ -303,7 +372,7 @@
         }
 
         .user-table th {
-            background-color: var(--bg-light);
+            background-color: var(--bg-medium);
             color: var(--accent-color);
             font-weight: bold;
         }
@@ -352,18 +421,59 @@
                 margin: 15px;
                 padding: 20px;
             }
-            nav {
+            header nav {
                 flex-direction: column;
                 gap: 10px;
             }
-            nav a {
+            header nav a {
                 width: fit-content;
                 margin: 0 auto;
             }
             
-            .user-table, .product-table {
+            .admin-section {
+                flex-direction: column;
+            }
+
+            .admin-sidebar {
+                flex: 0 0 auto; /* Allow sidebar to take full width */
+                width: 100%;
+            }
+
+            .admin-content {
+                flex: 1;
+                width: 100%;
+            }
+
+            .user-table, .product-table, .profile-table, .gacha-rewards-list table {
                 display: block;
                 overflow-x: auto;
+                white-space: nowrap; /* Prevent text wrapping in table cells */
+            }
+            .user-table thead, .product-table thead, .profile-table thead, .gacha-rewards-list table thead {
+                display: none; /* Hide table headers on small screens */
+            }
+            .user-table tr, .product-table tr, .profile-table tr, .gacha-rewards-list table tr {
+                display: block;
+                margin-bottom: 10px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 10px;
+            }
+            .user-table td, .product-table td, .profile-table td, .gacha-rewards-list table td {
+                display: block;
+                text-align: right;
+                padding: 5px 0;
+                border-bottom: none;
+            }
+            .user-table td::before, .product-table td::before, .profile-table td::before, .gacha-rewards-list table td::before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+                color: var(--accent-color);
+                margin-right: 10px;
+            }
+            .user-table td:last-child, .product-table td:last-child, .profile-table td:last-child, .gacha-rewards-list table td:last-child {
+                border-bottom: none;
             }
         }
 
@@ -933,7 +1043,7 @@
             <div id="maintenanceCountdown" class="maintenance-countdown"></div>
             <div id="maintenanceReason" class="maintenance-reason"></div>
             <p>Kami sedang melakukan perbaikan dan pembaruan untuk meningkatkan pengalaman Anda.</p>
-            <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
+            <p>Mohon maaf atas ketidaknyamananannya. Kami akan segera kembali!</p>
             <p>Terima kasih atas kesabaran Anda -ArtiviveTeam....</p>
         </div>
     </div>
@@ -1342,7 +1452,7 @@
             window.warningUnsubscribe = onSnapshot(q, (snapshot) => {
                 userWarnings = {}; // Clear existing warnings
                 snapshot.forEach(doc => {
-                    const warningData = { ...doc.data(), id: doc.id }; // Corrected: doc.id instead of doc.doc.id
+                    const warningData = { ...doc.data(), id: doc.id }; 
                     const isGlobal = !warningData.targetUserIds || warningData.targetUserIds.length === 0;
                     const isTargeted = warningData.targetUserIds && warningData.targetUserIds.includes(userId);
                     if (isGlobal || isTargeted) {
@@ -1386,7 +1496,7 @@
                 adminLogin.appendChild(closeBtn);
             }
         }
-        window.showAdminSecretLogin = showAdminSecretLogin; // Tambahkan baris ini
+        window.showAdminSecretLogin = showAdminSecretLogin; 
 
         function hideAdminSecretLogin() {
             document.getElementById('adminSecretLogin').style.display = 'none';
@@ -1395,7 +1505,7 @@
             document.getElementById('adminSecretCode').value = '';
             document.getElementById('adminSecretLoginError').textContent = '';
         }
-        window.hideAdminSecretLogin = hideAdminSecretLogin; // Tambahkan baris ini
+        window.hideAdminSecretLogin = hideAdminSecretLogin; 
 
         async function verifyAdminSecretLogin() {
             const email = document.getElementById('adminSecretEmail').value.trim();
@@ -1436,7 +1546,7 @@
                 errorElement.textContent = errorMessage;
             }
         }
-        window.verifyAdminSecretLogin = verifyAdminSecretLogin; // Perbaikan: Menggunakan nama fungsi yang benar
+        window.verifyAdminSecretLogin = verifyAdminSecretLogin; 
 
         // --- Data Dummy untuk Notifikasi Penjualan ---
         const DUMMY_BUYER_NAMES = [
@@ -1746,192 +1856,210 @@
                         <h2>🛠️ Panel Admin 🔒</h2>
                         <p style="text-align:center; color:var(--text-medium);">Kelola produk, kode, dan pengguna di sini.</p>
 
-                        <div id="userManagementSection">
-                            <h3>Manajemen Pengguna</h3>
-                            <div class="form-group">
-                                <label for="newUserEmail">Email Pengguna Baru:</label>
-                                <input type="email" id="newUserEmail" placeholder="Masukkan email pengguna baru">
-                            </div>
-                            <div class="form-group">
-                                <label for="newUserPassword">Password:</label>
-                                <input type="password" id="newUserPassword" placeholder="Buat password untuk pengguna">
-                            </div>
-                            <div class="form-group">
-                                <label for="newUserIsAdmin">Jenis Akun:</label>
-                                <select id="newUserIsAdmin">
-                                    <option value="false">Pengguna Biasa</option>
-                                    <option value="true">Admin</option>
-                                </select>
-                            </div>
-                            <button onclick="createUserFromAdmin()">Buat Akun</button>
+                        <div class="admin-section">
+                            <aside class="admin-sidebar">
+                                <h3>Navigasi Admin</h3>
+                                <ul class="admin-sidebar-nav">
+                                    <li><a href="#" onclick="showAdminSection('adminUsers', this)">Manajemen Pengguna</a></li>
+                                    <li><a href="#" onclick="showAdminSection('adminProducts', this)">Manajemen Produk</a></li>
+                                    <li><a href="#" onclick="showAdminSection('adminCodes', this)">Manajemen Kode</a></li>
+                                    <li><a href="#" onclick="showAdminSection('adminDiscounts', this)">Pengaturan Diskon</a></li>
+                                    <li><a href="#" onclick="showAdminSection('adminMaintenance', this)">Mode Pemeliharaan</a></li>
+                                    <li><a href="#" onclick="showAdminSection('adminWarnings', this)">Kirim Peringatan</a></li>
+                                    <li><a href="#" onclick="showAdminSection('adminGachaRewards', this)">Hadiah Gacha</a></li>
+                                </ul>
+                            </aside>
+                            <section class="admin-content">
+                                <div id="adminUsers" class="admin-content-section active">
+                                    <h3>Manajemen Pengguna</h3>
+                                    <div class="form-group">
+                                        <label for="newUserEmail">Email Pengguna Baru:</label>
+                                        <input type="email" id="newUserEmail" placeholder="Masukkan email pengguna baru">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newUserPassword">Password:</label>
+                                        <input type="password" id="newUserPassword" placeholder="Buat password untuk pengguna">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newUserIsAdmin">Jenis Akun:</label>
+                                        <select id="newUserIsAdmin">
+                                            <option value="false">Pengguna Biasa</option>
+                                            <option value="true">Admin</option>
+                                        </select>
+                                    </div>
+                                    <button onclick="createUserFromAdmin()">Buat Akun</button>
+                                    <h3 style="margin-top: 30px;">Daftar Semua Pengguna</h3>
+                                    <div id="usersTableContainer">
+                                        <!-- Tabel pengguna akan dimuat di sini -->
+                                    </div>
+                                </div>
 
-                            <h3 style="margin-top: 30px;">Daftar Semua Pengguna</h3>
-                            <div id="usersTableContainer">
-                                <!-- Tabel pengguna akan dimuat di sini -->
-                            </div>
-                        </div>
+                                <div id="adminProducts" class="admin-content-section">
+                                    <h3>Tambah Produk Baru</h3>
+                                    <div class="form-group">
+                                        <label for="adminProductName">Nama Produk:</label>
+                                        <input type="text" id="adminProductName" placeholder="Contoh: Gamepass VIP">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="adminProductPrice">Harga (IDR):</label>
+                                        <input type="number" id="adminProductPrice" placeholder="Contoh: 50000">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="adminProductImage">URL Gambar Produk (Opsional):</label>
+                                        <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/gambar_produk.png">
+                                    </div>
+                                    <button onclick="addProduct()">Tambah Produk</button>
+                                    <h3 style="margin-top: 30px;">Daftar Semua Produk</h3>
+                                    <div id="allProductsList">
+                                        <!-- Product list will be loaded here -->
+                                        <p style="text-align:center; color:var(--text-medium);">Memuat produk...</p>
+                                    </div>
+                                </div>
 
-                        <h3 style="margin-top: 40px;">Tambah Produk Baru</h3>
-                        <div class="form-group">
-                            <label for="adminProductName">Nama Produk:</label>
-                            <input type="text" id="adminProductName" placeholder="Contoh: Gamepass VIP">
-                        </div>
-                        <div class="form-group">
-                            <label for="adminProductPrice">Harga (IDR):</label>
-                            <input type="number" id="adminProductPrice" placeholder="Contoh: 50000">
-                        </div>
-                        <div class="form-group">
-                            <label for="adminProductImage">URL Gambar Produk (Opsional):</label>
-                            <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/gambar_produk.png">
-                        </div>
-                        <button onclick="addProduct()">Tambah Produk</button>
+                                <div id="adminCodes" class="admin-content-section">
+                                    <h3>Tambah Kode untuk Produk</h3>
+                                    <div class="form-group">
+                                        <label for="adminCodeProductSelect">Pilih Produk:</label>
+                                        <select id="adminCodeProductSelect">
+                                            </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="adminNewCodes">Kode Baru (satu per baris):</label>
+                                        <textarea id="adminNewCodes" rows="10" placeholder="Masukkan kode baru, satu per baris. Contoh:&#10;KODE_VIP_123&#10;KODE_GAMEPASS_ABC&#10;KODE_UANG_XYZ"></textarea>
+                                    </div>
+                                    <button onclick="addCodes()">Tambah Kode</button>
+                                    <h3 style="margin-top: 30px;">Daftar Kode (Per Produk)</h3>
+                                    <div class="form-group">
+                                        <label for="adminViewCodeProductSelect">Pilih Produk untuk Melihat Kode:</label>
+                                        <select id="adminViewCodeProductSelect" onchange="displayCodesForProduct()">
+                                            </select>
+                                    </div>
+                                    <div id="codeList">
+                                        <p style="text-align:center; color:var(--text-medium);">Pilih produk untuk melihat daftar kodenya.</p>
+                                    </div>
+                                </div>
 
-                        <h3>Daftar Semua Produk</h3>
-                        <div id="allProductsList">
-                            <!-- Product list will be loaded here -->
-                            <p style="text-align:center; color:var(--text-medium);">Memuat produk...</p>
-                        </div>
+                                <div id="adminDiscounts" class="admin-content-section">
+                                    <h3 style="margin-top: 0;">💰 Pengaturan Diskon 💰</h3>
+                                    <div class="form-group">
+                                        <label for="discountStatus">Status Diskon:</label>
+                                        <input type="checkbox" id="discountStatus" onchange="toggleDiscountFields()"> Aktifkan Diskon
+                                    </div>
+                                    <div id="discountSettingsFields" style="display: none;">
+                                        <div class="form-group">
+                                            <label for="discountPercentage">Persentase Diskon (%):</label>
+                                            <input type="number" id="discountPercentage" min="1" max="100" value="10">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="discountCountdownEndTime">Waktu Berakhir Diskon (Opsional):</label>
+                                            <input type="datetime-local" id="discountCountdownEndTime">
+                                            <small style="color:var(--text-medium);">Diskon akan otomatis nonaktif setelah waktu ini.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="discountTargetType">Target Diskon:</label>
+                                            <select id="discountTargetType" onchange="toggleDiscountTargetProductSelect()">
+                                                <option value="all">Semua Produk</option>
+                                                <option value="specific">Produk Tertentu</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" id="discountSpecificProductSelect" style="display: none;">
+                                            <label for="discountProductSelect">Pilih Produk (CTRL+klik untuk pilih banyak):</label>
+                                            <select id="discountProductSelect" multiple size="5">
+                                                </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="discountTargetUsers">Target Pengguna (pisahkan dengan koma, kosongkan untuk semua):</label>
+                                            <input type="text" id="discountTargetUsers" placeholder="contoh: user1@email.com, user2@email.com">
+                                        </div>
+                                        <button onclick="saveDiscountConfig()">Simpan Pengaturan Diskon</button>
+                                    </div>
+                                </div>
 
-                        <h3>Tambah Kode untuk Produk</h3>
-                        <div class="form-group">
-                            <label for="adminCodeProductSelect">Pilih Produk:</label>
-                            <select id="adminCodeProductSelect">
-                                </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="adminNewCodes">Kode Baru (satu per baris):</label>
-                            <textarea id="adminNewCodes" rows="10" placeholder="Masukkan kode baru, satu per baris. Contoh:&#10;KODE_VIP_123&#10;KODE_GAMEPASS_ABC&#10;KODE_UANG_XYZ"></textarea>
-                        </div>
-                        <button onclick="addCodes()">Tambah Kode</button>
+                                <div id="adminMaintenance" class="admin-content-section">
+                                    <h3 style="margin-top: 0;">🚧 Pengaturan Maintenance Mode 🚧</h3>
+                                    <div class="form-group">
+                                        <label for="maintenanceStatus">Status Maintenance Mode:</label>
+                                        <input type="checkbox" id="maintenanceStatus" onchange="toggleMaintenanceFields()"> Aktifkan Mode Pemeliharaan
+                                    </div>
+                                    <div id="maintenanceSettingsFields" style="display: none;">
+                                        <div class="form-group">
+                                            <label for="maintenanceReason">Alasan Maintenance (Ditampilkan ke Pengguna):</label>
+                                            <textarea id="maintenanceReason" rows="3" placeholder="Contoh: Sedang melakukan update sistem pembayaran..."></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="maintenanceDuration">Perkiraan Durasi (Ditampilkan ke Pengguna):</label>
+                                            <input type="text" id="maintenanceDuration" placeholder="Contoh: 2 jam, 30 menit">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="maintenanceEndTime">Waktu Berakhir Maintenance (Opsional):</label>
+                                            <input type="datetime-local" id="maintenanceEndTime">
+                                            <small id="maintenanceEndTimeHelperText" style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
+                                        </div>
+                                        <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
+                                        <button onclick="stopMaintenance()" style="background-color: var(--error-color); margin-top: 10px;">Stop Maintenance Sekarang</button>
+                                    </div>
+                                </div>
 
-                        <h3>Daftar Kode (Per Produk)</h3>
-                        <div class="form-group">
-                            <label for="adminViewCodeProductSelect">Pilih Produk untuk Melihat Kode:</label>
-                            <select id="adminViewCodeProductSelect" onchange="displayCodesForProduct()">
-                                </select>
-                        </div>
-                        <div id="codeList">
-                            <p style="text-align:center; color:var(--text-medium);">Pilih produk untuk melihat daftar kodenya.</p>
-                        </div>
+                                <div id="adminWarnings" class="admin-content-section">
+                                    <h3 style="margin-top: 0;">📢 Kirim Peringatan ke Pengguna 📢</h3>
+                                    <div class="form-group">
+                                        <label for="warningMessage">Pesan Peringatan:</label>
+                                        <textarea id="warningMessage" rows="5" placeholder="Tulis pesan peringatan di sini..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="warningFileUrl">URL Gambar/Dokumen (Opsional):</label>
+                                        <input type="text" id="warningFileUrl" placeholder="Contoh: https://i.imgur.com/warning.png atau https://example.com/document.pdf">
+                                        <small style="color:var(--text-medium);">Masukkan URL langsung ke gambar atau dokumen. Untuk upload file, Anda memerlukan layanan penyimpanan seperti Firebase Storage.</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="warningTargetUsers">Target Pengguna (pilih satu atau lebih, kosongkan untuk semua pengguna):</label>
+                                        <select id="warningTargetUsers" multiple size="5">
+                                            <!-- Users will be populated here by JavaScript -->
+                                        </select>
+                                        <small style="color:var(--text-medium);">Tekan CTRL (Windows) / Command (Mac) untuk memilih beberapa pengguna.</small>
+                                    </div>
+                                    <button onclick="sendWarning()">Kirim Peringatan</button>
+                                </div>
 
-                        <h3 style="margin-top: 40px;">💰 Pengaturan Diskon 💰</h3>
-                        <div class="form-group">
-                            <label for="discountStatus">Status Diskon:</label>
-                            <input type="checkbox" id="discountStatus" onchange="toggleDiscountFields()"> Aktifkan Diskon
-                        </div>
-                        <div id="discountSettingsFields" style="display: none;">
-                            <div class="form-group">
-                                <label for="discountPercentage">Persentase Diskon (%):</label>
-                                <input type="number" id="discountPercentage" min="1" max="100" value="10">
-                            </div>
-                            <div class="form-group">
-                                <label for="discountCountdownEndTime">Waktu Berakhir Diskon (Opsional):</label>
-                                <input type="datetime-local" id="discountCountdownEndTime">
-                                <small style="color:var(--text-medium);">Diskon akan otomatis nonaktif setelah waktu ini.</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="discountTargetType">Target Diskon:</label>
-                                <select id="discountTargetType" onchange="toggleDiscountTargetProductSelect()">
-                                    <option value="all">Semua Produk</option>
-                                    <option value="specific">Produk Tertentu</option>
-                                </select>
-                            </div>
-                            <div class="form-group" id="discountSpecificProductSelect" style="display: none;">
-                                <label for="discountProductSelect">Pilih Produk (CTRL+klik untuk pilih banyak):</label>
-                                <select id="discountProductSelect" multiple size="5">
-                                    </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="discountTargetUsers">Target Pengguna (pisahkan dengan koma, kosongkan untuk semua):</label>
-                                <input type="text" id="discountTargetUsers" placeholder="contoh: user1@email.com, user2@email.com">
-                            </div>
-                            <button onclick="saveDiscountConfig()">Simpan Pengaturan Diskon</button>
-                        </div>
-
-                        <h3 style="margin-top: 40px;">🚧 Pengaturan Maintenance Mode 🚧</h3>
-                        <div class="form-group">
-                            <label for="maintenanceStatus">Status Maintenance Mode:</label>
-                            <input type="checkbox" id="maintenanceStatus" onchange="toggleMaintenanceFields()"> Aktifkan Mode Pemeliharaan
-                        </div>
-                        <div id="maintenanceSettingsFields" style="display: none;">
-                            <div class="form-group">
-                                <label for="maintenanceReason">Alasan Maintenance (Ditampilkan ke Pengguna):</label>
-                                <textarea id="maintenanceReason" rows="3" placeholder="Contoh: Sedang melakukan update sistem pembayaran..."></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="maintenanceDuration">Perkiraan Durasi (Ditampilkan ke Pengguna):</label>
-                                <input type="text" id="maintenanceDuration" placeholder="Contoh: 2 jam, 30 menit">
-                            </div>
-                            <div class="form-group">
-                                <label for="maintenanceEndTime">Waktu Berakhir Maintenance (Opsional):</label>
-                                <input type="datetime-local" id="maintenanceEndTime">
-                                <small id="maintenanceEndTimeHelperText" style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
-                            </div>
-                            <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
-                            <button onclick="stopMaintenance()" style="background-color: var(--error-color); margin-top: 10px;">Stop Maintenance Sekarang</button>
-                        </div>
-
-                        <h3 style="margin-top: 40px;">📢 Kirim Peringatan ke Pengguna 📢</h3>
-                        <div class="form-group">
-                            <label for="warningMessage">Pesan Peringatan:</label>
-                            <textarea id="warningMessage" rows="5" placeholder="Tulis pesan peringatan di sini..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="warningFileUrl">URL Gambar/Dokumen (Opsional):</label>
-                            <input type="text" id="warningFileUrl" placeholder="Contoh: https://i.imgur.com/warning.png atau https://example.com/document.pdf">
-                            <small style="color:var(--text-medium);">Masukkan URL langsung ke gambar atau dokumen. Untuk upload file, Anda memerlukan layanan penyimpanan seperti Firebase Storage.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="warningTargetUsers">Target Pengguna (pilih satu atau lebih, kosongkan untuk semua pengguna):</label>
-                            <select id="warningTargetUsers" multiple size="5">
-                                <!-- Users will be populated here by JavaScript -->
-                            </select>
-                            <small style="color:var(--text-medium);">Tekan CTRL (Windows) / Command (Mac) untuk memilih beberapa pengguna.</small>
-                        </div>
-                        <button onclick="sendWarning()">Kirim Peringatan</button>
-
-                        <h3 style="margin-top: 40px;">🎁 Manajemen Hadiah Gacha 🎁</h3>
-                        <div class="form-group">
-                            <label for="gachaRewardName">Nama Hadiah:</label>
-                            <input type="text" id="gachaRewardName" placeholder="Contoh: Kode VIP Gratis, Diskon 20%">
-                        </div>
-                        <div class="form-group">
-                            <label for="gachaRewardType">Tipe Hadiah:</label>
-                            <select id="gachaRewardType" onchange="toggleGachaRewardFields()">
-                                <option value="">-- Pilih Tipe --</option>
-                                <option value="free_code">Kode Gratis (Acak)</option>
-                                <option value="percentage_discount">Diskon Persentase</option>
-                            </select>
-                        </div>
-                        <div id="gachaRewardValueField" class="form-group" style="display: none;">
-                            <label for="gachaRewardValue">Nilai Hadiah (Persentase untuk Diskon):</label>
-                            <input type="number" id="gachaRewardValue" min="1" max="100" placeholder="Contoh: 10 (untuk 10% diskon)">
-                        </div>
-                        <div id="gachaRewardDurationField" class="form-group" style="display: none;">
-                            <label for="gachaRewardDuration">Durasi Diskon (Hari):</label>
-                            <input type="number" id="gachaRewardDuration" min="1" value="7" placeholder="Contoh: 7">
-                        </div>
-                        <div class="form-group">
-                            <label for="gachaRewardWeight">Bobot Probabilitas (Angka lebih tinggi = lebih sering muncul):</label>
-                            <input type="number" id="gachaRewardWeight" min="1" value="10" placeholder="Contoh: 10">
-                        </div>
-                        <button onclick="addGachaReward()">Tambah Hadiah Gacha</button>
-
-                        <h3 style="margin-top: 30px;">Daftar Hadiah Gacha</h3>
-                        <div class="gacha-rewards-list" id="gachaRewardsList">
-                            <!-- Gacha rewards will be loaded here -->
-                            <p style="text-align:center; color:var(--text-medium);">Belum ada hadiah gacha yang tersedia.</p>
+                                <div id="adminGachaRewards" class="admin-content-section">
+                                    <h3 style="margin-top: 0;">🎁 Manajemen Hadiah Gacha 🎁</h3>
+                                    <div class="form-group">
+                                        <label for="gachaRewardName">Nama Hadiah:</label>
+                                        <input type="text" id="gachaRewardName" placeholder="Contoh: Kode VIP Gratis, Diskon 20%">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="gachaRewardType">Tipe Hadiah:</label>
+                                        <select id="gachaRewardType" onchange="toggleGachaRewardFields()">
+                                            <option value="">-- Pilih Tipe --</option>
+                                            <option value="free_code">Kode Gratis (Acak)</option>
+                                            <option value="percentage_discount">Diskon Persentase</option>
+                                        </select>
+                                    </div>
+                                    <div id="gachaRewardValueField" class="form-group" style="display: none;">
+                                        <label for="gachaRewardValue">Nilai Hadiah (Persentase untuk Diskon):</label>
+                                        <input type="number" id="gachaRewardValue" min="1" max="100" placeholder="Contoh: 10 (untuk 10% diskon)">
+                                    </div>
+                                    <div id="gachaRewardDurationField" class="form-group" style="display: none;">
+                                        <label for="gachaRewardDuration">Durasi Diskon (Hari):</label>
+                                        <input type="number" id="gachaRewardDuration" min="1" value="7" placeholder="Contoh: 7">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="gachaRewardWeight">Bobot Probabilitas (Angka lebih tinggi = lebih sering muncul):</label>
+                                        <input type="number" id="gachaRewardWeight" min="1" value="10" placeholder="Contoh: 10">
+                                    </div>
+                                    <button onclick="addGachaReward()">Tambah Hadiah Gacha</button>
+                                    <h3 style="margin-top: 30px;">Daftar Hadiah Gacha</h3>
+                                    <div class="gacha-rewards-list" id="gachaRewardsList">
+                                        <!-- Gacha rewards will be loaded here -->
+                                        <p style="text-align:center; color:var(--text-medium);">Belum ada hadiah gacha yang tersedia.</p>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
                     `;
                     appContent.innerHTML = htmlContent;
-                    populateAdminProductSelects();
-                    populateDiscountProductSelect();
-                    loadDiscountConfig();
-                    loadMaintenanceConfig();
-                    displayAllUsers();
-                    populateUserSelectForWarning();
-                    displayGachaRewardsAdmin(); // Display gacha rewards in admin panel
-                    displayProductsAdmin(); // Display products in admin panel
+                    // Initial load of admin content (default to user management)
+                    showAdminSection('adminUsers', document.querySelector('.admin-sidebar-nav a[onclick="showAdminSection(\'adminUsers\', this)"]'));
                     break;
 
                 default:
@@ -1941,6 +2069,56 @@
             checkMaintenanceModeAndRedirect();
         }
         window.showPage = showPage;
+
+        // NEW: Fungsi untuk menampilkan bagian admin tertentu
+        function showAdminSection(sectionId, clickedLink) {
+            // Sembunyikan semua bagian konten admin
+            document.querySelectorAll('.admin-content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Tampilkan bagian yang dipilih
+            document.getElementById(sectionId).classList.add('active');
+
+            // Hapus kelas 'active' dari semua link sidebar
+            document.querySelectorAll('.admin-sidebar-nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Tambahkan kelas 'active' ke link yang diklik
+            if (clickedLink) {
+                clickedLink.classList.add('active');
+            }
+
+            // Panggil fungsi pembaruan data yang relevan
+            switch (sectionId) {
+                case 'adminUsers':
+                    displayAllUsers();
+                    break;
+                case 'adminProducts':
+                    displayProductsAdmin();
+                    break;
+                case 'adminCodes':
+                    populateAdminProductSelects(); // Populate both select boxes
+                    displayCodesForProduct(); // Display codes for the default selected product (if any)
+                    break;
+                case 'adminDiscounts':
+                    loadDiscountConfig();
+                    populateDiscountProductSelect();
+                    break;
+                case 'adminMaintenance':
+                    loadMaintenanceConfig();
+                    break;
+                case 'adminWarnings':
+                    populateUserSelectForWarning();
+                    break;
+                case 'adminGachaRewards':
+                    displayGachaRewardsAdmin();
+                    break;
+            }
+        }
+        window.showAdminSection = showAdminSection;
+
 
         // --- FUNGSI MANAJEMEN PENGGUNA ---
         async function createUserFromAdmin() {
@@ -2032,13 +2210,13 @@
                     
                     html += `
                         <tr>
-                            <td>${userData.username || '-'}</td>
-                            <td>
+                            <td data-label="Email">${userData.username || '-'}</td>
+                            <td data-label="Status">
                                 ${userData.isAdmin ? '<span class="admin-badge">Admin</span>' : 'Pengguna'}
                             </td>
-                            <td>${userData.coins || 0}</td>
-                            <td>${createdAt}</td>
-                            <td>
+                            <td data-label="Koin">${userData.coins || 0}</td>
+                            <td data-label="Tanggal Dibuat">${createdAt}</td>
+                            <td data-label="Aksi">
                                 ${!userData.isAdmin ? 
                                     `<button class="action-btn make-admin-btn" onclick="toggleAdminStatus('${userId}', true)">Jadikan Admin</button>` : 
                                     `<button class="action-btn remove-admin-btn" onclick="toggleAdminStatus('${userId}', false)">Hapus Admin</button>`
@@ -2570,10 +2748,10 @@
                 productsArray.forEach(product => {
                     html += `
                         <tr>
-                            <td><img src="${product.image || 'https://placehold.co/50x50/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}"></td>
-                            <td>${product.name}</td>
-                            <td>Rp ${product.price.toLocaleString('id-ID')}</td>
-                            <td>
+                            <td data-label="Gambar"><img src="${product.image || 'https://placehold.co/50x50/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}"></td>
+                            <td data-label="Nama Produk">${product.name}</td>
+                            <td data-label="Harga">Rp ${product.price.toLocaleString('id-ID')}</td>
+                            <td data-label="Aksi">
                                 <button class="action-btn edit-btn" onclick="showEditProductModal('${product.id}')">Edit</button>
                                 <button class="action-btn delete-btn" onclick="deleteProduct('${product.id}')">Hapus</button>
                             </td>
@@ -3538,10 +3716,10 @@
                     const valueDisplay = reward.type === 'percentage_discount' ? `${reward.value}%` : 'Kode Gratis';
                     rewardsHtml += `
                         <tr>
-                            <td>${reward.rewardName}</td>
-                            <td>${reward.type === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
-                            <td>${valueDisplay}</td>
-                            <td>${reward.weight}</td>
+                            <td data-label="Nama Hadiah">${reward.rewardName}</td>
+                            <td data-label="Tipe">${reward.type === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td data-label="Nilai">${valueDisplay}</td>
+                            <td data-label="Probabilitas">${reward.weight}</td>
                         </tr>
                     `;
                 });
@@ -3758,7 +3936,7 @@
             if (!gachaRewardsListDiv) return;
 
             let html = `
-                <table>
+                <table class="gacha-rewards-table">
                     <thead>
                         <tr>
                             <th>Nama Hadiah</th>
@@ -3781,12 +3959,12 @@
                     
                     html += `
                         <tr>
-                            <td>${reward.rewardName}</td>
-                            <td>${reward.type === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
-                            <td>${valueDisplay}</td>
-                            <td>${reward.weight}</td>
-                            <td>${durationDisplay}</td>
-                            <td>
+                            <td data-label="Nama Hadiah">${reward.rewardName}</td>
+                            <td data-label="Tipe">${reward.type === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td data-label="Nilai">${valueDisplay}</td>
+                            <td data-label="Bobot">${reward.weight}</td>
+                            <td data-label="Durasi">${durationDisplay}</td>
+                            <td data-label="Aksi">
                                 <button class="action-btn delete-user-btn" onclick="deleteGachaReward('${reward.id}')">Hapus</button>
                             </td>
                         </tr>
@@ -3878,12 +4056,12 @@
                     
                     purchaseHtml += `
                         <tr>
-                            <td>${order.id}</td>
-                            <td>${order.productName || 'N/A'}</td>
-                            <td>Rp ${order.productPrice ? order.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
-                            <td>${statusBadge}</td>
-                            <td>${codeDisplay}</td>
-                            <td>${purchaseDate}</td>
+                            <td data-label="ID Pesanan">${order.id}</td>
+                            <td data-label="Produk">${order.productName || 'N/A'}</td>
+                            <td data-label="Harga">Rp ${order.productPrice ? order.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
+                            <td data-label="Status Kode">${statusBadge}</td>
+                            <td data-label="Kode Diberikan">${codeDisplay}</td>
+                            <td data-label="Tanggal Beli">${purchaseDate}</td>
                         </tr>
                     `;
                 });
@@ -3915,10 +4093,10 @@
                     const spinDate = new Date(entry.spinDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
                     gachaHtml += `
                         <tr>
-                            <td>${entry.rewardName}</td>
-                            <td>${entry.rewardType === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
-                            <td>${valueDisplay}</td>
-                            <td>${spinDate}</td>
+                            <td data-label="Hadiah">${entry.rewardName}</td>
+                            <td data-label="Tipe Hadiah">${entry.rewardType === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td data-label="Nilai">${valueDisplay}</td>
+                            <td data-label="Tanggal Putar">${spinDate}</td>
                         </tr>
                     `;
                 });
@@ -3949,9 +4127,9 @@
                     const fileLink = warning.fileUrl ? `<button class="copy-code-btn" onclick="window.open('${warning.fileUrl}', '_blank')">Lihat Lampiran</button>` : '';
                     return `
                         <tr>
-                            <td><p class="warning-message">${warning.message}</p></td>
-                            <td>${sentDate}</td>
-                            <td>${fileLink}</td>
+                            <td data-label="Pesan Peringatan"><p class="warning-message">${warning.message}</p></td>
+                            <td data-label="Tanggal Dikirim">${sentDate}</td>
+                            <td data-label="Aksi">${fileLink}</td>
                         </tr>
                     `;
                 }).join('');
