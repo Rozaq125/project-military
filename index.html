@@ -444,35 +444,35 @@
                 width: 100%;
             }
 
-            .user-table, .product-table, .profile-table, .gacha-rewards-list table {
+            .user-table, .product-table, .profile-table, .gacha-rewards-list table, .purchase-approval-table {
                 display: block;
                 overflow-x: auto;
                 white-space: nowrap; /* Prevent text wrapping in table cells */
             }
-            .user-table thead, .product-table thead, .profile-table thead, .gacha-rewards-list table thead {
+            .user-table thead, .product-table thead, .profile-table thead, .gacha-rewards-list table thead, .purchase-approval-table thead {
                 display: none; /* Hide table headers on small screens */
             }
-            .user-table tr, .product-table tr, .profile-table tr, .gacha-rewards-list table tr {
+            .user-table tr, .product-table tr, .profile-table tr, .gacha-rewards-list table tr, .purchase-approval-table tr {
                 display: block;
                 margin-bottom: 10px;
                 border: 1px solid var(--border-color);
                 border-radius: 8px;
                 padding: 10px;
             }
-            .user-table td, .product-table td, .profile-table td, .gacha-rewards-list table td {
+            .user-table td, .product-table td, .profile-table td, .gacha-rewards-list table td, .purchase-approval-table td {
                 display: block;
                 text-align: right;
                 padding: 5px 0;
                 border-bottom: none;
             }
-            .user-table td::before, .product-table td::before, .profile-table td::before, .gacha-rewards-list table td::before {
+            .user-table td::before, .product-table td::before, .profile-table td::before, .gacha-rewards-list table td::before, .purchase-approval-table td::before {
                 content: attr(data-label);
                 float: left;
                 font-weight: bold;
                 color: var(--accent-color);
                 margin-right: 10px;
             }
-            .user-table td:last-child, .product-table td:last-child, .profile-table td:last-child, .gacha-rewards-list table td:last-child {
+            .user-table td:last-child, .product-table td:last-child, .profile-table td:last-child, .gacha-rewards-list table td:last-child, .purchase-approval-table td:last-child {
                 border-bottom: none;
             }
         }
@@ -989,6 +989,29 @@
         .profile-table .warning-message {
             color: var(--text-light);
         }
+
+        /* Purchase Approval Table */
+        .purchase-approval-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .purchase-approval-table th, .purchase-approval-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .purchase-approval-table th {
+            background-color: var(--bg-medium);
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .purchase-approval-table tr:hover {
+            background-color: var(--bg-medium);
+        }
     </style>
 </head>
 <body>
@@ -1001,7 +1024,7 @@
                 <a href="#" onclick="showPage('register')">Register</a>
             </span>
             <span id="loggedInLinks" style="display:none;">
-                <a href="#" onclick="showPage('profile')">Profil</a> <!-- NEW: Profile Link -->
+                <a href="#" onclick="showPage('profile')">Profil</a>
                 <a href="#" onclick="showPage('gacha')">Gacha</a>
                 <a href="#" onclick="showPage('admin')">Admin Panel</a>
                 <a href="#" onclick="logoutUser()">Logout</a>
@@ -1043,7 +1066,7 @@
             <div id="maintenanceCountdown" class="maintenance-countdown"></div>
             <div id="maintenanceReason" class="maintenance-reason"></div>
             <p>Kami sedang melakukan perbaikan dan pembaruan untuk meningkatkan pengalaman Anda.</p>
-            <p>Mohon maaf atas ketidaknyamananannya. Kami akan segera kembali!</p>
+            <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
             <p>Terima kasih atas kesabaran Anda -ArtiviveTeam....</p>
         </div>
     </div>
@@ -1140,6 +1163,10 @@
         let userOrders = {}; // NEW: Global variable for current user's orders
         let userGachaHistory = {}; // NEW: Global variable for current user's gacha history
         let userWarnings = {}; // NEW: Global variable for current user's warnings
+
+        // NEW: Global variables for discount calculation
+        let globalGachaDiscountPercentage = 0;
+        let isGachaDiscountActive = false;
 
         // Secret admin code (6748303865593375593_573=47.6,;'584`~)
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
@@ -1290,6 +1317,10 @@
             // NEW: Update profile page if visible
             if (document.getElementById('userProfileContent')) {
                 displayUserProfileContent();
+            }
+            // NEW: Update purchase approval list if visible
+            if (document.getElementById('adminPurchaseApproval')) {
+                displayPendingPurchases();
             }
         });
 
@@ -1867,6 +1898,7 @@
                                     <li><a href="#" onclick="showAdminSection('adminMaintenance', this)">Mode Pemeliharaan</a></li>
                                     <li><a href="#" onclick="showAdminSection('adminWarnings', this)">Kirim Peringatan</a></li>
                                     <li><a href="#" onclick="showAdminSection('adminGachaRewards', this)">Hadiah Gacha</a></li>
+                                    <li><a href="#" onclick="showAdminSection('adminPurchaseApproval', this)">Persetujuan Pembelian</a></li> <!-- NEW: Purchase Approval Link -->
                                 </ul>
                             </aside>
                             <section class="admin-content">
@@ -1993,7 +2025,7 @@
                                         <div class="form-group">
                                             <label for="maintenanceEndTime">Waktu Berakhir Maintenance (Opsional):</label>
                                             <input type="datetime-local" id="maintenanceEndTime">
-                                            <small id="maintenanceEndTimeHelperText" style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
+                                            <small style="color:var(--text-medium);">Maintenance akan otomatis berakhir setelah waktu ini.</small>
                                         </div>
                                         <button onclick="saveMaintenanceConfig()">Simpan Pengaturan Maintenance</button>
                                         <button onclick="stopMaintenance()" style="background-color: var(--error-color); margin-top: 10px;">Stop Maintenance Sekarang</button>
@@ -2052,6 +2084,14 @@
                                     <div class="gacha-rewards-list" id="gachaRewardsList">
                                         <!-- Gacha rewards will be loaded here -->
                                         <p style="text-align:center; color:var(--text-medium);">Belum ada hadiah gacha yang tersedia.</p>
+                                    </div>
+                                </div>
+
+                                <div id="adminPurchaseApproval" class="admin-content-section">
+                                    <h3>✅ Persetujuan Pembelian</h3>
+                                    <div id="pendingPurchasesList">
+                                        <!-- Daftar pembelian yang menunggu persetujuan akan dimuat di sini -->
+                                        <p style="text-align:center; color:var(--text-medium);">Tidak ada pembelian yang menunggu persetujuan.</p>
                                     </div>
                                 </div>
                             </section>
@@ -2114,6 +2154,9 @@
                     break;
                 case 'adminGachaRewards':
                     displayGachaRewardsAdmin();
+                    break;
+                case 'adminPurchaseApproval': // NEW: Call function for purchase approval
+                    displayPendingPurchases();
                     break;
             }
         }
@@ -2322,11 +2365,11 @@
             const currentLoggedInUser = currentUser;
 
             // Check and apply gacha discount if active
-            let gachaDiscountPercentage = 0;
-            let gachaDiscountActive = false;
+            globalGachaDiscountPercentage = 0; // Reset global variable
+            isGachaDiscountActive = false; // Reset global variable
             if (currentUser && currentUser.activeGachaDiscount && new Date(currentUser.activeGachaDiscount.expiryDate).getTime() > new Date().getTime()) {
-                gachaDiscountPercentage = currentUser.activeGachaDiscount.percentage;
-                gachaDiscountActive = true;
+                globalGachaDiscountPercentage = currentUser.activeGachaDiscount.percentage;
+                isGachaDiscountActive = true;
             } else if (currentUser && currentUser.activeGachaDiscount && new Date(currentUser.activeGachaDiscount.expiryDate).getTime() <= new Date().getTime()) {
                 // If gacha discount expired, clear it from user's document
                 updateDoc(doc(usersCol, currentUser.uid), {
@@ -2382,8 +2425,8 @@
                 }
 
                 // Apply gacha discount if active and higher than global, or if no global discount
-                if (gachaDiscountActive && gachaDiscountPercentage > appliedDiscountPercentage) {
-                    appliedDiscountPercentage = gachaDiscountPercentage;
+                if (isGachaDiscountActive && globalGachaDiscountPercentage > appliedDiscountPercentage) {
+                    appliedDiscountPercentage = globalGachaDiscountPercentage;
                 }
 
                 if (appliedDiscountPercentage > 0) {
@@ -2440,10 +2483,8 @@
             }
 
             // Apply gacha discount if active and higher than global, or if no global discount
-            if (currentUser && currentUser.activeGachaDiscount && new Date(currentUser.activeGachaDiscount.expiryDate).getTime() > new Date().getTime()) {
-                if (currentUser.activeGachaDiscount.percentage > appliedDiscountPercentage) {
-                    appliedDiscountPercentage = gachaDiscountPercentage;
-                }
+            if (isGachaDiscountActive && globalGachaDiscountPercentage > appliedDiscountPercentage) {
+                appliedDiscountPercentage = globalGachaDiscountPercentage;
             }
 
             if (appliedDiscountPercentage > 0) {
@@ -2487,12 +2528,13 @@
             const orderId = generateOrderId();
             const newOrderData = {
                 productId: productId,
-                isUsed: false,
-                codeGiven: null,
+                isUsed: false, // Set to false initially, will be true upon admin approval
+                codeGiven: null, // Null initially, will be set upon admin approval
                 purchaseDate: new Date().toISOString(),
                 userId: currentUser ? currentUser.uid : null, // Store userId with the order
                 productName: product.name, // Store product name for easier display
-                productPrice: product.price // Store product price for easier display
+                productPrice: product.price, // Store product price for easier display
+                status: 'pending' // NEW: Add status for approval system
             };
 
             try {
@@ -2511,9 +2553,8 @@
                 const message = `
                     <p>Terima kasih telah membeli <strong>${product.name}</strong>!</p>
                     <p>Anda mendapatkan <strong>${coinsEarned} koin</strong>!</p>
-                    <p>Silakan salin ID Pesanan Anda:</p>
-                    <p><strong>${orderId}</strong></p>
-                    <p>Lalu, klik tombol di bawah atau navigasi ke "Tukar ID Pesanan" untuk menerima kode redeem Anda.</p>
+                    <p>ID Pesanan Anda: <strong>${orderId}</strong></p>
+                    <p>Pembelian Anda sedang menunggu persetujuan admin. Kode redeem akan diberikan setelah disetujui.</p>
                 `;
                 showModal('Pembelian Berhasil!', message, 'success', orderId);
 
@@ -2545,6 +2586,12 @@
                 showModal('ID Tidak Valid', '❌ ID Pesanan tidak ditemukan atau tidak valid.', 'error');
                 return;
             }
+            
+            // NEW: Check if order status is pending
+            if (order.status === 'pending') {
+                showModal('Menunggu Persetujuan', 'Pembelian Anda masih menunggu persetujuan admin. Mohon tunggu.', 'warning');
+                return;
+            }
 
             if (order.isUsed) {
                 const message = `<p>⚠️ ID Pesanan ini sudah digunakan!</p><p>Kode Anda sebelumnya adalah: <strong>${order.codeGiven}</strong></p>`;
@@ -2552,6 +2599,8 @@
                 return;
             }
 
+            // This part should technically not be reached if order.status is 'pending' or order.isUsed is true
+            // but as a fallback, ensure a code is available.
             const productCodes = codes[order.productId];
             if (!productCodes || productCodes.length === 0) {
                 showModal('Stok Habis', '❌ Maaf, stok kode untuk produk ini habis. Silakan hubungi admin.', 'error');
@@ -2566,6 +2615,8 @@
             }
 
             try {
+                // This block should ideally be triggered by the admin approval, not user redeem directly.
+                // However, keeping it as a fallback if the order somehow bypassed approval and is still not used.
                 await updateDoc(doc(codesCol, availableCode.id), {
                     isUsed: true,
                     usedAt: new Date().toISOString()
@@ -2574,7 +2625,8 @@
                 await updateDoc(doc(ordersCol, orderId), {
                     isUsed: true,
                     codeGiven: availableCode.value,
-                    redeemDate: new Date().toISOString()
+                    redeemDate: new Date().toISOString(),
+                    status: 'completed' // Ensure status is completed
                 });
 
                 const successMessage = `
@@ -3451,7 +3503,8 @@
 
                 await updateDoc(doc(configCol, "global_settings"), { maintenance: newConfig });
                 showModal('Berhasil!', `Mode pemeliharaan ${isActive ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
-            } catch (error) {
+            }
+            catch (error) {
                 console.error("Error saving maintenance config:", error.message);
                 showModal('Gagal Simpan', 'Terjadi kesalahan saat menyimpan pengaturan pemeliharaan.', 'error');
             }
@@ -4050,7 +4103,15 @@
                 purchaseHtml += `<tr><td colspan="6" style="text-align: center; color:var(--text-medium);">Anda belum melakukan pembelian.</td></tr>`;
             } else {
                 userOrdersArray.forEach(order => {
-                    const statusBadge = order.isUsed ? '<span class="status-badge used">Terpakai</span>' : '<span class="status-badge available">Tersedia</span>';
+                    let statusBadgeHtml = '';
+                    if (order.status === 'pending') {
+                        statusBadgeHtml = '<span class="status-badge expired">Menunggu Persetujuan</span>'; // Use expired for pending
+                    } else if (order.isUsed) {
+                        statusBadgeHtml = '<span class="status-badge used">Terpakai</span>';
+                    } else {
+                        statusBadgeHtml = '<span class="status-badge available">Tersedia</span>';
+                    }
+
                     const codeDisplay = order.codeGiven ? `${order.codeGiven} <button class="copy-code-btn" onclick="document.execCommand(\'copy\', false, \'${order.codeGiven}\'); showModal(\'Disalin!\', \'Kode berhasil disalin.\', \'success\');">Salin</button>` : 'Belum Diberikan';
                     const purchaseDate = new Date(order.purchaseDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
                     
@@ -4059,7 +4120,7 @@
                             <td data-label="ID Pesanan">${order.id}</td>
                             <td data-label="Produk">${order.productName || 'N/A'}</td>
                             <td data-label="Harga">Rp ${order.productPrice ? order.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
-                            <td data-label="Status Kode">${statusBadge}</td>
+                            <td data-label="Status Kode">${statusBadgeHtml}</td>
                             <td data-label="Kode Diberikan">${codeDisplay}</td>
                             <td data-label="Tanggal Beli">${purchaseDate}</td>
                         </tr>
@@ -4138,6 +4199,112 @@
             userWarningsListDiv.innerHTML = warningsHtml;
         }
         window.displayUserProfileContent = displayUserProfileContent;
+
+        // NEW: Fungsi untuk menampilkan pembelian yang menunggu persetujuan
+        async function displayPendingPurchases() {
+            const pendingPurchasesListDiv = document.getElementById('pendingPurchasesList');
+            if (!pendingPurchasesListDiv) return;
+
+            // Filter orders with status 'pending'
+            const pendingOrders = Object.values(allOrders).filter(order => order.status === 'pending');
+
+            let html = `
+                <table class="purchase-approval-table">
+                    <thead>
+                        <tr>
+                            <th>ID Pesanan</th>
+                            <th>Produk</th>
+                            <th>Harga</th>
+                            <th>Pembeli</th>
+                            <th>Tanggal Beli</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            if (pendingOrders.length === 0) {
+                html += `<tr><td colspan="6" style="text-align: center; color:var(--text-medium);">Tidak ada pembelian yang menunggu persetujuan.</td></tr>`;
+            } else {
+                for (const order of pendingOrders) {
+                    const buyerEmail = allUsers[order.userId] ? allUsers[order.userId].username : 'Pengguna Tidak Dikenal';
+                    const purchaseDate = new Date(order.purchaseDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    
+                    html += `
+                        <tr>
+                            <td data-label="ID Pesanan">${order.id}</td>
+                            <td data-label="Produk">${order.productName || 'N/A'}</td>
+                            <td data-label="Harga">Rp ${order.productPrice ? order.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
+                            <td data-label="Pembeli">${buyerEmail}</td>
+                            <td data-label="Tanggal Beli">${purchaseDate}</td>
+                            <td data-label="Aksi">
+                                <button class="action-btn make-admin-btn" onclick="approvePurchase('${order.id}', '${order.productId}', '${order.userId}')">Setujui</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            html += `</tbody></table>`;
+            pendingPurchasesListDiv.innerHTML = html;
+        }
+        window.displayPendingPurchases = displayPendingPurchases;
+
+        // NEW: Fungsi untuk menyetujui pembelian
+        async function approvePurchase(orderId, productId, userId) {
+            // Menggunakan showModal untuk konfirmasi
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
+            const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+            const confirmationMessage = document.getElementById('confirmationMessage');
+
+            confirmationModal.querySelector('.modal-content').className = 'modal-content success'; // Use success color for approval
+            confirmationMessage.innerHTML = `Apakah Anda yakin ingin menyetujui pembelian ini dan memberikan kode?`;
+            confirmationModal.style.display = 'flex';
+
+            confirmPurchaseBtn.onclick = async () => {
+                try {
+                    // 1. Cari kode yang belum terpakai untuk produk ini
+                    const productCodes = allCodes[productId] || [];
+                    const availableCode = productCodes.find(code => !code.isUsed);
+
+                    if (!availableCode) {
+                        showModal('Stok Kode Habis', '❌ Maaf, tidak ada kode yang tersedia untuk produk ini. Tidak dapat menyetujui pembelian.', 'error');
+                        hideConfirmation();
+                        return;
+                    }
+
+                    // 2. Tandai kode sebagai terpakai
+                    await updateDoc(doc(codesCol, availableCode.id), {
+                        isUsed: true,
+                        usedAt: new Date().toISOString(),
+                        usedByOrderId: orderId, // Link code to order
+                        usedByUserId: userId // Link code to user
+                    });
+
+                    // 3. Perbarui status pesanan
+                    await updateDoc(doc(ordersCol, orderId), {
+                        isUsed: true, // Mark order as used
+                        codeGiven: availableCode.value, // Assign the code
+                        redeemDate: new Date().toISOString(),
+                        status: 'completed' // Mark as completed
+                    });
+
+                    showModal('Persetujuan Berhasil!', `Pembelian disetujui. Kode <strong>${availableCode.value}</strong> telah diberikan.`, 'success', availableCode.value);
+                    displayPendingPurchases(); // Refresh the list
+                } catch (error) {
+                    console.error("Error approving purchase:", error.message);
+                    showModal('Persetujuan Gagal', 'Terjadi kesalahan saat menyetujui pembelian.', 'error');
+                } finally {
+                    hideConfirmation();
+                }
+            };
+
+            cancelPurchaseBtn.onclick = () => {
+                showModal('Dibatalkan', 'Persetujuan pembelian dibatalkan.', 'warning');
+                hideConfirmation();
+            };
+        }
+        window.approvePurchase = approvePurchase;
 
 
         // --- Inisialisasi saat halaman dimuat ---
