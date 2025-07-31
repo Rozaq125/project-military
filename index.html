@@ -1121,7 +1121,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"; // Import Firebase Storage
+        import { getStorage, ref, uploadBytes, getDownloadURL, uploadBytesResumable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"; // Import Firebase Storage
 
         // Konfigurasi Firebase Anda
         const firebaseConfig = {
@@ -1199,6 +1199,7 @@
         window.ref = ref;
         window.uploadBytes = uploadBytes;
         window.getDownloadURL = getDownloadURL;
+        window.uploadBytesResumable = uploadBytesResumable; // Expose uploadBytesResumable
 
         // --- EXPOSE INSTANCE FIREBASE KE GLOBAL `window` ---
         window.app = app;
@@ -1564,18 +1565,22 @@
         ];
 
         // --- Fungsi Helper untuk Pop-up Kustom ---
-        function showModal(title, message, type = 'success', textToCopy = '', attachmentHtml = '') {
+        function showModal(title, message, type = 'success', textToCopy = '', attachmentHtml = '', allowClose = true) {
             const modal = document.getElementById('customModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalMessage = document.getElementById('modalMessage');
             const modalCopyButton = document.getElementById('modalCopyButton');
             const modalAttachment = document.getElementById('modalAttachment');
+            const closeButton = modal.querySelector('.close-button'); // Get the close button
+            const mainCloseButton = modal.querySelector('button[onclick="closeModal()"]'); // Get the main "Tutup" button
 
             modal.querySelector('.modal-content').className = 'modal-content';
             if (type === 'error') {
                 modal.querySelector('.modal-content').classList.add('error');
             } else if (type === 'warning') {
                 modal.querySelector('.modal-content').classList.add('warning');
+            } else if (type === 'info') { // Added info type for progress
+                modal.querySelector('.modal-content').classList.add('info');
             } else {
                 modal.querySelector('.modal-content').classList.add('success');
             }
@@ -1595,6 +1600,14 @@
                 modalCopyButton.style.display = 'none';
             }
 
+            // Control close button visibility
+            if (closeButton) {
+                closeButton.style.display = allowClose ? 'block' : 'none';
+            }
+            if (mainCloseButton) {
+                mainCloseButton.style.display = allowClose ? 'inline-block' : 'none';
+            }
+
             modal.style.display = 'flex';
         }
         window.showModal = showModal;
@@ -1604,6 +1617,15 @@
             document.getElementById('modalAttachment').innerHTML = ''; // Clear attachment on close
         }
         window.closeModal = closeModal;
+
+        // New function to update modal message dynamically without re-opening
+        function updateModalMessage(message) {
+            const modalMessage = document.getElementById('modalMessage');
+            if (modalMessage) {
+                modalMessage.innerHTML = message;
+            }
+        }
+        window.updateModalMessage = updateModalMessage; // Expose to global scope
 
         // Function to display a warning modal
         async function displayWarningModal(warningData) {
@@ -2619,19 +2641,42 @@
         window.displayImagePreview = displayImagePreview;
 
         // --- Fungsi untuk mengunggah gambar ke Firebase Storage ---
-        async function uploadImage(file, productId) {
+        async function uploadImage(file, productId, onProgress) {
             if (!file) return null;
 
             const storageRef = ref(storage, `product_images/${productId}/${Date.now()}_${file.name}`);
-            try {
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                return downloadURL;
-            } catch (error) {
-                console.error("Error uploading image:", error);
-                showModal('Gagal Unggah Gambar', 'Terjadi kesalahan saat mengunggah gambar. Pastikan Anda memiliki izin Firebase Storage yang benar.', 'error');
-                return null;
-            }
+            const uploadTask = uploadBytesResumable(storageRef, file); // Use uploadBytesResumable for progress
+
+            return new Promise((resolve, reject) => {
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        onProgress(progress.toFixed(0)); // Pass progress to callback
+                        switch (snapshot.state) {
+                            case 'paused':
+                                console.log('Upload is paused');
+                                break;
+                            case 'running':
+                                console.log('Upload is running');
+                                break;
+                        }
+                    },
+                    (error) => {
+                        console.error("Error uploading image:", error);
+                        showModal('Gagal Unggah Gambar', `Terjadi kesalahan saat mengunggah gambar: ${error.message}. Pastikan Anda memiliki izin Firebase Storage yang benar.`, 'error');
+                        reject(error);
+                    },
+                    () => {
+                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                            resolve(downloadURL);
+                        }).catch(error => {
+                            console.error("Error getting download URL:", error);
+                            showModal('Gagal Unggah Gambar', `Terjadi kesalahan saat mendapatkan URL gambar: ${error.message}.`, 'error');
+                            reject(error);
+                        });
+                    }
+                );
+            });
         }
 
         // --- FUNGSI SPESIFIK UNTUK admin (ADMIN PANEL) ---
@@ -2663,13 +2708,22 @@
 
             let imageUrl = '';
             if (imageFile) {
-                showModal('Mengunggah Gambar', 'Mohon tunggu, gambar sedang diunggah...', 'info');
-                imageUrl = await uploadImage(imageFile, productId);
-                if (!imageUrl) {
-                    // Error already shown by uploadImage function
+                // Show initial uploading modal
+                showModal('Mengunggah Gambar', 'Memulai unggahan...', 'info', '', '', false); // false to disable closing during upload
+                try {
+                    imageUrl = await uploadImage(imageFile, productId, (progress) => {
+                        updateModalMessage(`Mengunggah gambar: ${progress}%`);
+                    });
+                    if (!imageUrl) {
+                        // Error already handled by uploadImage function
+                        closeModal(); // Close info modal if upload failed
+                        return;
+                    }
+                    // No need to show another modal here, the final success modal will cover it
+                } catch (error) {
+                    // Error already handled by uploadImage function
                     return;
                 }
-                closeModal(); // Close info modal
             } else {
                 imageUrl = 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack'; // Default placeholder
             }
@@ -2797,13 +2851,21 @@
 
             let imageUrlToSave = existingImageUrl;
             if (imageFile) {
-                showModal('Mengunggah Gambar', 'Mohon tunggu, gambar sedang diunggah...', 'info');
-                imageUrlToSave = await uploadImage(imageFile, productId);
-                if (!imageUrlToSave) {
-                    // Error already shown by uploadImage function
+                showModal('Mengunggah Gambar', 'Memulai unggahan...', 'info', '', '', false); // false to disable closing during upload
+                try {
+                    imageUrlToSave = await uploadImage(imageFile, productId, (progress) => {
+                        updateModalMessage(`Mengunggah gambar: ${progress}%`);
+                    });
+                    if (!imageUrlToSave) {
+                        // Error already handled by uploadImage function
+                        closeModal(); // Close info modal if upload failed
+                        return;
+                    }
+                    // No need to show another modal here, the final success modal will cover it
+                } catch (error) {
+                    // Error already handled by uploadImage function
                     return;
                 }
-                closeModal(); // Close info modal
             }
 
             try {
@@ -3868,7 +3930,7 @@
                 gachaHtml += `<tr><td colspan="4" style="text-align: center; color:var(--text-medium);">Anda belum pernah memutar gacha.</td></tr>`;
             } else {
                 userGachaHistoryArray.forEach(entry => {
-                    const valueDisplay = entry.rewardType === 'percentage_discount' ? `${entry.rewardValue}%` : (entry.rewardValue || 'N/A');
+                    const valueDisplay = entry.rewardType === 'percentage_discount' ? `${entry.value}%` : (entry.value || 'N/A');
                     const spinDate = new Date(entry.spinDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
                     gachaHtml += `
                         <tr>
