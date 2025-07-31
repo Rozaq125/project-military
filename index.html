@@ -1012,6 +1012,70 @@
         .purchase-approval-table tr:hover {
             background-color: var(--bg-medium);
         }
+
+        /* New styles for Product Detail Modal */
+        .product-detail-modal-content {
+            background-color: var(--bg-medium);
+            margin: auto;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            text-align: center;
+            animation: slideIn 0.3s forwards;
+            position: relative;
+        }
+
+        .product-detail-modal-content img {
+            max-width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .product-detail-modal-content h2 {
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .product-detail-modal-content .price-info {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+        }
+
+        .product-detail-modal-content .product-description {
+            text-align: left;
+            color: var(--text-medium);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            white-space: pre-wrap; /* Preserve line breaks from textarea */
+        }
+
+        .product-detail-modal-content button {
+            width: auto;
+            min-width: 150px;
+            margin: 10px auto;
+        }
+
+        @media (max-width: 600px) {
+            .product-detail-modal-content {
+                padding: 20px;
+            }
+            .product-detail-modal-content h2 {
+                font-size: 1.8em;
+            }
+            .product-detail-modal-content .price-info {
+                font-size: 1.1em;
+            }
+            .product-detail-modal-content .product-description {
+                font-size: 0.95em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1042,6 +1106,23 @@
             <div id="modalAttachment" style="margin-top: 15px; text-align: center;"></div>
             <button id="modalCopyButton" style="display:none;"></button>
             <button onclick="closeModal()">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="productDetailModal" class="modal">
+        <div class="product-detail-modal-content">
+            <span class="close-button" onclick="closeProductDetailModal()">&times;</span>
+            <h2 id="detailProductName"></h2>
+            <img id="detailProductImage" src="" alt="Gambar Produk">
+            <p class="price-info">
+                <span id="detailOriginalPrice" class="original-price" style="display:none;"></span>
+                <span id="detailDiscountedPrice" class="discounted-price"></span>
+                <span id="detailDiscountTag" class="discount-tag" style="display:none;"></span>
+            </p>
+            <h3>Fitur Modpack:</h3>
+            <p id="detailProductDescription" class="product-description"></p>
+            <button id="detailBuyButton" onclick="">Beli Sekarang</button>
         </div>
     </div>
 
@@ -1103,12 +1184,16 @@
             </div>
             <div class="form-group">
                 <label for="editProductImage">URL Gambar Produk (Opsional):</label>
-                <input type="text" id="editProductImage" placeholder="URL Gambar">
+                <input type="text" id="editProductImage" placeholder="URL Gambar. Contoh: https://i.imgur.com/modpack_gta.png">
                 <img id="editProductImagePreview" src="" alt="Pratinjau Gambar" style="max-width: 100px; max-height: 100px; margin-top: 10px; display: none; border-radius: 5px;">
             </div>
             <div class="form-group">
                 <label for="editProductDownloadUrl">URL Unduhan Modpack:</label>
                 <input type="text" id="editProductDownloadUrl" placeholder="URL Unduhan">
+            </div>
+            <div class="form-group">
+                <label for="editProductDescription">Deskripsi/Fitur Modpack:</label>
+                <textarea id="editProductDescription" rows="5" placeholder="Masukkan deskripsi atau fitur modpack di sini."></textarea>
             </div>
             <button onclick="updateProduct()">Simpan Perubahan</button>
             <button onclick="closeEditProductModal()" style="background-color: var(--error-color);">Batal</button>
@@ -1926,12 +2011,16 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="adminProductImage">URL Gambar Produk (Opsional):</label>
-                                        <input type="text" id="adminProductImage" placeholder="URL Gambar. Contoh: https://i.imgur.com/modpack_gta.png">
+                                        <input type="text" id="adminProductImage" placeholder="URL Gambar. Contoh: https://i.imgur.com/modpack_gta.png" oninput="displayImagePreview('adminProductImage', 'adminProductImagePreview')">
                                         <img id="adminProductImagePreview" src="" alt="Pratinjau Gambar" style="max-width: 100px; max-height: 100px; margin-top: 10px; display: none; border-radius: 5px;">
                                     </div>
                                     <div class="form-group">
                                         <label for="adminProductDownloadUrl">URL Unduhan Modpack:</label>
                                         <input type="text" id="adminProductDownloadUrl" placeholder="Contoh: https://link.mediafire.com/modpack_v2">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="adminProductDescription">Deskripsi/Fitur Modpack:</label>
+                                        <textarea id="adminProductDescription" rows="5" placeholder="Masukkan deskripsi atau fitur modpack di sini."></textarea>
                                     </div>
                                     <button onclick="addProduct()">Tambah Produk</button>
                                     <h3 style="margin-top: 30px;">Daftar Semua Produk Modpack</h3>
@@ -2403,12 +2492,89 @@
                         <span class="discounted-price">${displayPrice === 0 ? 'GRATIS' : `Rp ${displayPrice.toLocaleString('id-ID')}`}</span>
                         ${discountTag}
                     </p>
-                    <button onclick="confirmPurchase('${product.id}')">Beli Sekarang</button>
+                    <button onclick="showProductDetail('${product.id}')">Lihat Detail</button>
                 `;
                 productGrid.appendChild(productCard);
             });
         }
         window.displayProducts = displayProducts;
+
+        // --- Fungsi untuk menampilkan detail produk di modal ---
+        function showProductDetail(productId) {
+            const product = allProducts[productId];
+            if (!product) {
+                showModal('Error!', 'Produk tidak ditemukan.', 'error');
+                return;
+            }
+
+            const detailModal = document.getElementById('productDetailModal');
+            const detailProductName = document.getElementById('detailProductName');
+            const detailProductImage = document.getElementById('detailProductImage');
+            const detailOriginalPrice = document.getElementById('detailOriginalPrice');
+            const detailDiscountedPrice = document.getElementById('detailDiscountedPrice');
+            const detailDiscountTag = document.getElementById('detailDiscountTag');
+            const detailProductDescription = document.getElementById('detailProductDescription');
+            const detailBuyButton = document.getElementById('detailBuyButton');
+
+            detailProductName.textContent = product.name;
+            detailProductImage.src = product.image || 'https://placehold.co/300x200/2a2a2a/f0f0f0?text=Modpack';
+            detailProductImage.onerror = () => { // Handle broken image links
+                detailProductImage.src = 'https://placehold.co/300x200/2a2a2a/f0f0f0?text=Gambar+Rusak';
+            };
+
+            let displayPrice = product.price;
+            let originalPriceHtml = '';
+            let discountTag = '';
+            let appliedDiscountPercentage = 0;
+
+            // Apply global discount first
+            if (discountConfig.isActive) {
+                const isUserTargeted = !discountConfig.targetUsers || (currentUser && discountConfig.targetUsers.toLowerCase().includes(currentUser.email.toLowerCase()));
+                const isProductTargeted = 
+                    discountConfig.targetType === 'all' || 
+                    (discountConfig.targetType === 'specific' && discountConfig.targetProducts.includes(product.id));
+
+                if (isUserTargeted && isProductTargeted) {
+                    appliedDiscountPercentage = discountConfig.percentage;
+                }
+            }
+
+            // Apply gacha discount if active and higher than global, or if no global discount
+            if (isGachaDiscountActive && globalGachaDiscountPercentage > appliedDiscountPercentage) {
+                appliedDiscountPercentage = globalGachaDiscountPercentage;
+            }
+
+            if (appliedDiscountPercentage > 0) {
+                const discountedPrice = product.price * (1 - appliedDiscountPercentage / 100);
+                originalPriceHtml = `Rp ${product.price.toLocaleString('id-ID')}`;
+                displayPrice = discountedPrice;
+                discountTag = `-${appliedDiscountPercentage}%`;
+                detailOriginalPrice.style.display = 'inline';
+                detailDiscountTag.style.display = 'inline';
+            } else {
+                detailOriginalPrice.style.display = 'none';
+                detailDiscountTag.style.display = 'none';
+            }
+
+            detailOriginalPrice.textContent = originalPriceHtml;
+            detailDiscountedPrice.textContent = displayPrice === 0 ? 'GRATIS' : `Rp ${displayPrice.toLocaleString('id-ID')}`;
+            detailDiscountTag.textContent = discountTag;
+            
+            detailProductDescription.textContent = product.description || 'Tidak ada deskripsi tersedia untuk modpack ini.';
+
+            detailBuyButton.onclick = () => {
+                confirmPurchase(productId);
+                closeProductDetailModal(); // Close detail modal after confirming purchase
+            };
+
+            detailModal.style.display = 'flex';
+        }
+        window.showProductDetail = showProductDetail;
+
+        function closeProductDetailModal() {
+            document.getElementById('productDetailModal').style.display = 'none';
+        }
+        window.closeProductDetailModal = closeProductDetailModal;
 
         // --- Fungsi Konfirmasi Pembelian ---
         let currentPurchaseProductId = null;
@@ -2650,12 +2816,15 @@
             const adminProductPrice = document.getElementById('adminProductPrice');
             const adminProductImage = document.getElementById('adminProductImage'); // Changed to text input
             const adminProductDownloadUrl = document.getElementById('adminProductDownloadUrl');
-            if (!adminProductName || !adminProductPrice || !adminProductImage || !adminProductDownloadUrl) return;
+            const adminProductDescription = document.getElementById('adminProductDescription'); // Get description
+
+            if (!adminProductName || !adminProductPrice || !adminProductImage || !adminProductDownloadUrl || !adminProductDescription) return;
 
             const name = adminProductName.value.trim();
             const price = parseFloat(adminProductPrice.value);
             const imageUrl = adminProductImage.value.trim(); // Get URL directly
             const downloadUrl = adminProductDownloadUrl.value.trim();
+            const description = adminProductDescription.value.trim(); // Get description
 
             // Modified validation to allow price = 0
             if (!name || isNaN(price) || price < 0 || !downloadUrl) {
@@ -2677,7 +2846,8 @@
                     name: name,
                     price: price,
                     image: imageUrl || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack', // Use provided URL or default
-                    downloadUrl: downloadUrl
+                    downloadUrl: downloadUrl,
+                    description: description // Save description
                 });
                 console.log("Product added to Firestore:", productId);
 
@@ -2688,6 +2858,7 @@
                 document.getElementById('adminProductImagePreview').src = ''; // Clear preview
                 document.getElementById('adminProductImagePreview').style.display = 'none'; // Hide preview
                 adminProductDownloadUrl.value = '';
+                adminProductDescription.value = ''; // Clear description
             } catch (error) {
                 console.error("Error adding product:", error.message);
                 showModal('Gagal Menambah Produk', 'Terjadi kesalahan saat menambahkan produk.', 'error');
@@ -2748,6 +2919,7 @@
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editProductPrice').value = product.price;
             document.getElementById('editProductDownloadUrl').value = product.downloadUrl || '';
+            document.getElementById('editProductDescription').value = product.description || ''; // Populate description
             
             // Set existing image URL and display preview if available
             const editProductImage = document.getElementById('editProductImage');
@@ -2779,6 +2951,7 @@
             document.getElementById('editProductImagePreview').src = ''; // Clear preview
             document.getElementById('editProductImagePreview').style.display = 'none'; // Hide preview
             document.getElementById('editProductDownloadUrl').value = '';
+            document.getElementById('editProductDescription').value = ''; // Clear description
         }
         window.closeEditProductModal = closeEditProductModal;
 
@@ -2788,6 +2961,7 @@
             const price = parseFloat(document.getElementById('editProductPrice').value);
             const imageUrl = document.getElementById('editProductImage').value.trim(); // Get URL directly
             const downloadUrl = document.getElementById('editProductDownloadUrl').value.trim();
+            const description = document.getElementById('editProductDescription').value.trim(); // Get description
 
             // Modified validation to allow price = 0
             if (!productId || !name || isNaN(price) || price < 0 || !downloadUrl) {
@@ -2800,7 +2974,8 @@
                     name: name,
                     price: price,
                     image: imageUrl || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack', // Use new URL or default
-                    downloadUrl: downloadUrl
+                    downloadUrl: downloadUrl,
+                    description: description // Update description
                 });
                 showModal('Berhasil!', `Produk "<strong>${name}</strong>" berhasil diperbarui!`, 'success');
                 closeEditProductModal();
@@ -3216,7 +3391,7 @@
                 showModal('Gagal Simpan', 'Terjadi kesalahan saat menyimpan pengaturan pemeliharaan.', 'error');
             }
         }
-        window.saveMaintenanceConfig = saveDiscountConfig;
+        window.saveMaintenanceConfig = saveMaintenanceConfig;
 
         // Function to stop maintenance immediately
         async function stopMaintenance() {
