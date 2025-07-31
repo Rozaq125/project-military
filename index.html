@@ -459,7 +459,7 @@
                 border-radius: 8px;
                 padding: 10px;
             }
-            .user-table td, .product-table td, .profile-table td, .gacha-rewards-list table td, .purchase-approval-table td {
+            .user-table td, .product-table td, .profile-table td, .gacha-rewards-list table td::before, .purchase-approval-table td::before {
                 display: block;
                 text-align: right;
                 padding: 5px 0;
@@ -1102,8 +1102,10 @@
                 <input type="number" id="editProductPrice" placeholder="Harga">
             </div>
             <div class="form-group">
-                <label for="editProductImage">URL Gambar Produk (Opsional):</label>
-                <input type="text" id="editProductImage" placeholder="URL Gambar">
+                <label for="editProductImageUpload">Unggah Gambar Produk (Opsional):</label>
+                <input type="file" id="editProductImageUpload" accept="image/*" onchange="displayImagePreview('editProductImageUpload', 'editProductImagePreview')">
+                <img id="editProductImagePreview" src="" alt="Pratinjau Gambar" style="max-width: 100px; max-height: 100px; margin-top: 10px; display: none; border-radius: 5px;">
+                <input type="hidden" id="editProductImageUrlHidden"> <!-- To store existing URL or new uploaded URL -->
             </div>
             <div class="form-group">
                 <label for="editProductDownloadUrl">URL Unduhan Modpack:</label>
@@ -1119,6 +1121,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"; // Import Firebase Storage
 
         // Konfigurasi Firebase Anda
         const firebaseConfig = {
@@ -1135,6 +1138,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app); // Inisialisasi Firebase Auth
+        const storage = getStorage(app); // Inisialisasi Firebase Storage
 
         // Membuat referensi koleksi di Firestore
         const productsCol = collection(db, "products");
@@ -1191,11 +1195,16 @@
         window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
         window.onAuthStateChanged = onAuthStateChanged;
         window.signOut = signOut;
+        window.getStorage = getStorage; // Expose storage functions
+        window.ref = ref;
+        window.uploadBytes = uploadBytes;
+        window.getDownloadURL = getDownloadURL;
 
         // --- EXPOSE INSTANCE FIREBASE KE GLOBAL `window` ---
         window.app = app;
         window.db = db;
         window.auth = auth;
+        window.storage = storage; // Expose storage instance
         window.productsCol = productsCol;
         window.usersCol = usersCol;
         window.purchasesCol = purchasesCol; // Menggantikan ordersCol
@@ -1893,8 +1902,9 @@
                                         <input type="number" id="adminProductPrice" placeholder="Contoh: 50000">
                                     </div>
                                     <div class="form-group">
-                                        <label for="adminProductImage">URL Gambar Modpack (Opsional):</label>
-                                        <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/modpack_gta.png">
+                                        <label for="adminProductImageUpload">Unggah Gambar Produk (Opsional):</label>
+                                        <input type="file" id="adminProductImageUpload" accept="image/*" onchange="displayImagePreview('adminProductImageUpload', 'adminProductImagePreview')">
+                                        <img id="adminProductImagePreview" src="" alt="Pratinjau Gambar" style="max-width: 100px; max-height: 100px; margin-top: 10px; display: none; border-radius: 5px;">
                                     </div>
                                     <div class="form-group">
                                         <label for="adminProductDownloadUrl">URL Unduhan Modpack:</label>
@@ -2367,7 +2377,7 @@
                     <h3>${product.name}</h3>
                     <p class="price-info">
                         ${originalPriceHtml}
-                        <span class="discounted-price">Rp ${displayPrice.toLocaleString('id-ID')}</span>
+                        <span class="discounted-price">${displayPrice === 0 ? 'GRATIS' : `Rp ${displayPrice.toLocaleString('id-ID')}`}</span>
                         ${discountTag}
                     </p>
                     <button onclick="confirmPurchase('${product.id}')">Beli Sekarang</button>
@@ -2416,7 +2426,8 @@
             }
 
             currentPurchaseProductId = productId;
-            const message = `Apakah Anda yakin ingin membeli <strong>${product.name}</strong> seharga <strong>Rp ${finalPrice.toLocaleString('id-ID')}</strong>?`;
+            const priceDisplay = finalPrice === 0 ? 'GRATIS' : `Rp ${finalPrice.toLocaleString('id-ID')}`;
+            const message = `Apakah Anda yakin ingin membeli <strong>${product.name}</strong> seharga <strong>${priceDisplay}</strong>?`;
             
             document.getElementById('confirmationMessage').innerHTML = message;
             document.getElementById('confirmationModal').style.display = 'flex';
@@ -2588,17 +2599,52 @@
         }
         window.loginUser = loginUser;
 
+        // --- Fungsi untuk menampilkan pratinjau gambar yang dipilih ---
+        function displayImagePreview(inputId, previewImgId) {
+            const fileInput = document.getElementById(inputId);
+            const previewImg = document.getElementById(previewImgId);
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                previewImg.src = '';
+                previewImg.style.display = 'none';
+            }
+        }
+        window.displayImagePreview = displayImagePreview;
+
+        // --- Fungsi untuk mengunggah gambar ke Firebase Storage ---
+        async function uploadImage(file, productId) {
+            if (!file) return null;
+
+            const storageRef = ref(storage, `product_images/${productId}/${Date.now()}_${file.name}`);
+            try {
+                const snapshot = await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                return downloadURL;
+            } catch (error) {
+                console.error("Error uploading image:", error);
+                showModal('Gagal Unggah Gambar', 'Terjadi kesalahan saat mengunggah gambar. Pastikan Anda memiliki izin Firebase Storage yang benar.', 'error');
+                return null;
+            }
+        }
+
         // --- FUNGSI SPESIFIK UNTUK admin (ADMIN PANEL) ---
         async function addProduct() {
             const adminProductName = document.getElementById('adminProductName');
             const adminProductPrice = document.getElementById('adminProductPrice');
-            const adminProductImage = document.getElementById('adminProductImage');
+            const adminProductImageUpload = document.getElementById('adminProductImageUpload'); // Get file input
             const adminProductDownloadUrl = document.getElementById('adminProductDownloadUrl');
-            if (!adminProductName || !adminProductPrice || !adminProductImage || !adminProductDownloadUrl) return;
+            if (!adminProductName || !adminProductPrice || !adminProductImageUpload || !adminProductDownloadUrl) return;
 
             const name = adminProductName.value.trim();
             const price = parseFloat(adminProductPrice.value);
-            const image = adminProductImage.value.trim();
+            const imageFile = adminProductImageUpload.files[0]; // Get the selected file
             const downloadUrl = adminProductDownloadUrl.value.trim();
 
             // Modified validation to allow price = 0
@@ -2615,12 +2661,25 @@
                 return;
             }
 
+            let imageUrl = '';
+            if (imageFile) {
+                showModal('Mengunggah Gambar', 'Mohon tunggu, gambar sedang diunggah...', 'info');
+                imageUrl = await uploadImage(imageFile, productId);
+                if (!imageUrl) {
+                    // Error already shown by uploadImage function
+                    return;
+                }
+                closeModal(); // Close info modal
+            } else {
+                imageUrl = 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack'; // Default placeholder
+            }
+
             try {
                 await setDoc(doc(productsCol, productId), {
                     id: productId,
                     name: name,
                     price: price,
-                    image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack',
+                    image: imageUrl,
                     downloadUrl: downloadUrl
                 });
                 console.log("Product added to Firestore:", productId);
@@ -2628,7 +2687,8 @@
                 showModal('Berhasil!', `Produk "<strong>${name}</strong>" berhasil ditambahkan!`, 'success');
                 adminProductName.value = '';
                 adminProductPrice.value = '';
-                adminProductImage.value = '';
+                adminProductImageUpload.value = ''; // Clear file input
+                document.getElementById('adminProductImagePreview').style.display = 'none'; // Hide preview
                 adminProductDownloadUrl.value = '';
             } catch (error) {
                 console.error("Error adding product:", error.message);
@@ -2664,7 +2724,7 @@
                         <tr>
                             <td data-label="Gambar"><img src="${product.image || 'https://placehold.co/50x50/2a2a2a/f0f0f0?text=Modpack'}" alt="${product.name}"></td>
                             <td data-label="Nama Produk">${product.name}</td>
-                            <td data-label="Harga">Rp ${product.price.toLocaleString('id-ID')}</td>
+                            <td data-label="Harga">${product.price === 0 ? 'GRATIS' : `Rp ${product.price.toLocaleString('id-ID')}`}</td>
                             <td data-label="URL Unduhan"><a href="${product.downloadUrl}" target="_blank" style="color: var(--accent-color); text-decoration: underline;">Link</a></td>
                             <td data-label="Aksi">
                                 <button class="action-btn edit-btn" onclick="showEditProductModal('${product.id}')">Edit</button>
@@ -2689,8 +2749,20 @@
             document.getElementById('editProductId').value = product.id;
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editProductPrice').value = product.price;
-            document.getElementById('editProductImage').value = product.image || '';
             document.getElementById('editProductDownloadUrl').value = product.downloadUrl || '';
+            
+            // Set existing image URL to a hidden field and display preview if available
+            const editProductImageUrlHidden = document.getElementById('editProductImageUrlHidden');
+            const editProductImagePreview = document.getElementById('editProductImagePreview');
+            if (product.image) {
+                editProductImageUrlHidden.value = product.image;
+                editProductImagePreview.src = product.image;
+                editProductImagePreview.style.display = 'block';
+            } else {
+                editProductImageUrlHidden.value = '';
+                editProductImagePreview.src = '';
+                editProductImagePreview.style.display = 'none';
+            }
 
             document.getElementById('editProductModal').style.display = 'flex';
         }
@@ -2702,7 +2774,9 @@
             document.getElementById('editProductId').value = '';
             document.getElementById('editProductName').value = '';
             document.getElementById('editProductPrice').value = '';
-            document.getElementById('editProductImage').value = '';
+            document.getElementById('editProductImageUpload').value = ''; // Clear file input
+            document.getElementById('editProductImagePreview').style.display = 'none'; // Hide preview
+            document.getElementById('editProductImageUrlHidden').value = ''; // Clear hidden URL
             document.getElementById('editProductDownloadUrl').value = '';
         }
         window.closeEditProductModal = closeEditProductModal;
@@ -2711,7 +2785,8 @@
             const productId = document.getElementById('editProductId').value;
             const name = document.getElementById('editProductName').value.trim();
             const price = parseFloat(document.getElementById('editProductPrice').value);
-            const image = document.getElementById('editProductImage').value.trim();
+            const imageFile = document.getElementById('editProductImageUpload').files[0];
+            const existingImageUrl = document.getElementById('editProductImageUrlHidden').value;
             const downloadUrl = document.getElementById('editProductDownloadUrl').value.trim();
 
             // Modified validation to allow price = 0
@@ -2720,11 +2795,22 @@
                 return;
             }
 
+            let imageUrlToSave = existingImageUrl;
+            if (imageFile) {
+                showModal('Mengunggah Gambar', 'Mohon tunggu, gambar sedang diunggah...', 'info');
+                imageUrlToSave = await uploadImage(imageFile, productId);
+                if (!imageUrlToSave) {
+                    // Error already shown by uploadImage function
+                    return;
+                }
+                closeModal(); // Close info modal
+            }
+
             try {
                 await updateDoc(doc(productsCol, productId), {
                     name: name,
                     price: price,
-                    image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack',
+                    image: imageUrlToSave || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack', // Use new URL or default
                     downloadUrl: downloadUrl
                 });
                 showModal('Berhasil!', `Produk "<strong>${name}</strong>" berhasil diperbarui!`, 'success');
@@ -3752,7 +3838,7 @@
                         <tr>
                             <td data-label="ID Pembelian">${purchase.id}</td>
                             <td data-label="Modpack">${purchase.productName || 'N/A'}</td>
-                            <td data-label="Harga">Rp ${purchase.productPrice ? purchase.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
+                            <td data-label="Harga">${purchase.productPrice === 0 ? 'GRATIS' : `Rp ${purchase.productPrice.toLocaleString('id-ID')}`}</td>
                             <td data-label="Tautan Unduhan">${downloadLinkHtml}</td>
                             <td data-label="Tanggal Beli">${purchaseDate}</td>
                         </tr>
