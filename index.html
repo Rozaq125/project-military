@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modpack GTA (SHARE)</title>
+    <title>Modpack GTA San Andreas (Artivive Studio)</title>
 
     <style>
         /* style.css content starts here */
@@ -1018,7 +1018,6 @@
     <header>
         <nav>
             <a href="#" onclick="showPage('home')">Beranda</a>
-            <a href="#" onclick="showPage('redeem')">Tukar ID Pesanan</a>
             <span id="authLinks">
                 <a href="#" onclick="showPage('login')">Login</a>
                 <a href="#" onclick="showPage('register')">Register</a>
@@ -1066,7 +1065,7 @@
             <div id="maintenanceCountdown" class="maintenance-countdown"></div>
             <div id="maintenanceReason" class="maintenance-reason"></div>
             <p>Kami sedang melakukan perbaikan dan pembaruan untuk meningkatkan pengalaman Anda.</p>
-            <p>Mohon maaf atas ketidaknyamanannya. Kami akan segera kembali!</p>
+            <p>Mohon maaf atas ketidaknyamananannya. Kami akan segera kembali!</p>
             <p>Terima kasih atas kesabaran Anda -ArtiviveTeam....</p>
         </div>
     </div>
@@ -1106,6 +1105,10 @@
                 <label for="editProductImage">URL Gambar Produk (Opsional):</label>
                 <input type="text" id="editProductImage" placeholder="URL Gambar">
             </div>
+            <div class="form-group">
+                <label for="editProductDownloadUrl">URL Unduhan Modpack:</label>
+                <input type="text" id="editProductDownloadUrl" placeholder="URL Unduhan">
+            </div>
             <button onclick="updateProduct()">Simpan Perubahan</button>
             <button onclick="closeEditProductModal()" style="background-color: var(--error-color);">Batal</button>
         </div>
@@ -1114,10 +1117,10 @@
     <script type="module">
         // Impor modul Firebase yang diperlukan
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        // Konfigurasi Firebase Anda (Sudah diisi dengan yang kamu berikan)
+        // Konfigurasi Firebase Anda
         const firebaseConfig = {
           apiKey: "AIzaSyDS4lE6XNKK_98l7nj807HzXc2WA4zUeHU",
           authDomain: "coderedeemdriftjik.firebaseapp.com",
@@ -1135,9 +1138,8 @@
 
         // Membuat referensi koleksi di Firestore
         const productsCol = collection(db, "products");
-        const codesCol = collection(db, "codes"); // Koleksi terpisah untuk kode redeem
         const usersCol = collection(db, "users"); // Untuk menyimpan data user custom (misal: isAdmin)
-        const ordersCol = collection(db, "orders"); // Untuk riwayat pesanan
+        const purchasesCol = collection(db, "purchases"); // Koleksi untuk riwayat pembelian (menggantikan orders)
         const configCol = collection(db, "config"); // Untuk konfigurasi global (diskon, maintenance)
         const warningsCol = collection(db, "warnings"); // Koleksi untuk peringatan
         const gachaRewardsCol = collection(db, "gachaRewards"); // NEW: Koleksi untuk hadiah gacha
@@ -1145,9 +1147,8 @@
 
         // --- Variabel Global untuk Data Real-time ---
         let allProducts = {};
-        let allCodes = {};
         let allUsers = {};
-        let allOrders = {};
+        let allPurchases = {}; // Menggantikan allOrders
         let discountConfig = {};
         let maintenanceConfig = {
             isActive: false,
@@ -1160,7 +1161,7 @@
         let countdownInterval = null;
         let maintenanceCountdownInterval = null;
         let allGachaRewards = {}; // NEW: Global variable for gacha rewards
-        let userOrders = {}; // NEW: Global variable for current user's orders
+        let userPurchases = {}; // NEW: Global variable for current user's purchases (menggantikan userOrders)
         let userGachaHistory = {}; // NEW: Global variable for current user's gacha history
         let userWarnings = {}; // NEW: Global variable for current user's warnings
 
@@ -1184,7 +1185,6 @@
         window.deleteDoc = deleteDoc;
         window.onSnapshot = onSnapshot;
         window.query = query;
-        window.orderBy = orderBy;
         window.where = where;
         window.getAuth = getAuth;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
@@ -1197,9 +1197,8 @@
         window.db = db;
         window.auth = auth;
         window.productsCol = productsCol;
-        window.codesCol = codesCol;
         window.usersCol = usersCol;
-        window.ordersCol = ordersCol;
+        window.purchasesCol = purchasesCol; // Menggantikan ordersCol
         window.configCol = configCol;
         window.warningsCol = warningsCol;
         window.gachaRewardsCol = gachaRewardsCol; // NEW: Expose gachaRewardsCol
@@ -1223,9 +1222,6 @@
             if (document.getElementById('productGrid')) { 
                 displayProducts(); 
             }
-            if (document.getElementById('adminCodeProductSelect')) { 
-                populateAdminProductSelects(); 
-            }
             if (document.getElementById('discountProductSelect')) { 
                 populateDiscountProductSelect(); 
             }
@@ -1235,32 +1231,7 @@
             displayTopSellingProducts();
         });
 
-        onSnapshot(codesCol, (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                const codeData = { ...change.doc.data(), id: change.doc.id };
-                if (change.type === "added" || change.type === "modified") {
-                    if (!allCodes[codeData.productId]) {
-                        allCodes[codeData.productId] = [];
-                    }
-                    const existingIndex = allCodes[codeData.productId].findIndex(c => c.id === codeData.id);
-                    if (existingIndex > -1) {
-                        allCodes[codeData.productId][existingIndex] = codeData;
-                    } else {
-                        allCodes[codeData.productId].push(codeData);
-                    }
-                }
-                if (change.type === "removed") {
-                    const removedProductId = codeData.productId;
-                    if (allCodes[removedProductId]) {
-                        allCodes[removedProductId] = allCodes[removedProductId].filter(c => c.id !== codeData.id);
-                    }
-                }
-            });
-            console.log("Codes updated:", allCodes);
-            if (document.getElementById('codeList')) { 
-                displayCodesForProduct(); 
-            }
-        });
+        // Removed codesCol listener as it's no longer used.
 
         onSnapshot(usersCol, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
@@ -1296,32 +1267,30 @@
             }
         });
 
-        onSnapshot(ordersCol, (snapshot) => {
+        // Listener for purchases (formerly orders)
+        onSnapshot(purchasesCol, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added" || change.type === "modified") {
-                    allOrders[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
+                    allPurchases[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
                     if (currentUser && change.doc.data().userId === currentUser.uid) {
-                        userOrders[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
+                        userPurchases[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
                     }
                 }
                 if (change.type === "removed") {
-                    delete allOrders[change.doc.id];
-                    if (currentUser && userOrders[change.doc.id]) {
-                        delete userOrders[change.doc.id];
+                    delete allPurchases[change.doc.id];
+                    if (currentUser && userPurchases[change.doc.id]) {
+                        delete userPurchases[change.doc.id];
                     }
                 }
             });
-            console.log("Orders updated:", allOrders);
-            console.log("User Orders updated:", userOrders);
+            console.log("Purchases updated:", allPurchases);
+            console.log("User Purchases updated:", userPurchases);
             displayTopSellingProducts(); 
             // NEW: Update profile page if visible
             if (document.getElementById('userProfileContent')) {
                 displayUserProfileContent();
             }
-            // NEW: Update purchase approval list if visible
-            if (document.getElementById('adminPurchaseApproval')) {
-                displayPendingPurchases();
-            }
+            // Removed purchase approval update as the system is removed.
         });
 
         onSnapshot(doc(configCol, "global_settings"), (docSnap) => {
@@ -1383,8 +1352,8 @@
 
                 // Setup warning listener for the current user
                 setupWarningListener(currentUser.uid);
-                // Setup user-specific orders and gacha history listeners
-                setupUserOrdersListener(currentUser.uid);
+                // Setup user-specific purchases and gacha history listeners
+                setupUserPurchasesListener(currentUser.uid); // Changed from setupUserOrdersListener
                 setupUserGachaHistoryListener(currentUser.uid);
 
             } else {
@@ -1398,10 +1367,10 @@
                     window.warningUnsubscribe = null;
                 }
                 // Clear user-specific listeners and data
-                if (window.userOrdersUnsubscribe) {
-                    window.userOrdersUnsubscribe();
-                    window.userOrdersUnsubscribe = null;
-                    userOrders = {};
+                if (window.userPurchasesUnsubscribe) { // Changed from userOrdersUnsubscribe
+                    window.userPurchasesUnsubscribe();
+                    window.userPurchasesUnsubscribe = null;
+                    userPurchases = {}; // Changed from userOrders
                 }
                 if (window.userGachaHistoryUnsubscribe) {
                     window.userGachaHistoryUnsubscribe();
@@ -1433,18 +1402,18 @@
             }
         });
 
-        // NEW: Function to set up user-specific orders listener
-        function setupUserOrdersListener(userId) {
-            if (window.userOrdersUnsubscribe) {
-                window.userOrdersUnsubscribe();
+        // NEW: Function to set up user-specific purchases listener (formerly orders)
+        function setupUserPurchasesListener(userId) {
+            if (window.userPurchasesUnsubscribe) {
+                window.userPurchasesUnsubscribe();
             }
-            const q = query(ordersCol, where("userId", "==", userId));
-            window.userOrdersUnsubscribe = onSnapshot(q, (snapshot) => {
-                userOrders = {}; // Clear existing
+            const q = query(purchasesCol, where("userId", "==", userId));
+            window.userPurchasesUnsubscribe = onSnapshot(q, (snapshot) => {
+                userPurchases = {}; // Clear existing
                 snapshot.forEach(doc => {
-                    userOrders[doc.id] = { ...doc.data(), id: doc.id };
+                    userPurchases[doc.id] = { ...doc.data(), id: doc.id };
                 });
-                console.log("User-specific orders updated:", userOrders);
+                console.log("User-specific purchases updated:", userPurchases);
                 if (document.getElementById('userProfileContent')) {
                     displayUserProfileContent();
                 }
@@ -1581,8 +1550,8 @@
 
         // --- Data Dummy untuk Notifikasi Penjualan ---
         const DUMMY_BUYER_NAMES = [
-            "PlayerPro", "RobloxianGamer", "NoobMaster69", "EpicBuilder", "PixelPirate",
-            "StarCreator", "BloxyKing", "GameFanatic", "VirtualVoyager", "CodeWizard"
+            "CJ", "Big Smoke", "Ryder", "Sweet", "Kendl",
+            "Tenpenny", "Pulaski", "Madd Dogg", "Woozie", "Cesar"
         ];
 
         // --- Fungsi Helper untuk Pop-up Kustom ---
@@ -1608,7 +1577,7 @@
 
             if (textToCopy) {
                 modalCopyButton.style.display = 'inline-block';
-                modalCopyButton.textContent = 'Salin Kode/ID';
+                modalCopyButton.textContent = 'Salin Teks';
                 modalCopyButton.onclick = () => {
                     document.execCommand('copy', false, textToCopy); // Menggunakan document.execCommand
                     showModal('Berhasil Disalin!', 'Teks berhasil disalin ke clipboard Anda.', 'success');
@@ -1671,11 +1640,11 @@
         }
         window.showSaleNotification = showSaleNotification;
 
-        function generateOrderId() {
+        function generatePurchaseId() { // Changed from generateOrderId
             const timestamp = Date.now().toString(36).substring(0, 8);
             const randomPart1 = Math.random().toString(36).substring(2, 8);
             const randomPart2 = Math.random().toString(36).substring(2, 7);
-            return `ORD-${timestamp}-${randomPart1}-${randomPart2}`.toUpperCase();
+            return `PUR-${timestamp}-${randomPart1}-${randomPart2}`.toUpperCase();
         }
 
         function updateAuthLinks() {
@@ -1727,8 +1696,8 @@
             switch (pageName) {
                 case 'home':
                     htmlContent = `
-                        <h1>🎮 Beli Pengalaman Bermain 💰</h1>
-                        <p>Beli item-item keren untuk game milik Artvive studio,Anda di sini dapat item melalui kode redeem instan!</p>
+                        <h1>🎮 Beli Modpack GTA San Andreas 💰</h1>
+                        <p>Dapatkan modpack terbaik untuk pengalaman bermain GTA San Andreas yang lebih seru!</p>
                         <div id="discountCountdownSection" class="discount-countdown-section" style="display:none;">
                             <h2>Penawaran Spesial Berakhir Dalam!</h2>
                             <div class="countdown-timer" id="countdownTimer"></div>
@@ -1745,18 +1714,7 @@
                     startCountdown();
                     break;
 
-                case 'redeem':
-                    htmlContent = `
-                        <h2>Dapatkan Kode Anda!</h2>
-                        <p>Masukkan ID Pesanan Anda di bawah ini untuk mendapatkan kode redeem sesuai yang kamu beli.</p>
-                        <div class="form-group">
-                            <label for="orderIdInput">ID Pesanan:</label>
-                            <input type="text" id="orderIdInput" placeholder="Tempel ID Pesanan Anda di sini..." autocomplete="off">
-                        </div>
-                        <button onclick="redeemCode()">Dapatkan Kode</button>
-                    `;
-                    appContent.innerHTML = htmlContent;
-                    break;
+                // Removed 'redeem' page content and logic
 
                 case 'login':
                     if (currentUser) {
@@ -1810,7 +1768,7 @@
                         <div id="gachaPageContent" class="gacha-section">
                             <h2>🎰 Putar Gacha! 🎰</h2>
                             <p class="gacha-info">Koin Anda: <strong id="userCoins">${currentUser.coins || 0}</strong></p>
-                            <p>Putar gacha untuk kesempatan memenangkan kode gratis atau diskon spesial!</p>
+                            <p>Putar gacha untuk kesempatan memenangkan modpack gratis atau diskon spesial!</p>
                             <button class="gacha-spin-button" id="gachaSpinButton" onclick="gachaSpin()">Putar Gacha (Biaya: 10 Koin)</button>
                             <p id="gachaResult" style="margin-top: 20px; font-size: 1.1em; font-weight: bold; color: var(--text-light);"></p>
                             
@@ -1849,7 +1807,7 @@
                             </div>
 
                             <div class="profile-section">
-                                <h3>Riwayat Pembelian</h3>
+                                <h3>Riwayat Pembelian Modpack</h3>
                                 <div id="purchaseHistoryList">
                                     <!-- Purchase history will be loaded here -->
                                     <p style="color:var(--text-medium);">Anda belum melakukan pembelian.</p>
@@ -1885,7 +1843,7 @@
                     }
                     htmlContent = `
                         <h2>🛠️ Panel Admin 🔒</h2>
-                        <p style="text-align:center; color:var(--text-medium);">Kelola produk, kode, dan pengguna di sini.</p>
+                        <p style="text-align:center; color:var(--text-medium);">Kelola produk, dan pengguna di sini.</p>
 
                         <div class="admin-section">
                             <aside class="admin-sidebar">
@@ -1893,12 +1851,10 @@
                                 <ul class="admin-sidebar-nav">
                                     <li><a href="#" onclick="showAdminSection('adminUsers', this)">Manajemen Pengguna</a></li>
                                     <li><a href="#" onclick="showAdminSection('adminProducts', this)">Manajemen Produk</a></li>
-                                    <li><a href="#" onclick="showAdminSection('adminCodes', this)">Manajemen Kode</a></li>
                                     <li><a href="#" onclick="showAdminSection('adminDiscounts', this)">Pengaturan Diskon</a></li>
                                     <li><a href="#" onclick="showAdminSection('adminMaintenance', this)">Mode Pemeliharaan</a></li>
                                     <li><a href="#" onclick="showAdminSection('adminWarnings', this)">Kirim Peringatan</a></li>
                                     <li><a href="#" onclick="showAdminSection('adminGachaRewards', this)">Hadiah Gacha</a></li>
-                                    <li><a href="#" onclick="showAdminSection('adminPurchaseApproval', this)">Persetujuan Pembelian</a></li> <!-- NEW: Purchase Approval Link -->
                                 </ul>
                             </aside>
                             <section class="admin-content">
@@ -1927,49 +1883,32 @@
                                 </div>
 
                                 <div id="adminProducts" class="admin-content-section">
-                                    <h3>Tambah Produk Baru</h3>
+                                    <h3>Tambah Produk Modpack Baru</h3>
                                     <div class="form-group">
-                                        <label for="adminProductName">Nama Produk:</label>
-                                        <input type="text" id="adminProductName" placeholder="Contoh: Gamepass VIP">
+                                        <label for="adminProductName">Nama Modpack:</label>
+                                        <input type="text" id="adminProductName" placeholder="Contoh: Modpack Ultimate Graphics v2">
                                     </div>
                                     <div class="form-group">
                                         <label for="adminProductPrice">Harga (IDR):</label>
                                         <input type="number" id="adminProductPrice" placeholder="Contoh: 50000">
                                     </div>
                                     <div class="form-group">
-                                        <label for="adminProductImage">URL Gambar Produk (Opsional):</label>
-                                        <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/gambar_produk.png">
+                                        <label for="adminProductImage">URL Gambar Modpack (Opsional):</label>
+                                        <input type="text" id="adminProductImage" placeholder="Contoh: https://i.imgur.com/modpack_gta.png">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="adminProductDownloadUrl">URL Unduhan Modpack:</label>
+                                        <input type="text" id="adminProductDownloadUrl" placeholder="Contoh: https://link.mediafire.com/modpack_v2">
                                     </div>
                                     <button onclick="addProduct()">Tambah Produk</button>
-                                    <h3 style="margin-top: 30px;">Daftar Semua Produk</h3>
+                                    <h3 style="margin-top: 30px;">Daftar Semua Produk Modpack</h3>
                                     <div id="allProductsList">
                                         <!-- Product list will be loaded here -->
                                         <p style="text-align:center; color:var(--text-medium);">Memuat produk...</p>
                                     </div>
                                 </div>
 
-                                <div id="adminCodes" class="admin-content-section">
-                                    <h3>Tambah Kode untuk Produk</h3>
-                                    <div class="form-group">
-                                        <label for="adminCodeProductSelect">Pilih Produk:</label>
-                                        <select id="adminCodeProductSelect">
-                                            </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="adminNewCodes">Kode Baru (satu per baris):</label>
-                                        <textarea id="adminNewCodes" rows="10" placeholder="Masukkan kode baru, satu per baris. Contoh:&#10;KODE_VIP_123&#10;KODE_GAMEPASS_ABC&#10;KODE_UANG_XYZ"></textarea>
-                                    </div>
-                                    <button onclick="addCodes()">Tambah Kode</button>
-                                    <h3 style="margin-top: 30px;">Daftar Kode (Per Produk)</h3>
-                                    <div class="form-group">
-                                        <label for="adminViewCodeProductSelect">Pilih Produk untuk Melihat Kode:</label>
-                                        <select id="adminViewCodeProductSelect" onchange="displayCodesForProduct()">
-                                            </select>
-                                    </div>
-                                    <div id="codeList">
-                                        <p style="text-align:center; color:var(--text-medium);">Pilih produk untuk melihat daftar kodenya.</p>
-                                    </div>
-                                </div>
+                                <!-- Removed adminCodes section -->
 
                                 <div id="adminDiscounts" class="admin-content-section">
                                     <h3 style="margin-top: 0;">💰 Pengaturan Diskon 💰</h3>
@@ -2057,13 +1996,13 @@
                                     <h3 style="margin-top: 0;">🎁 Manajemen Hadiah Gacha 🎁</h3>
                                     <div class="form-group">
                                         <label for="gachaRewardName">Nama Hadiah:</label>
-                                        <input type="text" id="gachaRewardName" placeholder="Contoh: Kode VIP Gratis, Diskon 20%">
+                                        <input type="text" id="gachaRewardName" placeholder="Contoh: Modpack Gratis, Diskon 20%">
                                     </div>
                                     <div class="form-group">
                                         <label for="gachaRewardType">Tipe Hadiah:</label>
                                         <select id="gachaRewardType" onchange="toggleGachaRewardFields()">
                                             <option value="">-- Pilih Tipe --</option>
-                                            <option value="free_code">Kode Gratis (Acak)</option>
+                                            <option value="free_modpack">Modpack Gratis (Acak)</option>
                                             <option value="percentage_discount">Diskon Persentase</option>
                                         </select>
                                     </div>
@@ -2087,13 +2026,7 @@
                                     </div>
                                 </div>
 
-                                <div id="adminPurchaseApproval" class="admin-content-section">
-                                    <h3>✅ Persetujuan Pembelian</h3>
-                                    <div id="pendingPurchasesList">
-                                        <!-- Daftar pembelian yang menunggu persetujuan akan dimuat di sini -->
-                                        <p style="text-align:center; color:var(--text-medium);">Tidak ada pembelian yang menunggu persetujuan.</p>
-                                    </div>
-                                </div>
+                                <!-- Removed adminPurchaseApproval section -->
                             </section>
                         </div>
                     `;
@@ -2138,10 +2071,7 @@
                 case 'adminProducts':
                     displayProductsAdmin();
                     break;
-                case 'adminCodes':
-                    populateAdminProductSelects(); // Populate both select boxes
-                    displayCodesForProduct(); // Display codes for the default selected product (if any)
-                    break;
+                // Removed adminCodes case
                 case 'adminDiscounts':
                     loadDiscountConfig();
                     populateDiscountProductSelect();
@@ -2155,9 +2085,7 @@
                 case 'adminGachaRewards':
                     displayGachaRewardsAdmin();
                     break;
-                case 'adminPurchaseApproval': // NEW: Call function for purchase approval
-                    displayPendingPurchases();
-                    break;
+                // Removed adminPurchaseApproval case
             }
         }
         window.showAdminSection = showAdminSection;
@@ -2246,10 +2174,6 @@
                     }
                     
                     const createdAt = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('id-ID') : '-';
-                    // The `createdBy` field is not consistently set in your existing code,
-                    // so I'm simplifying it to just show the creation date.
-                    // If you want to track who created which user, you'd need to add that logic
-                    // when `createUserFromAdmin` is called.
                     
                     html += `
                         <tr>
@@ -2439,7 +2363,7 @@
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 productCard.innerHTML = `
-                    <img src="${product.image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}">
+                    <img src="${product.image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack'}" alt="${product.name}">
                     <h3>${product.name}</h3>
                     <p class="price-info">
                         ${originalPriceHtml}
@@ -2524,25 +2448,32 @@
                 showModal('Error!', 'Produk tidak ditemukan saat simulasi pembelian.', 'error');
                 return;
             }
+            if (!product.downloadUrl) {
+                showModal('Error!', 'Modpack ini belum memiliki URL unduhan. Silakan hubungi admin.', 'error');
+                return;
+            }
 
-            const orderId = generateOrderId();
-            const newOrderData = {
+            const purchaseId = generatePurchaseId(); // Changed from orderId
+            const newPurchaseData = {
                 productId: productId,
-                isUsed: false, // Set to false initially, will be true upon admin approval
-                codeGiven: null, // Null initially, will be set upon admin approval
+                downloadUrl: product.downloadUrl, // Directly store download URL
                 purchaseDate: new Date().toISOString(),
-                userId: currentUser ? currentUser.uid : null, // Store userId with the order
+                userId: currentUser ? currentUser.uid : null, // Store userId with the purchase
                 productName: product.name, // Store product name for easier display
                 productPrice: product.price, // Store product price for easier display
-                status: 'pending' // NEW: Add status for approval system
+                gachaWon: false // Flag if this purchase was from gacha
             };
 
             try {
-                await setDoc(doc(ordersCol, orderId), newOrderData);
-                console.log("Order added to Firestore:", orderId);
+                await setDoc(doc(purchasesCol, purchaseId), newPurchaseData); // Changed from ordersCol
+                console.log("Purchase added to Firestore:", purchaseId);
 
-                // Add coins for purchase
-                const coinsEarned = Math.floor(product.price / 1000); // 1 coin per 1000 IDR
+                // Add coins for purchase, only if the product is not free
+                let coinsEarned = 0;
+                if (product.price > 0) {
+                    coinsEarned = Math.floor(product.price / 1000); // 1 coin per 1000 IDR
+                }
+                
                 if (currentUser) {
                     const newCoins = (currentUser.coins || 0) + coinsEarned;
                     await updateDoc(doc(usersCol, currentUser.uid), { coins: newCoins });
@@ -2550,13 +2481,15 @@
                     console.log(`User ${currentUser.email} earned ${coinsEarned} coins. Total: ${newCoins}`);
                 }
 
-                const message = `
-                    <p>Terima kasih telah membeli <strong>${product.name}</strong>!</p>
-                    <p>Anda mendapatkan <strong>${coinsEarned} koin</strong>!</p>
-                    <p>ID Pesanan Anda: <strong>${orderId}</strong></p>
-                    <p>Pembelian Anda sedang menunggu persetujuan admin. Kode redeem akan diberikan setelah disetujui.</p>
-                `;
-                showModal('Pembelian Berhasil!', message, 'success', orderId);
+                let message = `<p>Terima kasih telah membeli <strong>${product.name}</strong>!</p>`;
+                if (product.price === 0) {
+                    message += `<p>Modpack ini GRATIS!</p>`;
+                } else {
+                    message += `<p>Anda mendapatkan <strong>${coinsEarned} koin</strong>!</p>`;
+                }
+                message += `<p>Tautan Unduhan Anda: <strong><a href="${product.downloadUrl}" target="_blank" style="color: var(--accent-color); text-decoration: underline;">KLIK UNTUK UNDUH</a></strong></p>
+                            <p>ID Pembelian Anda: <strong>${purchaseId}</strong></p>`;
+                showModal('Pembelian Berhasil!', message, 'success', product.downloadUrl);
 
                 showSaleNotification(product.name);
             } catch (error) {
@@ -2565,84 +2498,7 @@
             }
         }
 
-        // --- FUNGSI SPESIFIK UNTUK redeem (TUKAR ID PESANAN) ---
-        async function redeemCode() {
-            const orderIdInput = document.getElementById('orderIdInput');
-            if (!orderIdInput) return;
-
-            const orderId = orderIdInput.value.trim();
-
-            if (!orderId) {
-                showModal('Input Kosong', '⚠️ Masukkan ID Pesanan Anda!', 'warning');
-                return;
-            }
-
-            const orders = allOrders;
-            const codes = allCodes;
-
-            const order = orders[orderId];
-
-            if (!order) {
-                showModal('ID Tidak Valid', '❌ ID Pesanan tidak ditemukan atau tidak valid.', 'error');
-                return;
-            }
-            
-            // NEW: Check if order status is pending
-            if (order.status === 'pending') {
-                showModal('Menunggu Persetujuan', 'Pembelian Anda masih menunggu persetujuan admin. Mohon tunggu.', 'warning');
-                return;
-            }
-
-            if (order.isUsed) {
-                const message = `<p>⚠️ ID Pesanan ini sudah digunakan!</p><p>Kode Anda sebelumnya adalah: <strong>${order.codeGiven}</strong></p>`;
-                showModal('Sudah Digunakan', message, 'warning', order.codeGiven);
-                return;
-            }
-
-            // This part should technically not be reached if order.status is 'pending' or order.isUsed is true
-            // but as a fallback, ensure a code is available.
-            const productCodes = codes[order.productId];
-            if (!productCodes || productCodes.length === 0) {
-                showModal('Stok Habis', '❌ Maaf, stok kode untuk produk ini habis. Silakan hubungi admin.', 'error');
-                return;
-            }
-
-            const availableCode = productCodes.find(code => !code.isUsed);
-
-            if (!availableCode) {
-                showModal('Stok Habis', '❌ Maaf, stok kode untuk produk ini habis. Silakan hubungi admin.', 'error');
-                return;
-            }
-
-            try {
-                // This block should ideally be triggered by the admin approval, not user redeem directly.
-                // However, keeping it as a fallback if the order somehow bypassed approval and is still not used.
-                await updateDoc(doc(codesCol, availableCode.id), {
-                    isUsed: true,
-                    usedAt: new Date().toISOString()
-                });
-
-                await updateDoc(doc(ordersCol, orderId), {
-                    isUsed: true,
-                    codeGiven: availableCode.value,
-                    redeemDate: new Date().toISOString(),
-                    status: 'completed' // Ensure status is completed
-                });
-
-                const successMessage = `
-                    <p>🎉 Selamat! Ini kode redeem Anda:</p>
-                    <p><strong>${availableCode.value}</strong></p>
-                    <p>Tempel kode ini di game Roblox Anda.</p>
-                `;
-                showModal('Kode Berhasil Didapatkan!', successMessage, 'success', availableCode.value);
-
-                orderIdInput.value = '';
-            } catch (error) {
-                console.error("Error redeeming code:", error.message);
-                showModal('Redeem Gagal', 'Terjadi kesalahan saat menukar kode.', 'error');
-            }
-        }
-        window.redeemCode = redeemCode;
+        // Removed redeemCode function as it's no longer used.
 
         // --- FUNGSI SPESIFIK UNTUK login & register ---
         async function registerUser() {
@@ -2709,7 +2565,7 @@
                     const newCoins = (currentUser.coins || 0) + loginCoins;
                     await updateDoc(doc(usersCol, currentUser.uid), { coins: newCoins });
                     currentUser.coins = newCoins; // Update local state
-                    console.log(`User ${currentUser.email} earned ${loginCoins} coins for login. Total: ${newCoins}`);
+                    console.log(`User ${currentUser.email} earned ${loginCoins} coins. Total: ${newCoins}`);
                 }
 
                 if (userDoc.exists() && userDoc.data().isAdmin === true) {
@@ -2737,14 +2593,17 @@
             const adminProductName = document.getElementById('adminProductName');
             const adminProductPrice = document.getElementById('adminProductPrice');
             const adminProductImage = document.getElementById('adminProductImage');
-            if (!adminProductName || !adminProductPrice || !adminProductImage) return;
+            const adminProductDownloadUrl = document.getElementById('adminProductDownloadUrl');
+            if (!adminProductName || !adminProductPrice || !adminProductImage || !adminProductDownloadUrl) return;
 
             const name = adminProductName.value.trim();
             const price = parseFloat(adminProductPrice.value);
             const image = adminProductImage.value.trim();
+            const downloadUrl = adminProductDownloadUrl.value.trim();
 
-            if (!name || isNaN(price) || price <= 0) {
-                showModal('Input Tidak Valid', 'Nama produk dan harga harus diisi dengan benar.', 'warning');
+            // Modified validation to allow price = 0
+            if (!name || isNaN(price) || price < 0 || !downloadUrl) {
+                showModal('Input Tidak Valid', 'Nama produk, harga (tidak boleh negatif), dan URL unduhan harus diisi dengan benar.', 'warning');
                 return;
             }
 
@@ -2761,7 +2620,8 @@
                     id: productId,
                     name: name,
                     price: price,
-                    image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Item'
+                    image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack',
+                    downloadUrl: downloadUrl
                 });
                 console.log("Product added to Firestore:", productId);
 
@@ -2769,6 +2629,7 @@
                 adminProductName.value = '';
                 adminProductPrice.value = '';
                 adminProductImage.value = '';
+                adminProductDownloadUrl.value = '';
             } catch (error) {
                 console.error("Error adding product:", error.message);
                 showModal('Gagal Menambah Produk', 'Terjadi kesalahan saat menambahkan produk.', 'error');
@@ -2788,6 +2649,7 @@
                             <th>Gambar</th>
                             <th>Nama Produk</th>
                             <th>Harga</th>
+                            <th>URL Unduhan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -2795,14 +2657,15 @@
             `;
             const productsArray = Object.values(allProducts);
             if (productsArray.length === 0) {
-                html += `<tr><td colspan="4" style="text-align: center;">Belum ada produk yang tersedia.</td></tr>`;
+                html += `<tr><td colspan="5" style="text-align: center;">Belum ada produk yang tersedia.</td></tr>`;
             } else {
                 productsArray.forEach(product => {
                     html += `
                         <tr>
-                            <td data-label="Gambar"><img src="${product.image || 'https://placehold.co/50x50/2a2a2a/f0f0f0?text=Item'}" alt="${product.name}"></td>
+                            <td data-label="Gambar"><img src="${product.image || 'https://placehold.co/50x50/2a2a2a/f0f0f0?text=Modpack'}" alt="${product.name}"></td>
                             <td data-label="Nama Produk">${product.name}</td>
                             <td data-label="Harga">Rp ${product.price.toLocaleString('id-ID')}</td>
+                            <td data-label="URL Unduhan"><a href="${product.downloadUrl}" target="_blank" style="color: var(--accent-color); text-decoration: underline;">Link</a></td>
                             <td data-label="Aksi">
                                 <button class="action-btn edit-btn" onclick="showEditProductModal('${product.id}')">Edit</button>
                                 <button class="action-btn delete-btn" onclick="deleteProduct('${product.id}')">Hapus</button>
@@ -2827,6 +2690,7 @@
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editProductPrice').value = product.price;
             document.getElementById('editProductImage').value = product.image || '';
+            document.getElementById('editProductDownloadUrl').value = product.downloadUrl || '';
 
             document.getElementById('editProductModal').style.display = 'flex';
         }
@@ -2839,6 +2703,7 @@
             document.getElementById('editProductName').value = '';
             document.getElementById('editProductPrice').value = '';
             document.getElementById('editProductImage').value = '';
+            document.getElementById('editProductDownloadUrl').value = '';
         }
         window.closeEditProductModal = closeEditProductModal;
 
@@ -2847,9 +2712,11 @@
             const name = document.getElementById('editProductName').value.trim();
             const price = parseFloat(document.getElementById('editProductPrice').value);
             const image = document.getElementById('editProductImage').value.trim();
+            const downloadUrl = document.getElementById('editProductDownloadUrl').value.trim();
 
-            if (!productId || !name || isNaN(price) || price <= 0) {
-                showModal('Input Tidak Valid', 'Nama produk dan harga harus diisi dengan benar.', 'warning');
+            // Modified validation to allow price = 0
+            if (!productId || !name || isNaN(price) || price < 0 || !downloadUrl) {
+                showModal('Input Tidak Valid', 'Nama produk, harga (tidak boleh negatif), dan URL unduhan harus diisi dengan benar.', 'warning');
                 return;
             }
 
@@ -2857,7 +2724,8 @@
                 await updateDoc(doc(productsCol, productId), {
                     name: name,
                     price: price,
-                    image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Item'
+                    image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack',
+                    downloadUrl: downloadUrl
                 });
                 showModal('Berhasil!', `Produk "<strong>${name}</strong>" berhasil diperbarui!`, 'success');
                 closeEditProductModal();
@@ -2882,7 +2750,7 @@
             const confirmationMessage = document.getElementById('confirmationMessage');
 
             confirmationModal.querySelector('.modal-content').className = 'modal-content error'; // Use error color for deletion
-            confirmationMessage.innerHTML = `Apakah Anda yakin ingin menghapus produk "<strong>${product.name}</strong>"? Semua kode yang terkait dengan produk ini juga akan terhapus! Tindakan ini tidak dapat dibatalkan!`;
+            confirmationMessage.innerHTML = `Apakah Anda yakin ingin menghapus produk "<strong>${product.name}</strong>"? Tindakan ini tidak dapat dibatalkan!`;
             confirmationModal.style.display = 'flex';
 
             confirmPurchaseBtn.onclick = async () => {
@@ -2890,19 +2758,10 @@
                     // Hapus produk dari koleksi products
                     await deleteDoc(doc(productsCol, productId));
 
-                    // Hapus semua kode yang terkait dengan produk ini
-                    const codesToDeleteQuery = query(codesCol, where("productId", "==", productId));
-                    const codesSnapshot = await getDocs(codesToDeleteQuery);
-                    const deletePromises = [];
-                    codesSnapshot.forEach((codeDoc) => {
-                        deletePromises.push(deleteDoc(doc(codesCol, codeDoc.id)));
-                    });
-                    await Promise.all(deletePromises);
-
-                    showModal('Berhasil!', `Produk "<strong>${product.name}</strong>" dan semua kodenya berhasil dihapus.`, 'success');
+                    showModal('Berhasil!', `Produk "<strong>${product.name}</strong>" berhasil dihapus.`, 'success');
                 } catch (error) {
-                    console.error("Error deleting product or associated codes:", error.message);
-                    showModal('Gagal Menghapus Produk', 'Terjadi kesalahan saat menghapus produk atau kodenya.', 'error');
+                    console.error("Error deleting product:", error.message);
+                    showModal('Gagal Menghapus Produk', 'Terjadi kesalahan saat menghapus produk.', 'error');
                 } finally {
                     hideConfirmation();
                 }
@@ -2916,247 +2775,20 @@
         window.deleteProduct = deleteProduct;
 
 
-        async function addCodes() {
-            const selectedProductElement = document.getElementById('adminCodeProductSelect');
-            const newCodesTextElement = document.getElementById('adminNewCodes');
-            if (!selectedProductElement || !newCodesTextElement) return;
-
-            const selectedProductId = selectedProductElement.value;
-            const newCodesText = newCodesTextElement.value.trim();
-
-            if (!selectedProductId) {
-                showModal('Pilih Produk', 'Pilih produk terlebih dahulu.', 'warning');
-                return;
-            }
-            if (!newCodesText) {
-                showModal('Input Kode', 'Masukkan setidaknya satu kode.', 'warning');
-                return;
-            }
-
-            const codesToAdd = newCodesText.split('\n').map(code => code.trim()).filter(code => code !== '');
-            if (codesToAdd.length === 0) {
-                showModal('Input Kode', 'Masukkan setidaknya satu kode yang valid.', 'warning');
-                return;
-            }
-
-            let codesAddedCount = 0;
-            let duplicateCodesCount = 0;
-
-            const existingCodesForProduct = allCodes[selectedProductId] || [];
-
-            for (const codeValue of codesToAdd) {
-                const trimmedCodeValue = codeValue.toUpperCase();
-                const isDuplicate = existingCodesForProduct.some(c => c.value === trimmedCodeValue);
-
-                if (!isDuplicate) {
-                    try {
-                        await addDoc(codesCol, {
-                            productId: selectedProductId,
-                            value: trimmedCodeValue,
-                            isUsed: false,
-                            addedAt: new Date().toISOString()
-                        });
-                        codesAddedCount++;
-                    } catch (error) {
-                        console.error("Error adding code:", error.message);
-                        showModal('Gagal Menambahkan Kode', `Terjadi kesalahan saat menambahkan kode ${trimmedCodeValue}.`, 'error');
-                    }
-                } else {
-                    duplicateCodesCount++;
-                }
-            }
-
-            let successMessage = `Berhasil menambahkan <strong>${codesAddedCount} kode</strong> untuk produk "<strong>${allProducts[selectedProductId].name}</strong>"!`;
-            if (duplicateCodesCount > 0) {
-                successMessage += `<br>(${duplicateCodesCount} kode duplikat tidak ditambahkan.)`;
-                showModal('Berhasil Sebagian!', successMessage, 'warning');
-            } else {
-                showModal('Berhasil!', successMessage, 'success');
-            }
-            
-            newCodesTextElement.value = '';
-        }
-        window.addCodes = addCodes;
-
-        function populateAdminProductSelects() {
-            const products = allProducts;
-            const adminCodeProductSelect = document.getElementById('adminCodeProductSelect');
-            const adminViewCodeProductSelect = document.getElementById('adminViewCodeProductSelect');
-
-            if (adminCodeProductSelect) {
-                adminCodeProductSelect.innerHTML = '<option value="">-- Pilih Produk --</option>';
-                for (const productId in products) {
-                    const option = document.createElement('option');
-                    option.value = productId;
-                    option.textContent = products[productId].name;
-                    adminCodeProductSelect.appendChild(option);
-                }
-            }
-
-            if (adminViewCodeProductSelect) {
-                adminViewCodeProductSelect.innerHTML = '<option value="">-- Pilih Produk --</option>';
-                for (const productId in products) {
-                    const option = document.createElement('option');
-                    option.value = productId;
-                    option.textContent = products[productId].name;
-                    adminViewCodeProductSelect.appendChild(option);
-                }
-            }
-        }
-        window.populateAdminProductSelects = populateAdminProductSelects;
-
-        async function displayCodesForProduct() {
-            const selectedProductElement = document.getElementById('adminViewCodeProductSelect');
-            const codeListDiv = document.getElementById('codeList');
-            if (!selectedProductElement || !codeListDiv) return;
-
-            const selectedProductId = selectedProductElement.value;
-            codeListDiv.innerHTML = '';
-
-            if (!selectedProductId) {
-                codeListDiv.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Pilih produk untuk melihat daftar kodenya.</p>';
-                return;
-            }
-
-            const productCodes = allCodes[selectedProductId] || [];
-
-            if (productCodes.length === 0) {
-                codeListDiv.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Belum ada kode untuk produk ini.</p>';
-                return;
-            }
-
-            productCodes.sort((a, b) => {
-                if (a.isUsed === b.isUsed) {
-                    return new Date(b.addedAt) - new Date(a.addedAt);
-                }
-                return a.isUsed ? 1 : -1;
-            });
-
-            productCodes.forEach((code) => { 
-                const codeItem = document.createElement('div');
-                codeItem.className = 'code-list-item';
-                let statusText = code.isUsed ? 'Terpakai' : 'Tersedia';
-                let statusClass = code.isUsed ? 'used' : '';
-
-                let dateInfo = `Ditambah: ${new Date(code.addedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}`;
-                if (code.isUsed && code.usedAt) {
-                    dateInfo += ` | Dipakai: ${new Date(code.usedAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}`;
-                }
-
-                const codeValueSpan = document.createElement('span');
-                codeValueSpan.style.fontWeight = 'bold';
-                codeValueSpan.textContent = code.value;
-                codeValueSpan.style.cursor = 'pointer';
-                codeValueSpan.title = 'Klik untuk mengubah kode';
-
-                codeValueSpan.onclick = async function() {
-                    const oldCodeValue = code.value;
-                    const newCodeValue = prompt('Masukkan kode baru:', oldCodeValue);
-
-                    if (newCodeValue !== null && newCodeValue.trim() !== '') {
-                        const trimmedNewCode = newCodeValue.trim().toUpperCase();
-                        if (trimmedNewCode === oldCodeValue) {
-                            return;
-                        }
-
-                        let currentCodesForProduct = allCodes[selectedProductId];
-                        const isDuplicate = currentCodesForProduct.some((c) =>
-                            c.id !== code.id && c.value === trimmedNewCode
-                        );
-
-                        if (isDuplicate) {
-                            showModal('Kode Duplikat!', 'Kode baru sudah ada untuk produk ini. Mohon gunakan kode lain.', 'error');
-                        } else {
-                            try {
-                                await updateDoc(doc(codesCol, code.id), { value: trimmedNewCode });
-                                showModal('Berhasil!', 'Kode berhasil diubah!', 'success');
-                            } catch (error) {
-                                console.error("Error updating code:", error.message);
-                                showModal('Gagal Mengubah Kode', 'Terjadi kesalahan saat mengubah kode.', 'error');
-                            }
-                        }
-                    } else if (newCodeValue !== null && newCodeValue.trim() === '') {
-                        showModal('Input Kosong', 'Kode tidak boleh kosong!', 'warning');
-                    }
-                };
-
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Hapus';
-                deleteButton.style.backgroundColor = 'var(--error-color)';
-                deleteButton.style.padding = '5px 10px';
-                deleteButton.style.fontSize = '0.9em';
-                deleteButton.style.marginLeft = '10px';
-                deleteButton.onclick = async function() {
-                    // Menggunakan showModal untuk konfirmasi
-                    const confirmationModal = document.getElementById('confirmationModal');
-                    const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
-                    const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
-                    const confirmationMessage = document.getElementById('confirmationMessage');
-
-                    confirmationModal.querySelector('.modal-content').className = 'modal-content error'; // Gunakan warna error untuk penghapusan
-                    confirmationMessage.innerHTML = 'Apakah Anda yakin ingin menghapus kode ini? Tindakan ini tidak dapat dibatalkan!';
-                    confirmationModal.style.display = 'flex';
-
-                    confirmPurchaseBtn.onclick = async () => {
-                        try {
-                            await deleteDoc(doc(codesCol, code.id));
-                            showModal('Berhasil!', 'Kode berhasil dihapus!', 'success');
-                        } catch (error) {
-                            console.error("Error deleting code:", error.message);
-                            showModal('Gagal Menghapus Kode', 'Terjadi kesalahan saat menghapus kode.', 'error');
-                        } finally {
-                            hideConfirmation();
-                        }
-                    };
-
-                    cancelPurchaseBtn.onclick = () => {
-                        showModal('Dibatalkan', 'Penghapusan kode dibatalkan.', 'warning');
-                        hideConfirmation();
-                    };
-                };
-
-                const statusSpan = document.createElement('span');
-                statusSpan.className = `status ${statusClass}`;
-                statusSpan.textContent = statusText;
-
-                const infoDiv = document.createElement('div');
-                infoDiv.style.display = 'flex';
-                infoDiv.style.flexDirection = 'column';
-                infoDiv.style.alignItems = 'flex-start';
-                infoDiv.style.flexGrow = '1';
-
-                infoDiv.appendChild(codeValueSpan);
-                const smallDateInfo = document.createElement('small');
-                smallDateInfo.style.color = 'var(--text-medium)';
-                smallDateInfo.textContent = dateInfo;
-                infoDiv.appendChild(smallDateInfo);
-
-                const actionsDiv = document.createElement('div');
-                actionsDiv.style.display = 'flex';
-                actionsDiv.style.alignItems = 'center';
-
-                actionsDiv.appendChild(statusSpan);
-                actionsDiv.appendChild(deleteButton);
-
-                codeItem.appendChild(infoDiv);
-                codeItem.appendChild(actionsDiv);
-                codeListDiv.appendChild(codeItem);
-            });
-        }
-        window.displayCodesForProduct = displayCodesForProduct;
+        // Removed addCodes, populateAdminProductSelects, displayCodesForProduct functions.
 
         function displayTopSellingProducts() {
             const topProductsListDiv = document.getElementById('topProductsList');
             if (!topProductsListDiv) return;
 
-            const orders = allOrders;
+            const purchases = allPurchases; // Changed from allOrders
             const products = allProducts;
 
             const salesCount = {};
-            for (const orderId in orders) {
-                const order = orders[orderId];
-                if (order.isUsed && order.productId) {
-                    salesCount[order.productId] = (salesCount[order.productId] || 0) + 1;
+            for (const purchaseId in purchases) { // Changed from orderId
+                const purchase = purchases[purchaseId]; // Changed from order
+                if (purchase.productId) { // Check if product ID exists
+                    salesCount[purchase.productId] = (salesCount[purchase.productId] || 0) + 1;
                 }
             }
 
@@ -3169,9 +2801,9 @@
                 .sort((a, b) => b.sales - a.sales)
                 .slice(0, 5);
 
-            let htmlContent = '<h2>🔥 Produk Terlaris 🔥</h2>';
+            let htmlContent = '<h2>🔥 Modpack Terlaris 🔥</h2>';
             if (sortedProducts.length === 0) {
-                htmlContent += '<p style="text-align:center; color:var(--text-medium);">Belum ada produk yang terjual.</p>';
+                htmlContent += '<p style="text-align:center; color:var(--text-medium);">Belum ada modpack yang terjual.</p>';
             } else {
                 htmlContent += '<ol>';
                 sortedProducts.forEach(product => {
@@ -3766,11 +3398,11 @@
                 rewardsHtml += `<tr><td colspan="4" style="text-align: center;">Belum ada hadiah gacha yang tersedia.</td></tr>`;
             } else {
                 rewardsArray.forEach(reward => {
-                    const valueDisplay = reward.type === 'percentage_discount' ? `${reward.value}%` : 'Kode Gratis';
+                    const valueDisplay = reward.type === 'percentage_discount' ? `${reward.value}%` : 'Modpack Gratis';
                     rewardsHtml += `
                         <tr>
                             <td data-label="Nama Hadiah">${reward.rewardName}</td>
-                            <td data-label="Tipe">${reward.type === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td data-label="Tipe">${reward.type === 'free_modpack' ? 'Modpack Gratis' : 'Diskon'}</td>
                             <td data-label="Nilai">${valueDisplay}</td>
                             <td data-label="Probabilitas">${reward.weight}</td>
                         </tr>
@@ -3845,29 +3477,39 @@
                 let rewardValueForHistory = chosenReward.value;
                 let rewardTypeForHistory = chosenReward.type;
 
-                if (chosenReward.type === 'free_code') {
-                    // Find an unused code
-                    let availableCode = null;
-                    for (const productId in allProducts) { // Iterate through products to find codes
-                        if (allCodes[productId]) { // Check if codes exist for this product
-                            availableCode = allCodes[productId].find(code => !code.isUsed);
-                            if (availableCode) break; // Found an unused code, break loop
-                        }
-                    }
+                if (chosenReward.type === 'free_modpack') { // Changed from free_code
+                    // Find an unpurchased modpack for the user
+                    const allProductIds = Object.keys(allProducts);
+                    const purchasedProductIds = Object.values(userPurchases).map(p => p.productId);
+                    const unpurchasedProductIds = allProductIds.filter(id => !purchasedProductIds.includes(id));
 
-                    if (availableCode) {
-                        await updateDoc(doc(codesCol, availableCode.id), {
-                            isUsed: true,
-                            usedAt: new Date().toISOString(),
-                            usedByGacha: currentUser.uid
-                        });
-                        rewardMessage = `Selamat! Anda memenangkan kode gratis: <strong>${availableCode.value}</strong>`;
-                        rewardValueForHistory = availableCode.value;
-                        showModal('Anda Menang Gacha!', rewardMessage, 'success', availableCode.value);
+                    if (unpurchasedProductIds.length > 0) {
+                        const randomProductId = unpurchasedProductIds[Math.floor(Math.random() * unpurchasedProductIds.length)];
+                        const freeModpack = allProducts[randomProductId];
+
+                        if (freeModpack && freeModpack.downloadUrl) {
+                            const freePurchaseId = generatePurchaseId();
+                            await setDoc(doc(purchasesCol, freePurchaseId), {
+                                productId: freeModpack.id,
+                                downloadUrl: freeModpack.downloadUrl,
+                                purchaseDate: new Date().toISOString(),
+                                userId: currentUser.uid,
+                                productName: freeModpack.name,
+                                productPrice: 0, // Free from gacha
+                                gachaWon: true
+                            });
+                            rewardMessage = `Selamat! Anda memenangkan modpack gratis: <strong>${freeModpack.name}</strong>! <br>Tautan Unduhan: <strong><a href="${freeModpack.downloadUrl}" target="_blank" style="color: var(--accent-color); text-decoration: underline;">KLIK UNTUK UNDUH</a></strong>`;
+                            rewardValueForHistory = freeModpack.name;
+                            showModal('Anda Menang Gacha!', rewardMessage, 'success', freeModpack.downloadUrl);
+                        } else {
+                            rewardMessage = `Anda memenangkan modpack gratis, tetapi tidak ada modpack yang tersedia untuk diberikan saat ini. Silakan coba lagi nanti atau hubungi admin.`;
+                            rewardValueForHistory = 'No Modpack Available';
+                            showModal('Gacha Berhasil (Tapi Stok Kosong)', rewardMessage, 'warning');
+                        }
                     } else {
-                        rewardMessage = `Anda memenangkan kode gratis, tetapi tidak ada kode yang tersedia saat ini. Silakan coba lagi nanti atau hubungi admin.`;
-                        rewardValueForHistory = 'No Code Available';
-                        showModal('Gacha Berhasil (Tapi Stok Kosong)', rewardMessage, 'warning');
+                        rewardMessage = `Anda memenangkan modpack gratis, tetapi Anda sudah memiliki semua modpack yang tersedia!`;
+                        rewardValueForHistory = 'All Modpacks Owned';
+                        showModal('Gacha Berhasil (Semua Dimiliki)', rewardMessage, 'warning');
                     }
                 } else if (chosenReward.type === 'percentage_discount') {
                     const expiryDate = new Date();
@@ -3963,8 +3605,7 @@
                 }
                 rewardData.value = rewardValue;
                 rewardData.durationDays = rewardDuration;
-            } else if (rewardType === 'free_code') {
-                // For free_code, value is implicitly handled by finding an unused code later
+            } else if (rewardType === 'free_modpack') { // Changed from free_code
                 rewardData.value = 0; // Placeholder value
             }
 
@@ -4013,7 +3654,7 @@
                     html += `
                         <tr>
                             <td data-label="Nama Hadiah">${reward.rewardName}</td>
-                            <td data-label="Tipe">${reward.type === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td data-label="Tipe">${reward.type === 'free_modpack' ? 'Modpack Gratis' : 'Diskon'}</td>
                             <td data-label="Nilai">${valueDisplay}</td>
                             <td data-label="Bobot">${reward.weight}</td>
                             <td data-label="Durasi">${durationDisplay}</td>
@@ -4083,45 +3724,36 @@
 
             // Display Purchase History
             const purchaseHistoryListDiv = document.getElementById('purchaseHistoryList');
-            const userOrdersArray = Object.values(userOrders).sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate)); // Sort by most recent
+            const userPurchasesArray = Object.values(userPurchases).sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate)); // Sort by most recent
             
             let purchaseHtml = `
                 <table class="profile-table">
                     <thead>
                         <tr>
-                            <th>ID Pesanan</th>
-                            <th>Produk</th>
+                            <th>ID Pembelian</th>
+                            <th>Modpack</th>
                             <th>Harga</th>
-                            <th>Status Kode</th>
-                            <th>Kode Diberikan</th>
+                            <th>Tautan Unduhan</th>
                             <th>Tanggal Beli</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
-            if (userOrdersArray.length === 0) {
-                purchaseHtml += `<tr><td colspan="6" style="text-align: center; color:var(--text-medium);">Anda belum melakukan pembelian.</td></tr>`;
+            if (userPurchasesArray.length === 0) {
+                purchaseHtml += `<tr><td colspan="5" style="text-align: center; color:var(--text-medium);">Anda belum melakukan pembelian.</td></tr>`;
             } else {
-                userOrdersArray.forEach(order => {
-                    let statusBadgeHtml = '';
-                    if (order.status === 'pending') {
-                        statusBadgeHtml = '<span class="status-badge expired">Menunggu Persetujuan</span>'; // Use expired for pending
-                    } else if (order.isUsed) {
-                        statusBadgeHtml = '<span class="status-badge used">Terpakai</span>';
-                    } else {
-                        statusBadgeHtml = '<span class="status-badge available">Tersedia</span>';
-                    }
-
-                    const codeDisplay = order.codeGiven ? `${order.codeGiven} <button class="copy-code-btn" onclick="document.execCommand(\'copy\', false, \'${order.codeGiven}\'); showModal(\'Disalin!\', \'Kode berhasil disalin.\', \'success\');">Salin</button>` : 'Belum Diberikan';
-                    const purchaseDate = new Date(order.purchaseDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+                userPurchasesArray.forEach(purchase => {
+                    const downloadLinkHtml = purchase.downloadUrl ? 
+                        `<a href="${purchase.downloadUrl}" target="_blank" class="copy-code-btn" style="background-color: var(--success-color);">Unduh</a>` : 
+                        'Tidak Tersedia';
+                    const purchaseDate = new Date(purchase.purchaseDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
                     
                     purchaseHtml += `
                         <tr>
-                            <td data-label="ID Pesanan">${order.id}</td>
-                            <td data-label="Produk">${order.productName || 'N/A'}</td>
-                            <td data-label="Harga">Rp ${order.productPrice ? order.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
-                            <td data-label="Status Kode">${statusBadgeHtml}</td>
-                            <td data-label="Kode Diberikan">${codeDisplay}</td>
+                            <td data-label="ID Pembelian">${purchase.id}</td>
+                            <td data-label="Modpack">${purchase.productName || 'N/A'}</td>
+                            <td data-label="Harga">Rp ${purchase.productPrice ? purchase.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
+                            <td data-label="Tautan Unduhan">${downloadLinkHtml}</td>
                             <td data-label="Tanggal Beli">${purchaseDate}</td>
                         </tr>
                     `;
@@ -4155,7 +3787,7 @@
                     gachaHtml += `
                         <tr>
                             <td data-label="Hadiah">${entry.rewardName}</td>
-                            <td data-label="Tipe Hadiah">${entry.rewardType === 'free_code' ? 'Kode Gratis' : 'Diskon'}</td>
+                            <td data-label="Tipe Hadiah">${entry.rewardType === 'free_modpack' ? 'Modpack Gratis' : 'Diskon'}</td>
                             <td data-label="Nilai">${valueDisplay}</td>
                             <td data-label="Tanggal Putar">${spinDate}</td>
                         </tr>
@@ -4200,111 +3832,7 @@
         }
         window.displayUserProfileContent = displayUserProfileContent;
 
-        // NEW: Fungsi untuk menampilkan pembelian yang menunggu persetujuan
-        async function displayPendingPurchases() {
-            const pendingPurchasesListDiv = document.getElementById('pendingPurchasesList');
-            if (!pendingPurchasesListDiv) return;
-
-            // Filter orders with status 'pending'
-            const pendingOrders = Object.values(allOrders).filter(order => order.status === 'pending');
-
-            let html = `
-                <table class="purchase-approval-table">
-                    <thead>
-                        <tr>
-                            <th>ID Pesanan</th>
-                            <th>Produk</th>
-                            <th>Harga</th>
-                            <th>Pembeli</th>
-                            <th>Tanggal Beli</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            if (pendingOrders.length === 0) {
-                html += `<tr><td colspan="6" style="text-align: center; color:var(--text-medium);">Tidak ada pembelian yang menunggu persetujuan.</td></tr>`;
-            } else {
-                for (const order of pendingOrders) {
-                    const buyerEmail = allUsers[order.userId] ? allUsers[order.userId].username : 'Pengguna Tidak Dikenal';
-                    const purchaseDate = new Date(order.purchaseDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    
-                    html += `
-                        <tr>
-                            <td data-label="ID Pesanan">${order.id}</td>
-                            <td data-label="Produk">${order.productName || 'N/A'}</td>
-                            <td data-label="Harga">Rp ${order.productPrice ? order.productPrice.toLocaleString('id-ID') : 'N/A'}</td>
-                            <td data-label="Pembeli">${buyerEmail}</td>
-                            <td data-label="Tanggal Beli">${purchaseDate}</td>
-                            <td data-label="Aksi">
-                                <button class="action-btn make-admin-btn" onclick="approvePurchase('${order.id}', '${order.productId}', '${order.userId}')">Setujui</button>
-                            </td>
-                        </tr>
-                    `;
-                }
-            }
-            html += `</tbody></table>`;
-            pendingPurchasesListDiv.innerHTML = html;
-        }
-        window.displayPendingPurchases = displayPendingPurchases;
-
-        // NEW: Fungsi untuk menyetujui pembelian
-        async function approvePurchase(orderId, productId, userId) {
-            // Menggunakan showModal untuk konfirmasi
-            const confirmationModal = document.getElementById('confirmationModal');
-            const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
-            const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
-            const confirmationMessage = document.getElementById('confirmationMessage');
-
-            confirmationModal.querySelector('.modal-content').className = 'modal-content success'; // Use success color for approval
-            confirmationMessage.innerHTML = `Apakah Anda yakin ingin menyetujui pembelian ini dan memberikan kode?`;
-            confirmationModal.style.display = 'flex';
-
-            confirmPurchaseBtn.onclick = async () => {
-                try {
-                    // 1. Cari kode yang belum terpakai untuk produk ini
-                    const productCodes = allCodes[productId] || [];
-                    const availableCode = productCodes.find(code => !code.isUsed);
-
-                    if (!availableCode) {
-                        showModal('Stok Kode Habis', '❌ Maaf, tidak ada kode yang tersedia untuk produk ini. Tidak dapat menyetujui pembelian.', 'error');
-                        hideConfirmation();
-                        return;
-                    }
-
-                    // 2. Tandai kode sebagai terpakai
-                    await updateDoc(doc(codesCol, availableCode.id), {
-                        isUsed: true,
-                        usedAt: new Date().toISOString(),
-                        usedByOrderId: orderId, // Link code to order
-                        usedByUserId: userId // Link code to user
-                    });
-
-                    // 3. Perbarui status pesanan
-                    await updateDoc(doc(ordersCol, orderId), {
-                        isUsed: true, // Mark order as used
-                        codeGiven: availableCode.value, // Assign the code
-                        redeemDate: new Date().toISOString(),
-                        status: 'completed' // Mark as completed
-                    });
-
-                    showModal('Persetujuan Berhasil!', `Pembelian disetujui. Kode <strong>${availableCode.value}</strong> telah diberikan.`, 'success', availableCode.value);
-                    displayPendingPurchases(); // Refresh the list
-                } catch (error) {
-                    console.error("Error approving purchase:", error.message);
-                    showModal('Persetujuan Gagal', 'Terjadi kesalahan saat menyetujui pembelian.', 'error');
-                } finally {
-                    hideConfirmation();
-                }
-            };
-
-            cancelPurchaseBtn.onclick = () => {
-                showModal('Dibatalkan', 'Persetujuan pembelian dibatalkan.', 'warning');
-                hideConfirmation();
-            };
-        }
-        window.approvePurchase = approvePurchase;
+        // Removed displayPendingPurchases and approvePurchase functions.
 
 
         // --- Inisialisasi saat halaman dimuat ---
