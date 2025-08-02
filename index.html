@@ -1069,6 +1069,13 @@
             flex-direction: column;
             gap: 10px;
         }
+        
+        .edit-answer-form {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
         .answer-list {
             margin-top: 10px;
@@ -1084,6 +1091,17 @@
             margin: 0;
             font-size: 0.95em;
             color: var(--text-medium);
+        }
+        
+        .answer-item .answer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .answer-item .answer-header .answer-info {
+            display: flex;
+            flex-direction: column;
         }
 
         .answer-form {
@@ -1107,6 +1125,35 @@
             font-size: 0.8em;
             width: auto;
         }
+        
+        /* New class for the clickable name */
+        .qna-user-link {
+            color: var(--accent-color);
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        /* New class for the clickable link in answers */
+        .qna-embedded-link {
+            color: var(--accent-color);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* Fix for footer positioning on small screens */
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex-grow: 1;
+        }
+        footer {
+            margin-top: auto;
+            width: 100%;
+        }
+
         
     </style>
 </head>
@@ -1173,7 +1220,7 @@
                     <button id="submitQuestionBtn">Kirim Pertanyaan</button>
                 </div>
                 <div id="questionsList">
-                    <p style="text-align: center; color: var(--text-medium);">Belum ada pertanyaan. Jadilah yang pertama bertanya!</p>
+                    <p style="text-align: center; color: var(--text-medium);">Memuat pertanyaan...</p>
                 </div>
             </div>
             
@@ -1283,7 +1330,7 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         // Your Firebase configuration
@@ -3249,8 +3296,9 @@
             }
         }
         window.sendWarning = sendWarning;
+        
+        const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 
-        // New functions for the Q&A system
         async function displayQuestionsForProduct(productId) {
             const questionsListDiv = document.getElementById('questionsList');
             const submitQuestionBtn = document.getElementById('submitQuestionBtn');
@@ -3276,19 +3324,50 @@
                         const questionId = questionDoc.id;
                         const askerName = questionData.username || 'Pengguna Anonim';
                         const questionDate = new Date(questionData.askedAt).toLocaleString('id-ID');
-                        const canModify = (currentUser && (currentUser.uid === questionData.userId || currentUser.isAdmin));
+                        const canModifyQuestion = (currentUser && (currentUser.uid === questionData.userId || currentUser.isAdmin));
+
+                        // Replace URLs in question text with clickable links
+                        const formattedQuestionText = questionData.questionText.replace(URL_REGEX, (url) => {
+                            const urlObj = new URL(url);
+                            const displayUrl = `${urlObj.hostname}`;
+                            return `<a href="${url}" target="_blank" class="qna-embedded-link">${displayUrl}</a>`;
+                        });
 
                         let answersHtml = '';
                         if (questionData.answers && questionData.answers.length > 0) {
                             answersHtml += '<div class="answer-list">';
-                            questionData.answers.forEach(answer => {
+                            questionData.answers.forEach((answer, index) => {
                                 const answerDate = new Date(answer.answeredAt).toLocaleString('id-ID');
-                                // Determine if the replier is an admin
                                 const replierName = allUsers[answer.answeredBy] && allUsers[answer.answeredBy].isAdmin ? 'Admin' : (allUsers[answer.answeredBy]?.username || 'Pengguna');
+                                const canModifyAnswer = (currentUser && (currentUser.uid === answer.answeredBy || currentUser.isAdmin));
+                                
+                                // Replace URLs in answer text
+                                const formattedAnswerText = answer.answerText.replace(URL_REGEX, (url) => {
+                                    const urlObj = new URL(url);
+                                    const displayUrl = `${urlObj.hostname}`;
+                                    return `<a href="${url}" target="_blank" class="qna-embedded-link">${displayUrl}</a>`;
+                                });
+
+                                let answerActionButtons = '';
+                                if (canModifyAnswer) {
+                                    answerActionButtons = `
+                                        <div class="qna-actions">
+                                            <button class="action-btn edit-btn" onclick="showEditAnswer('${questionId}', ${index}, '${answer.answerText.replace(/'/g, "\\'").replace(/"/g, "\\\"")}')">Edit</button>
+                                            <button class="action-btn delete-btn" onclick="deleteAnswer('${questionId}', ${index})">Hapus</button>
+                                        </div>
+                                    `;
+                                }
+
                                 answersHtml += `
-                                    <div class="answer-item">
-                                        <p><strong>${replierName}:</strong> ${answer.answerText}</p>
-                                        <small>Dijawab pada: ${answerDate}</small>
+                                    <div class="answer-item" id="answerItem_${questionId}_${index}">
+                                        <div class="answer-header">
+                                            <div class="answer-info">
+                                                <strong>(Jawaban oleh <a href="#" class="qna-user-link">${replierName}</a>)</strong>
+                                                <small>Dijawab pada: ${answerDate}</small>
+                                            </div>
+                                            ${answerActionButtons}
+                                        </div>
+                                        <p>${formattedAnswerText}</p>
                                     </div>
                                 `;
                             });
@@ -3305,9 +3384,9 @@
                             `;
                         }
 
-                        let editDeleteButtons = '';
-                        if (canModify) {
-                            editDeleteButtons = `
+                        let editDeleteQuestionButtons = '';
+                        if (canModifyQuestion) {
+                            editDeleteQuestionButtons = `
                                 <div class="qna-actions">
                                     <button class="action-btn edit-btn" onclick="showEditQuestion('${questionId}', '${questionData.questionText.replace(/'/g, "\\'").replace(/"/g, "\\\"")}')">Edit</button>
                                     <button class="action-btn delete-btn" onclick="deleteQuestion('${questionId}')">Hapus</button>
@@ -3317,12 +3396,12 @@
 
                         html += `
                             <div class="question-item" id="questionItem_${questionId}">
-                                <strong>${askerName} bertanya:</strong>
+                                <strong><a href="#" class="qna-user-link">${askerName}</a> bertanya:</strong>
                                 <small>Pada: ${questionDate}</small>
-                                <p>${questionData.questionText}</p>
+                                <p>${formattedQuestionText}</p>
                                 ${answersHtml}
                                 ${replyFormHtml}
-                                ${editDeleteButtons}
+                                ${editDeleteQuestionButtons}
                             </div>
                         `;
                     });
@@ -3376,17 +3455,14 @@
             }
 
             try {
-                const questionDocRef = doc(questionsCol, questionId);
-                const questionDocSnap = await getDoc(questionDocRef);
-                const currentAnswers = questionDocSnap.data().answers || [];
-                
-                currentAnswers.push({
+                const newAnswer = {
                     answeredBy: currentUser.uid,
                     answeredAt: new Date().toISOString(),
                     answerText: answerText
+                };
+                await updateDoc(doc(questionsCol, questionId), {
+                    answers: arrayUnion(newAnswer)
                 });
-
-                await updateDoc(questionDocRef, { answers: currentAnswers });
                 showModal('Berhasil!', 'Jawaban berhasil ditambahkan!', 'success');
                 answerTextarea.value = '';
             } catch (error) {
@@ -3499,6 +3575,126 @@
             if(editForm) editForm.remove();
         }
         window.cancelEditQuestion = cancelEditQuestion;
+        
+        async function showEditAnswer(questionId, answerIndex, currentText) {
+            const question = allQuestions[questionId];
+            if (!question || !currentUser) {
+                showModal('Akses Ditolak', 'Anda harus login untuk mengedit jawaban.', 'error');
+                return;
+            }
+            const answer = question.answers[answerIndex];
+            if (!answer || (answer.answeredBy !== currentUser.uid && !currentUser.isAdmin)) {
+                showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk mengedit jawaban ini.', 'error');
+                return;
+            }
+
+            const answerItem = document.getElementById(`answerItem_${questionId}_${answerIndex}`);
+            if (!answerItem) return;
+
+            answerItem.querySelector('p').style.display = 'none';
+            const actions = answerItem.querySelector('.qna-actions');
+            if(actions) actions.style.display = 'none';
+
+            const editForm = document.createElement('div');
+            editForm.className = 'edit-answer-form';
+            editForm.innerHTML = `
+                <textarea id="editAnswerText_${questionId}_${answerIndex}" rows="2">${currentText}</textarea>
+                <button onclick="saveEditedAnswer('${questionId}', ${answerIndex})">Simpan</button>
+                <button class="cancel-edit-btn" onclick="cancelEditAnswer('${questionId}', ${answerIndex})" style="background-color: var(--error-color);">Batal</button>
+            `;
+            answerItem.appendChild(editForm);
+        }
+        window.showEditAnswer = showEditAnswer;
+
+        async function saveEditedAnswer(questionId, answerIndex) {
+            const editAnswerTextarea = document.getElementById(`editAnswerText_${questionId}_${answerIndex}`);
+            if (!editAnswerTextarea) return;
+
+            const newText = editAnswerTextarea.value.trim();
+            if (!newText) {
+                showModal('Gagal', 'Jawaban tidak boleh kosong.', 'warning');
+                return;
+            }
+
+            const question = allQuestions[questionId];
+            const answer = question.answers[answerIndex];
+            if (!answer || (answer.answeredBy !== currentUser.uid && !currentUser.isAdmin)) {
+                showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk mengedit jawaban ini.', 'error');
+                return;
+            }
+
+            try {
+                const questionDocRef = doc(questionsCol, questionId);
+                const updatedAnswers = [...question.answers];
+                updatedAnswers[answerIndex] = {
+                    ...updatedAnswers[answerIndex],
+                    answerText: newText,
+                    answeredAt: new Date().toISOString()
+                };
+
+                await updateDoc(questionDocRef, { answers: updatedAnswers });
+                showModal('Berhasil!', 'Jawaban berhasil diperbarui!', 'success');
+            } catch (error) {
+                console.error("Error updating answer:", error.message);
+                showModal('Gagal', 'Terjadi kesalahan saat memperbarui jawaban.', 'error');
+            }
+        }
+        window.saveEditedAnswer = saveEditedAnswer;
+
+        async function deleteAnswer(questionId, answerIndex) {
+            const question = allQuestions[questionId];
+            if (!question || !currentUser) {
+                showModal('Akses Ditolak', 'Anda harus login untuk menghapus jawaban.', 'error');
+                return;
+            }
+            const answer = question.answers[answerIndex];
+            if (!answer || (answer.answeredBy !== currentUser.uid && !currentUser.isAdmin)) {
+                showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk menghapus jawaban ini.', 'error');
+                return;
+            }
+            
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmBtn = document.getElementById('confirmPurchaseBtn');
+            const cancelBtn = document.getElementById('cancelPurchaseBtn');
+            const message = document.getElementById('confirmationMessage');
+
+            confirmationModal.querySelector('.modal-content').className = 'modal-content error';
+            message.innerHTML = `Apakah Anda yakin ingin menghapus balasan ini? Tindakan ini tidak dapat dibatalkan!`;
+            confirmationModal.style.display = 'flex';
+
+            confirmBtn.onclick = async () => {
+                try {
+                    const questionDocRef = doc(questionsCol, questionId);
+                    const updatedAnswers = [...question.answers];
+                    updatedAnswers.splice(answerIndex, 1);
+                    await updateDoc(questionDocRef, { answers: updatedAnswers });
+                    showModal('Berhasil!', 'Jawaban berhasil dihapus.', 'success');
+                } catch (error) {
+                    console.error("Error deleting answer:", error.message);
+                    showModal('Gagal!', 'Terjadi kesalahan saat menghapus jawaban.', 'error');
+                } finally {
+                    hideConfirmation();
+                }
+            };
+
+            cancelBtn.onclick = () => {
+                showModal('Dibatalkan', 'Penghapusan balasan dibatalkan.', 'warning');
+                hideConfirmation();
+            };
+        }
+        window.deleteAnswer = deleteAnswer;
+
+        function cancelEditAnswer(questionId, answerIndex) {
+            const answerItem = document.getElementById(`answerItem_${questionId}_${answerIndex}`);
+            if (!answerItem) return;
+
+            answerItem.querySelector('p').style.display = 'block';
+            const actions = answerItem.querySelector('.qna-actions');
+            if(actions) actions.style.display = 'flex';
+            const editForm = answerItem.querySelector('.edit-answer-form');
+            if(editForm) editForm.remove();
+        }
+        window.cancelEditAnswer = cancelEditAnswer;
         
         // This function will display user-specific profile content
         async function displayUserProfileContent() {
