@@ -1056,6 +1056,19 @@
             font-size: 0.8em;
             margin-bottom: 10px;
         }
+        
+        /* Fix for line breaks in Q&A answers */
+        .question-item p, .answer-item p {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .edit-question-form {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
         .answer-list {
             margin-top: 10px;
@@ -1082,6 +1095,17 @@
         
         .answer-form textarea {
             flex-grow: 1;
+        }
+
+        .qna-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .qna-actions button {
+            padding: 5px 10px;
+            font-size: 0.8em;
+            width: auto;
         }
         
     </style>
@@ -1291,6 +1315,7 @@
         let allProducts = {};
         let allUsers = {};
         let allPurchases = {};
+        let allQuestions = {};
         let discountConfig = {};
         let maintenanceConfig = {
             isActive: false, startTime: null, endTime: null, reason: "", estimatedDuration: ""
@@ -1303,6 +1328,7 @@
         let userWarnings = {};
         let currentProductIdForQNA = null; // New state variable for Q&A
         let keySequence = ''; // For the secret admin login key combo
+        let keyTimeout = null; // New timeout for key combo
 
         // Secret admin code
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
@@ -1366,6 +1392,22 @@
             console.log("User Purchases updated:", userPurchases);
             displayTopSellingProducts();
             if (document.getElementById('userProfileContent')) displayUserProfileContent();
+        });
+
+        onSnapshot(questionsCol, (snapshot) => {
+            allQuestions = {};
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added" || change.type === "modified") {
+                    allQuestions[change.doc.id] = { ...change.doc.data(), id: change.doc.id };
+                }
+                if (change.type === "removed") {
+                    delete allQuestions[change.doc.id];
+                }
+            });
+            console.log("Questions updated:", allQuestions);
+            if (currentProductIdForQNA) {
+                displayQuestionsForProduct(currentProductIdForQNA);
+            }
         });
 
         const globalSettingsDocRef = doc(configCol, "global_settings");
@@ -3234,15 +3276,18 @@
                         const questionId = questionDoc.id;
                         const askerName = questionData.username || 'Pengguna Anonim';
                         const questionDate = new Date(questionData.askedAt).toLocaleString('id-ID');
+                        const canModify = (currentUser && (currentUser.uid === questionData.userId || currentUser.isAdmin));
 
                         let answersHtml = '';
                         if (questionData.answers && questionData.answers.length > 0) {
                             answersHtml += '<div class="answer-list">';
                             questionData.answers.forEach(answer => {
                                 const answerDate = new Date(answer.answeredAt).toLocaleString('id-ID');
+                                // Determine if the replier is an admin
+                                const replierName = allUsers[answer.answeredBy] && allUsers[answer.answeredBy].isAdmin ? 'Admin' : (allUsers[answer.answeredBy]?.username || 'Pengguna');
                                 answersHtml += `
                                     <div class="answer-item">
-                                        <p><strong>Admin:</strong> ${answer.answerText}</p>
+                                        <p><strong>${replierName}:</strong> ${answer.answerText}</p>
                                         <small>Dijawab pada: ${answerDate}</small>
                                     </div>
                                 `;
@@ -3250,23 +3295,34 @@
                             answersHtml += '</div>';
                         }
                         
-                        let answerFormHtml = '';
-                        if (currentUser && currentUser.isAdmin) {
-                            answerFormHtml = `
+                        let replyFormHtml = '';
+                        if (currentUser) { // Any logged-in user can reply
+                            replyFormHtml = `
                                 <div class="answer-form">
-                                    <textarea id="answerText_${questionId}" rows="2" placeholder="Tulis jawaban admin..."></textarea>
-                                    <button onclick="submitAnswer('${questionId}')">Jawab</button>
+                                    <textarea id="answerText_${questionId}" rows="2" placeholder="Tulis balasan Anda..."></textarea>
+                                    <button onclick="submitAnswer('${questionId}')">Balas</button>
+                                </div>
+                            `;
+                        }
+
+                        let editDeleteButtons = '';
+                        if (canModify) {
+                            editDeleteButtons = `
+                                <div class="qna-actions">
+                                    <button class="action-btn edit-btn" onclick="showEditQuestion('${questionId}', '${questionData.questionText.replace(/'/g, "\\'").replace(/"/g, "\\\"")}')">Edit</button>
+                                    <button class="action-btn delete-btn" onclick="deleteQuestion('${questionId}')">Hapus</button>
                                 </div>
                             `;
                         }
 
                         html += `
-                            <div class="question-item">
+                            <div class="question-item" id="questionItem_${questionId}">
                                 <strong>${askerName} bertanya:</strong>
                                 <small>Pada: ${questionDate}</small>
                                 <p>${questionData.questionText}</p>
                                 ${answersHtml}
-                                ${answerFormHtml}
+                                ${replyFormHtml}
+                                ${editDeleteButtons}
                             </div>
                         `;
                     });
@@ -3311,7 +3367,7 @@
 
         async function submitAnswer(questionId) {
             const answerTextarea = document.getElementById(`answerText_${questionId}`);
-            if (!answerTextarea || !currentUser || !currentUser.isAdmin) return;
+            if (!answerTextarea || !currentUser) return; // Any logged-in user can answer
 
             const answerText = answerTextarea.value.trim();
             if (!answerText) {
@@ -3339,6 +3395,173 @@
             }
         }
         window.submitAnswer = submitAnswer;
+
+        async function deleteQuestion(questionId) {
+            const question = allQuestions[questionId];
+            if (!question || !currentUser || (question.userId !== currentUser.uid && !currentUser.isAdmin)) {
+                showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk menghapus pertanyaan ini.', 'error');
+                return;
+            }
+
+            const confirmationModal = document.getElementById('confirmationModal');
+            const confirmBtn = document.getElementById('confirmPurchaseBtn');
+            const cancelBtn = document.getElementById('cancelPurchaseBtn');
+            const message = document.getElementById('confirmationMessage');
+
+            confirmationModal.querySelector('.modal-content').className = 'modal-content error';
+            message.innerHTML = `Apakah Anda yakin ingin menghapus pertanyaan ini? Tindakan ini tidak dapat dibatalkan!`;
+            confirmationModal.style.display = 'flex';
+
+            confirmBtn.onclick = async () => {
+                try {
+                    await deleteDoc(doc(questionsCol, questionId));
+                    showModal('Berhasil!', 'Pertanyaan berhasil dihapus.', 'success');
+                } catch (error) {
+                    console.error("Error deleting question:", error.message);
+                    showModal('Gagal!', 'Terjadi kesalahan saat menghapus pertanyaan.', 'error');
+                } finally {
+                    hideConfirmation();
+                }
+            };
+
+            cancelBtn.onclick = () => {
+                showModal('Dibatalkan', 'Penghapusan pertanyaan dibatalkan.', 'warning');
+                hideConfirmation();
+            };
+        }
+        window.deleteQuestion = deleteQuestion;
+
+        function showEditQuestion(questionId, currentText) {
+            const question = allQuestions[questionId];
+            if (!question || !currentUser || (question.userId !== currentUser.uid && !currentUser.isAdmin)) {
+                showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk mengedit pertanyaan ini.', 'error');
+                return;
+            }
+            const questionItem = document.getElementById(`questionItem_${questionId}`);
+            if (!questionItem) return;
+
+            // Remove existing edit form if it exists
+            const existingEditForm = questionItem.querySelector('.edit-question-form');
+            if (existingEditForm) existingEditForm.remove();
+
+            questionItem.querySelector('p').style.display = 'none';
+            const actions = questionItem.querySelector('.qna-actions');
+            if(actions) actions.style.display = 'none';
+            
+            const editForm = document.createElement('div');
+            editForm.className = 'edit-question-form';
+            editForm.innerHTML = `
+                <textarea id="editQuestionText_${questionId}" rows="3">${currentText}</textarea>
+                <button onclick="saveEditedQuestion('${questionId}')">Simpan</button>
+                <button class="cancel-edit-btn" onclick="cancelEditQuestion('${questionId}')" style="background-color: var(--error-color);">Batal</button>
+            `;
+            questionItem.appendChild(editForm);
+        }
+        window.showEditQuestion = showEditQuestion;
+
+        async function saveEditedQuestion(questionId) {
+            const editQuestionTextarea = document.getElementById(`editQuestionText_${questionId}`);
+            if (!editQuestionTextarea) return;
+
+            const newText = editQuestionTextarea.value.trim();
+            if (!newText) {
+                showModal('Gagal', 'Pertanyaan tidak boleh kosong.', 'warning');
+                return;
+            }
+            const question = allQuestions[questionId];
+            if (!question || !currentUser || (question.userId !== currentUser.uid && !currentUser.isAdmin)) {
+                showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk mengedit pertanyaan ini.', 'error');
+                return;
+            }
+
+            try {
+                await updateDoc(doc(questionsCol, questionId), {
+                    questionText: newText,
+                    editedAt: new Date().toISOString()
+                });
+                showModal('Berhasil!', 'Pertanyaan berhasil diperbarui!', 'success');
+                cancelEditQuestion(questionId);
+            } catch (error) {
+                console.error("Error updating question:", error.message);
+                showModal('Gagal', 'Terjadi kesalahan saat memperbarui pertanyaan.', 'error');
+            }
+        }
+        window.saveEditedQuestion = saveEditedQuestion;
+
+        function cancelEditQuestion(questionId) {
+            const questionItem = document.getElementById(`questionItem_${questionId}`);
+            if (!questionItem) return;
+
+            questionItem.querySelector('p').style.display = 'block';
+            const actions = questionItem.querySelector('.qna-actions');
+            if(actions) actions.style.display = 'flex';
+            const editForm = questionItem.querySelector('.edit-question-form');
+            if(editForm) editForm.remove();
+        }
+        window.cancelEditQuestion = cancelEditQuestion;
+        
+        // This function will display user-specific profile content
+        async function displayUserProfileContent() {
+            const purchaseHistoryList = document.getElementById('purchaseHistoryList');
+            const activeDiscountInfo = document.getElementById('activeDiscountInfo');
+            
+            if (!currentUser) {
+                if (purchaseHistoryList) purchaseHistoryList.innerHTML = '<p style="color:var(--text-medium);">Anda harus login untuk melihat riwayat pembelian.</p>';
+                if (activeDiscountInfo) activeDiscountInfo.innerHTML = '<p style="color:var(--text-medium);">Anda harus login untuk melihat diskon.</p>';
+                return;
+            }
+            
+            // Display purchase history
+            if (purchaseHistoryList) {
+                const purchases = Object.values(userPurchases).sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+                if (purchases.length === 0) {
+                    purchaseHistoryList.innerHTML = '<p style="color:var(--text-medium);">Anda belum melakukan pembelian.</p>';
+                } else {
+                    let html = `<table class="profile-table"><thead><tr><th>Produk</th><th>Tanggal</th><th>Harga</th><th>Aksi</th></tr></thead><tbody>`;
+                    purchases.forEach(p => {
+                        const date = new Date(p.purchaseDate).toLocaleDateString('id-ID');
+                        const price = `Rp ${p.productPrice.toLocaleString('id-ID')}`;
+                        html += `
+                            <tr>
+                                <td data-label="Produk">${p.productName}</td>
+                                <td data-label="Tanggal">${date}</td>
+                                <td data-label="Harga">${price}</td>
+                                <td data-label="Aksi">
+                                    <a href="${p.downloadUrl}" target="_blank" class="action-btn" style="background-color: var(--success-color);">Unduh</a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    html += '</tbody></table>';
+                    purchaseHistoryList.innerHTML = html;
+                }
+            }
+            
+            // Display active discount info
+            if (activeDiscountInfo) {
+                const currentDiscountConfig = discountConfig;
+                let discountHtml = '<p style="color:var(--text-medium);">Tidak ada diskon aktif saat ini.</p>';
+                if (currentDiscountConfig.isActive) {
+                    const isUserTargeted = !currentDiscountConfig.targetUsers || (currentUser && currentDiscountConfig.targetUsers.toLowerCase().includes(currentUser.email.toLowerCase()));
+                    if (isUserTargeted) {
+                        discountHtml = `<p>Anda memiliki diskon <strong>${currentDiscountConfig.percentage}%</strong>! Berlaku untuk `;
+                        if (currentDiscountConfig.targetType === 'all') {
+                            discountHtml += `<strong>semua produk</strong>.`;
+                        } else {
+                            const productNames = currentDiscountConfig.targetProducts.map(id => allProducts[id]?.name).filter(name => name);
+                            discountHtml += `produk: <strong>${productNames.join(', ')}</strong>.`;
+                        }
+                        if (currentDiscountConfig.countdownEndTime) {
+                            const endTime = new Date(currentDiscountConfig.countdownEndTime).toLocaleString('id-ID');
+                            discountHtml += ` Berakhir pada: ${endTime}.`;
+                        }
+                        discountHtml += '</p>';
+                    }
+                }
+                activeDiscountInfo.innerHTML = discountHtml;
+            }
+        }
+        window.displayUserProfileContent = displayUserProfileContent;
 
         function setupGlobalEventListeners() {
             document.getElementById('navHome').addEventListener('click', (e) => { e.preventDefault(); showPage('home'); });
@@ -3370,17 +3593,20 @@
             const cancelEditProductBtn = document.getElementById('cancelEditProductBtn');
             if (cancelEditProductBtn) { cancelEditProductBtn.addEventListener('click', closeEditProductModal); }
             
-            // New keydown event listener for secret admin login
-            let keySequence = '';
+            // New keydown event listener for a more deliberate secret admin login
             document.addEventListener('keydown', (e) => {
-                if (e.shiftKey) {
-                    keySequence = 'Shift';
-                }
-                if (keySequence === 'Shift' && e.key.toUpperCase() === 'A') {
-                    keySequence += 'A';
-                }
-                if (keySequence === 'ShiftA' && e.key.toUpperCase() === 'S') {
+                const isShiftA = e.shiftKey && e.key.toUpperCase() === 'A';
+                const isShiftS = e.shiftKey && e.key.toUpperCase() === 'S';
+
+                if (isShiftA) {
+                    keySequence = 'ShiftA';
+                    clearTimeout(keyTimeout);
+                    keyTimeout = setTimeout(() => { keySequence = ''; }, 1000);
+                } else if (isShiftS && keySequence === 'ShiftA') {
                     showAdminSecretLogin();
+                    keySequence = '';
+                    clearTimeout(keyTimeout);
+                } else {
                     keySequence = '';
                 }
             });
