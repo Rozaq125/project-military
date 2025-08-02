@@ -1542,6 +1542,7 @@
         let isChatActive = false; // To prevent multiple chat listeners
         let autoReleaseEnabled = false; // Global flag for auto-release
         let isModWarningModalOpen = false;
+        let pendingDownloadProductId = null; // To handle downloads with warnings
 
         // Secret admin code
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
@@ -1820,7 +1821,7 @@
                 const userDoc = await getDoc(doc(usersCol, userCredential.user.uid));
                 
                 if (userDoc.exists() && userDoc.data().isAdmin === true) {
-                    if (adminLockConfig.isActive && !adminLockConfig.allowedAdminEmails.includes(user.email)) {
+                    if (adminLockConfig.isActive && !adminLockConfig.allowedAdminEmails.includes(email)) {
                         await signOut(auth);
                         errorElement.textContent = 'Admin Lock aktif. Email ini tidak diizinkan.';
                         return;
@@ -2077,9 +2078,9 @@
                                 <textarea id="modDescription" rows="5" placeholder="Masukkan deskripsi atau fitur modpack di sini."></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="modVirusTotal">Bukti Screenshot VirusTotal:</label>
-                                <p style="color:var(--text-medium); font-size: 0.9em;">Untuk memastikan keamanan, silakan unggah file mod Anda ke <a href="https://www.virustotal.com" target="_blank" class="qna-embedded-link">virustotal.com</a> dan berikan tautan/gambar hasil scan di sini.</p>
-                                <input type="text" id="modVirusTotal" placeholder="URL gambar hasil scan">
+                                <label for="modVirusTotal">URL Hasil Scan VirusTotal:</label>
+                                <p style="color:var(--text-medium); font-size: 0.9em;">Untuk memastikan keamanan, silakan unggah file mod Anda ke <a href="https://www.virustotal.com" target="_blank" class="qna-embedded-link">virustotal.com</a> dan tempel URL hasil scan di sini.</p>
+                                <input type="text" id="modVirusTotal" placeholder="URL hasil scan">
                             </div>
                             <button id="submitModFormBtn">Upload Mod</button>
                         </div>
@@ -2409,15 +2410,15 @@
             
             const uploadModBtn = document.getElementById('uploadModBtn');
             if (uploadModBtn) {
-                uploadModBtn.addEventListener('click', () => {
+                 uploadModBtn.addEventListener('click', (e) => {
                     if (!currentUser) {
                         showModal('Login Diperlukan', 'Anda harus login untuk mengupload mod.', 'warning');
                         return;
                     }
                     showPage('uploadMod');
-                });
+                 });
             }
-
+            
             document.getElementById('createUserFromAdminBtn').addEventListener('click', createUserFromAdmin);
             document.getElementById('addProductBtn').addEventListener('click', addProduct);
             
@@ -4233,14 +4234,14 @@
                                 <span>Diajukan oleh: ${submittedBy}</span>
                                 <span>Harga: Rp ${sub.price.toLocaleString('id-ID')}</span>
                                 <span>Deskripsi: ${sub.description}</span>
-                                <span>VirusTotal Link: <a href="${sub.virusTotalLink}" target="_blank" class="qna-embedded-link">${sub.virusTotalLink}</a></span>
+                                <span>URL VirusTotal: <a href="${sub.virusTotalLink}" target="_blank" class="qna-embedded-link">${sub.virusTotalLink}</a></span>
                                 <div style="margin-top: 15px;">
                                     <strong>Status Keamanan:</strong>
                                     <div style="max-height: 200px; overflow-y: auto; margin-top: 10px; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px;">
                                         ${VIRUS_SCANNERS.map(scanner => `
                                             <div>
-                                                <input type="checkbox" id="scanner_${sub.id}_${scanner.replace(/\s/g, '_')}" name="scanners" value="${scanner}">
-                                                <label for="scanner_${sub.id}_${scanner.replace(/\s/g, '_')}">${scanner} <span style="color:var(--success-color);">(Undetected)</span></label>
+                                                <input type="checkbox" id="scanner_${sub.id}_${scanner.replace(/\s/g, '_')}" name="scanners" value="${scanner}" checked>
+                                                <label for="scanner_${sub.id}_${scanner.replace(/\s/g, '_')}">${scanner}</label>
                                             </div>
                                         `).join('')}
                                     </div>
@@ -4276,9 +4277,11 @@
             if (!submission) return;
             const warnings = document.getElementById(`modWarnings_${submissionId}`).value.trim();
 
-            const isSafe = Array.from(document.querySelectorAll(`input[id^="scanner_${submissionId}"]`)).every(checkbox => checkbox.checked);
-            if (!isSafe) {
-                showModal('Peringatan', 'Mod belum ditandai aman dari semua scanner. Silakan periksa kembali atau tolak mod ini.', 'warning');
+            const checkedScanners = Array.from(document.querySelectorAll(`input[id^="scanner_${submissionId}"]`)).filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+            const allScannersChecked = checkedScanners.length === VIRUS_SCANNERS.length;
+
+            if (!allScannersChecked) {
+                showModal('Peringatan', 'Harap ceklist semua scanner untuk menandai mod sebagai aman.', 'warning');
                 return;
             }
 
@@ -4508,6 +4511,8 @@
             document.getElementById('privacyPolicyLink').addEventListener('click', (e) => { e.preventDefault(); showPrivacyPolicyModal(); });
             document.getElementById('privacyPolicyCloseButton').addEventListener('click', closePrivacyPolicyModal);
             document.getElementById('privacyPolicyOkBtn').addEventListener('click', closePrivacyPolicyModal);
+            
+            document.getElementById('modWarningCloseButton').addEventListener('click', closeModWarningModal);
 
             document.getElementById('modalCloseButton').addEventListener('click', closeModal);
             document.getElementById('mainModalCloseButton').addEventListener('click', closeModal);
