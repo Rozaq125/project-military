@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,15 +15,19 @@
             --bg-light: #3a3a3a;
             --text-light: #f0f0f0;
             --text-medium: #b0b0b0;
-            --accent-color: #007bff; /* Biru cerah */
+            --accent-color: #007bff;
+            /* Biru cerah */
             --accent-hover: #0056b3;
             --success-color: #28a745;
             --error-color: #dc3545;
             --border-color: #4a4a4a;
             --shadow-color: rgba(0, 0, 0, 0.5);
-            --warning-color: #ffc107; /* Kuning untuk peringatan */
-            --discount-color: #00ff00; /* Hijau terang untuk diskon */
-            --old-price-color: #888; /* Warna abu-abu untuk harga lama */
+            --warning-color: #ffc107;
+            /* Kuning untuk peringatan */
+            --discount-color: #00ff00;
+            /* Hijau terang untuk diskon */
+            --old-price-color: #888;
+            /* Warna abu-abu untuk harga lama */
         }
 
         body {
@@ -52,10 +57,13 @@
             max-width: 900px;
             margin: 30px auto;
             box-sizing: border-box;
-            flex-grow: 1; /* Allows main content to fill space */
+            flex-grow: 1;
+            /* Allows main content to fill space */
         }
 
-        h1, h2, h3 {
+        h1,
+        h2,
+        h3 {
             color: var(--text-light);
             text-align: center;
             margin-bottom: 25px;
@@ -73,14 +81,14 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .header-content {
             display: flex;
             justify-content: center;
             align-items: center;
             flex-grow: 1;
         }
-        
+
         #headerNav {
             display: flex;
             justify-content: center;
@@ -88,7 +96,7 @@
             flex-wrap: wrap;
             margin-left: auto;
         }
-        
+
         #uploadModBtn {
             background-color: var(--success-color);
             margin-right: 25px;
@@ -101,7 +109,8 @@
             transition: background-color 0.3s ease;
         }
 
-        nav a, #uploadModBtn {
+        nav a,
+        #uploadModBtn {
             color: var(--text-light);
             text-decoration: none;
             font-weight: bold;
@@ -111,7 +120,8 @@
             transition: background-color 0.3s ease;
         }
 
-        nav a:hover, nav a.active {
+        nav a:hover,
+        nav a.active {
             background-color: var(--accent-color);
         }
 
@@ -131,7 +141,8 @@
         input[type="password"],
         input[type="email"],
         input[type="number"],
-        input[type="datetime-local"], /* Tambahan untuk datetime-local */
+        input[type="datetime-local"],
+        /* Tambahan untuk datetime-local */
         textarea,
         select {
             width: calc(100% - 22px);
@@ -226,7 +237,8 @@
 
         .product-card button {
             width: 100%;
-            margin-top: auto; /* Push button to bottom */
+            margin-top: auto;
+            /* Push button to bottom */
         }
 
         /* Harga Diskon */
@@ -261,13 +273,16 @@
         /* Admin Specific */
         .admin-section {
             display: flex;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            flex-wrap: wrap;
+            /* Allow wrapping on smaller screens */
             gap: 20px;
-            min-height: 600px; /* Ensure content pushes footer down */
+            min-height: 600px;
+            /* Ensure content pushes footer down */
         }
 
         .admin-sidebar {
-            flex: 0 0 200px; /* Fixed width for sidebar */
+            flex: 0 0 200px;
+            /* Fixed width for sidebar */
             background-color: var(--bg-light);
             border-radius: 8px;
             padding: 20px;
@@ -313,19 +328,22 @@
         }
 
         .admin-content {
-            flex: 1; /* Take remaining space */
+            flex: 1;
+            /* Take remaining space */
             background-color: var(--bg-light);
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .admin-content > div {
-            display: none; /* Hide all content sections by default */
+        .admin-content>div {
+            display: none;
+            /* Hide all content sections by default */
         }
 
-        .admin-content > div.active {
-            display: block; /* Show active content section */
+        .admin-content>div.active {
+            display: block;
+            /* Show active content section */
         }
 
         .admin-section h3 {
@@ -366,7 +384,8 @@
             margin: 20px 0;
         }
 
-        .product-table th, .product-table td {
+        .product-table th,
+        .product-table td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
@@ -396,7 +415,8 @@
             margin: 20px 0;
         }
 
-        .user-table th, .user-table td {
+        .user-table th,
+        .user-table td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
@@ -420,7 +440,8 @@
             font-size: 0.8em;
         }
 
-        .user-table .action-btn, .product-table .action-btn {
+        .user-table .action-btn,
+        .product-table .action-btn {
             padding: 5px 10px;
             margin-right: 5px;
             font-size: 0.9em;
@@ -430,7 +451,8 @@
             transition: background-color 0.3s;
         }
 
-        .user-table .make-admin-btn, .product-table .edit-btn {
+        .user-table .make-admin-btn,
+        .product-table .edit-btn {
             background-color: var(--success-color);
         }
 
@@ -438,11 +460,13 @@
             background-color: var(--warning-color);
         }
 
-        .user-table .delete-user-btn, .product-table .delete-btn {
+        .user-table .delete-user-btn,
+        .product-table .delete-btn {
             background-color: var(--error-color);
         }
 
-        .user-table .action-btn:hover, .product-table .action-btn:hover {
+        .user-table .action-btn:hover,
+        .product-table .action-btn:hover {
             opacity: 0.9;
         }
 
@@ -452,21 +476,24 @@
                 margin: 15px;
                 padding: 20px;
             }
+
             header nav {
                 flex-direction: column;
                 gap: 10px;
             }
+
             header nav a {
                 width: fit-content;
                 margin: 0 auto;
             }
-            
+
             .admin-section {
                 flex-direction: column;
             }
 
             .admin-sidebar {
-                flex: 0 0 auto; /* Allow sidebar to take full width */
+                flex: 0 0 auto;
+                /* Allow sidebar to take full width */
                 width: 100%;
             }
 
@@ -475,50 +502,82 @@
                 width: 100%;
             }
 
-            .user-table, .product-table, .profile-table, .purchase-approval-table {
+            .user-table,
+            .product-table,
+            .profile-table,
+            .purchase-approval-table {
                 display: block;
                 overflow-x: auto;
-                white-space: nowrap; /* Prevent text wrapping in table cells */
+                white-space: nowrap;
+                /* Prevent text wrapping in table cells */
             }
-            .user-table thead, .product-table thead, .profile-table thead, .purchase-approval-table thead {
-                display: none; /* Hide table headers on small screens */
+
+            .user-table thead,
+            .product-table thead,
+            .profile-table thead,
+            .purchase-approval-table thead {
+                display: none;
+                /* Hide table headers on small screens */
             }
-            .user-table tr, .product-table tr, .profile-table tr, .purchase-approval-table tr {
+
+            .user-table tr,
+            .product-table tr,
+            .profile-table tr,
+            .purchase-approval-table tr {
                 display: block;
                 margin-bottom: 10px;
                 border: 1px solid var(--border-color);
                 border-radius: 8px;
                 padding: 10px;
             }
-            .user-table td, .product-table td, .profile-table td, .purchase-approval-table td::before {
+
+            .user-table td,
+            .product-table td,
+            .profile-table td,
+            .purchase-approval-table td::before {
                 display: block;
                 text-align: right;
                 padding: 5px 0;
                 border-bottom: none;
             }
-            .user-table td::before, .product-table td::before, .profile-table td::before, .purchase-approval-table td::before {
+
+            .user-table td::before,
+            .product-table td::before,
+            .profile-table td::before,
+            .purchase-approval-table td::before {
                 content: attr(data-label);
                 float: left;
                 font-weight: bold;
                 color: var(--accent-color);
                 margin-right: 10px;
             }
-            .user-table td:last-child, .product-table td:last-child, .profile-table td:last-child, .purchase-approval-table td:last-child {
+
+            .user-table td:last-child,
+            .product-table td:last-child,
+            .profile-table td:last-child,
+            .purchase-approval-table td:last-child {
                 border-bottom: none;
             }
         }
 
         /* --- Custom Pop-up (Modal) --- */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1000; /* Sit on top */
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            /* Stay in place */
+            z-index: 1000;
+            /* Sit on top */
             left: 0;
             top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+            width: 100%;
+            /* Full width */
+            height: 100%;
+            /* Full height */
+            overflow: auto;
+            /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.8);
+            /* Black w/ opacity */
             justify-content: center;
             align-items: center;
             animation: fadeIn 0.3s forwards;
@@ -535,7 +594,8 @@
             box-shadow: 0 10px 30px var(--shadow-color);
             text-align: center;
             animation: slideIn 0.3s forwards;
-            position: relative; /* For close button positioning */
+            position: relative;
+            /* For close button positioning */
         }
 
         .modal-content.error {
@@ -560,7 +620,8 @@
             color: var(--text-light);
             margin-bottom: 15px;
             font-size: 1.1em;
-            word-break: break-all; /* For long codes/IDs */
+            word-break: break-all;
+            /* For long codes/IDs */
         }
 
         .modal strong {
@@ -597,13 +658,25 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         /* --- Live Sale Notification --- */
@@ -619,8 +692,10 @@
             z-index: 999;
             display: flex;
             align-items: center;
-            opacity: 0; /* Hidden by default */
-            transform: translateX(-100%); /* Start off-screen */
+            opacity: 0;
+            /* Hidden by default */
+            transform: translateX(-100%);
+            /* Start off-screen */
             transition: opacity 0.5s ease-out, transform 0.5s ease-out;
         }
 
@@ -639,7 +714,8 @@
         .sale-notification .sale-icon {
             font-size: 1.5em;
             margin-right: 10px;
-            color: var(--success-color); /* Atau warna lain yang menarik */
+            color: var(--success-color);
+            /* Atau warna lain yang menarik */
         }
 
         /* --- Top Products List --- */
@@ -655,13 +731,16 @@
         }
 
         .top-products-list ol {
-            list-style: none; /* Remove default numbering */
+            list-style: none;
+            /* Remove default numbering */
             padding: 0;
-            counter-reset: top-product-counter; /* Initialize counter */
+            counter-reset: top-product-counter;
+            /* Initialize counter */
         }
 
         .top-products-list li {
-            counter-increment: top-product-counter; /* Increment counter for each list item */
+            counter-increment: top-product-counter;
+            /* Increment counter for each list item */
             background-color: var(--bg-light);
             margin-bottom: 10px;
             padding: 15px 20px;
@@ -670,7 +749,8 @@
             align-items: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             position: relative;
-            padding-left: 50px; /* Make space for the number */
+            padding-left: 50px;
+            /* Make space for the number */
         }
 
         .top-products-list li::before {
@@ -698,7 +778,8 @@
 
         .top-products-list li span {
             color: var(--text-medium);
-            margin-left: auto; /* Push count to the right */
+            margin-left: auto;
+            /* Push count to the right */
             font-weight: bold;
         }
 
@@ -736,14 +817,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.95); /* Darker overlay */
+            background-color: rgba(0, 0, 0, 0.95);
+            /* Darker overlay */
             color: var(--text-light);
-            z-index: 2000; /* Higher than other modals */
+            z-index: 2000;
+            /* Higher than other modals */
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
-            overflow-y: auto; /* Enable scrolling */
+            overflow-y: auto;
+            /* Enable scrolling */
         }
 
         .maintenance-content {
@@ -753,7 +837,8 @@
             box-shadow: 0 10px 30px var(--shadow-color);
             max-width: 600px;
             border: 2px solid var(--warning-color);
-            margin: 50px 0; /* Add margin for scrolling */
+            margin: 50px 0;
+            /* Add margin for scrolling */
         }
 
         .maintenance-content h1 {
@@ -867,7 +952,8 @@
             margin-top: 15px;
         }
 
-        .profile-table th, .profile-table td {
+        .profile-table th,
+        .profile-table td {
             padding: 10px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
@@ -932,7 +1018,8 @@
             margin: 20px 0;
         }
 
-        .purchase-approval-table th, .purchase-approval-table td {
+        .purchase-approval-table th,
+        .purchase-approval-table td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
@@ -988,7 +1075,8 @@
             color: var(--text-medium);
             margin-bottom: 25px;
             line-height: 1.6;
-            white-space: pre-wrap; /* Preserve line breaks from textarea */
+            white-space: pre-wrap;
+            /* Preserve line breaks from textarea */
         }
 
         .product-detail-modal-content button {
@@ -1001,17 +1089,20 @@
             .product-detail-modal-content {
                 padding: 20px;
             }
+
             .product-detail-modal-content h2 {
                 font-size: 1.8em;
             }
+
             .product-detail-modal-content .price-info {
                 font-size: 1.1em;
             }
+
             .product-detail-modal-content .product-description {
                 font-size: 0.95em;
             }
         }
-        
+
         /* New styles for the Privacy Policy Modal */
         #privacyPolicyModal .modal-content {
             background-color: white;
@@ -1025,7 +1116,8 @@
             text-align: center;
         }
 
-        #privacyPolicyModal .modal-content p, #privacyPolicyModal .modal-content li {
+        #privacyPolicyModal .modal-content p,
+        #privacyPolicyModal .modal-content li {
             color: #333;
             font-size: 1em;
             line-height: 1.5;
@@ -1067,33 +1159,34 @@
             margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
-        
+
         .question-item strong {
             display: block;
             margin-bottom: 5px;
             color: var(--text-light);
         }
-        
+
         .question-item small {
             display: block;
             color: var(--text-medium);
             font-size: 0.8em;
             margin-bottom: 10px;
         }
-        
+
         /* Fix for line breaks in Q&A answers */
-        .question-item p, .answer-item p {
+        .question-item p,
+        .answer-item p {
             white-space: pre-wrap;
             word-wrap: break-word;
         }
-        
+
         .edit-question-form {
             margin-top: 10px;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        
+
         .edit-answer-form {
             margin-top: 10px;
             display: flex;
@@ -1110,19 +1203,19 @@
         .answer-item {
             margin-bottom: 10px;
         }
-        
+
         .answer-item p {
             margin: 0;
             font-size: 0.95em;
             color: var(--text-medium);
         }
-        
+
         .answer-item .answer-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .answer-item .answer-header .answer-info {
             display: flex;
             flex-direction: column;
@@ -1134,7 +1227,7 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        
+
         .answer-form textarea {
             flex-grow: 1;
         }
@@ -1144,12 +1237,13 @@
             gap: 5px;
             margin-top: 10px;
         }
+
         .qna-actions button {
             padding: 5px 10px;
             font-size: 0.8em;
             width: auto;
         }
-        
+
         /* New class for the clickable name */
         .qna-user-link {
             color: var(--accent-color);
@@ -1157,14 +1251,14 @@
             cursor: pointer;
             font-weight: bold;
         }
-        
+
         /* New class for the clickable link in answers */
         .qna-embedded-link {
             color: var(--accent-color);
             text-decoration: underline;
             cursor: pointer;
         }
-        
+
         .qna-image {
             max-width: 100%;
             height: auto;
@@ -1183,14 +1277,16 @@
             display: flex;
             flex-direction: column;
         }
+
         main {
             flex-grow: 1;
         }
+
         footer {
             margin-top: auto;
             width: 100%;
         }
-        
+
         /* Mod Submission Page */
         #modSubmissionForm textarea {
             min-height: 100px;
@@ -1203,14 +1299,17 @@
             margin-bottom: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
+
         .admin-submission-item .submission-info {
             display: flex;
             flex-direction: column;
             text-align: left;
         }
+
         .admin-submission-item .submission-info strong {
             color: var(--text-light);
         }
+
         .admin-submission-item .submission-actions {
             margin-top: 10px;
             display: flex;
@@ -1228,6 +1327,7 @@
             padding: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
+
         .chat-list {
             list-style: none;
             padding: 0;
@@ -1235,6 +1335,7 @@
             flex-grow: 1;
             margin-bottom: 10px;
         }
+
         .chat-message {
             background-color: var(--bg-medium);
             padding: 8px 12px;
@@ -1243,26 +1344,31 @@
             max-width: 80%;
             word-wrap: break-word;
         }
+
         .chat-message.admin {
             align-self: flex-end;
             background-color: var(--accent-color);
             text-align: right;
             border-bottom-right-radius: 0;
         }
+
         .chat-message.user {
             align-self: flex-start;
             background-color: var(--bg-light);
             border-bottom-left-radius: 0;
         }
+
         .chat-input-form {
             display: flex;
             gap: 10px;
         }
+
         .chat-input-form input {
             flex-grow: 1;
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="header-content">
@@ -1286,10 +1392,11 @@
 
     <main class="container" id="appContent">
     </main>
-    
+
     <footer>
         <p style="text-align: center; color: var(--text-medium); margin-top: 20px;">
-            <a href="#" id="privacyPolicyLink" style="color: var(--accent-color); text-decoration: none;">Keamanan Privasi</a> | &copy; 2024 Share Mod | All Rights Reserved.
+            <a href="#" id="privacyPolicyLink" style="color: var(--accent-color); text-decoration: none;">Keamanan
+                Privasi</a> | &copy; 2024 Share Mod | All Rights Reserved.
         </p>
     </footer>
 
@@ -1304,7 +1411,7 @@
             <button id="mainModalCloseButton">Tutup</button>
         </div>
     </div>
-    
+
     <!-- Mod Submission success modal -->
     <div id="submissionSuccessModal" class="modal">
         <div class="modal-content">
@@ -1331,14 +1438,15 @@
             <h3>Fitur Modpack:</h3>
             <p id="detailProductDescription" class="product-description"></p>
             <button id="detailBuyButton">Beli Sekarang</button>
-            
+
             <!-- New Q&A Section -->
             <div id="qnaSectionForProduct" class="qna-section">
                 <h3>Tanya Jawab</h3>
                 <div class="qna-form">
                     <h4>Ajukan Pertanyaan</h4>
                     <div class="form-group">
-                        <textarea id="newQuestionText" rows="3" placeholder="Tulis pertanyaan Anda di sini..."></textarea>
+                        <textarea id="newQuestionText" rows="3"
+                            placeholder="Tulis pertanyaan Anda di sini..."></textarea>
                     </div>
                     <div class="form-group">
                         <label for="newQuestionImage">URL Gambar (Opsional):</label>
@@ -1350,7 +1458,7 @@
                     <p style="text-align: center; color: var(--text-medium);">Memuat pertanyaan...</p>
                 </div>
             </div>
-            
+
         </div>
     </div>
 
@@ -1371,7 +1479,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Mod Download Warning Modal -->
     <div id="modWarningModal" class="modal">
         <div class="modal-content warning">
@@ -1441,8 +1549,10 @@
             </div>
             <div class="form-group">
                 <label for="editProductImage">URL Gambar Produk (Opsional):</label>
-                <input type="text" id="editProductImage" placeholder="URL Gambar. Contoh: https://i.imgur.com/modpack_gta.png">
-                <img id="editProductImagePreview" src="" alt="Pratinjau Gambar" style="max-width: 100px; max-height: 100px; margin-top: 10px; display: none; border-radius: 5px;">
+                <input type="text" id="editProductImage"
+                    placeholder="URL Gambar. Contoh: https://i.imgur.com/modpack_gta.png">
+                <img id="editProductImagePreview" src="" alt="Pratinjau Gambar"
+                    style="max-width: 100px; max-height: 100px; margin-top: 10px; display: none; border-radius: 5px;">
             </div>
             <div class="form-group">
                 <label for="editProductDownloadUrl">URL Unduhan Modpack:</label>
@@ -1450,41 +1560,51 @@
             </div>
             <div class="form-group">
                 <label for="editProductDescription">Deskripsi/Fitur Modpack:</label>
-                <textarea id="editProductDescription" rows="5" placeholder="Masukkan deskripsi atau fitur modpack di sini."></textarea>
+                <textarea id="editProductDescription" rows="5"
+                    placeholder="Masukkan deskripsi atau fitur modpack di sini."></textarea>
             </div>
             <button id="updateProductBtn">Simpan Perubahan</button>
             <button id="cancelEditProductBtn" style="background-color: var(--error-color);">Batal</button>
         </div>
     </div>
-    
+
     <!-- New Privacy Policy Modal -->
     <div id="privacyPolicyModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="privacyPolicyCloseButton">&times;</span>
             <h2>🛡️ Kebijakan Privasi</h2>
-            <p>Kami sangat menghargai privasi dan keamanan para pengguna website kami. Website ini dirancang untuk memberikan akses mudah dan aman dalam mengunduh mod atau modpack GTA San Andreas tanpa mengganggu privasi pribadi Anda.</p>
+            <p>Kami sangat menghargai privasi dan keamanan para pengguna website kami. Website ini dirancang untuk
+                memberikan akses mudah dan aman dalam mengunduh mod atau modpack GTA San Andreas tanpa mengganggu
+                privasi pribadi Anda.</p>
             <h3>🔐 Keamanan Akun Pengguna</h3>
             <ul>
-                <li>Kami tidak meminta, menyimpan, atau mengakses informasi akun pribadi Anda seperti email, username, password, atau informasi login lainnya.</li>
-                <li>Admin atau pemilik website tidak memiliki akses terhadap data pribadi Anda. Semua aktivitas Anda di website ini tidak terlacak secara personal dan tidak dapat dikenali secara individu.</li>
-                <li>Kami tidak menggunakan sistem login atau pelacakan akun pengguna, sehingga tidak ada informasi pribadi yang bisa dilihat, digunakan, atau disalahgunakan oleh siapapun—termasuk admin.</li>
+                <li>Kami tidak meminta, menyimpan, atau mengakses informasi akun pribadi Anda seperti email, username,
+                    password, atau informasi login lainnya.</li>
+                <li>Admin atau pemilik website tidak memiliki akses terhadap data pribadi Anda. Semua aktivitas Anda di
+                    website ini tidak terlacak secara personal dan tidak dapat dikenali secara individu.</li>
+                <li>Kami tidak menggunakan sistem login atau pelacakan akun pengguna, sehingga tidak ada informasi
+                    pribadi yang bisa dilihat, digunakan, atau disalahgunakan oleh siapapun—termasuk admin.</li>
             </ul>
             <h3>✅ Jaminan Privasi</h3>
             <ul>
-                <li>Kami tidak membagikan informasi apa pun kepada pihak ketiga karena kami tidak mengumpulkan informasi pengguna sejak awal.</li>
-                <li>Semua file yang tersedia hanya untuk keperluan modifikasi game dan tidak mengandung pelacak atau virus yang dapat merusak sistem atau mencuri data pengguna.</li>
-                <li>Anda dapat mengunduh dan menggunakan mod dengan rasa aman, tanpa takut akan kebocoran data atau penyalahgunaan akun.</li>
+                <li>Kami tidak membagikan informasi apa pun kepada pihak ketiga karena kami tidak mengumpulkan informasi
+                    pengguna sejak awal.</li>
+                <li>Semua file yang tersedia hanya untuk keperluan modifikasi game dan tidak mengandung pelacak atau
+                    virus yang dapat merusak sistem atau mencuri data pengguna.</li>
+                <li>Anda dapat mengunduh dan menggunakan mod dengan rasa aman, tanpa takut akan kebocoran data atau
+                    penyalahgunaan akun.</li>
             </ul>
             <h3>⚠️ Penegasan</h3>
             <p>Dengan menggunakan website ini, Anda menyetujui bahwa:</p>
             <ul>
                 <li>Aktivitas Anda tidak dicatat atau disimpan secara personal.</li>
-                <li>Kami tidak bertanggung jawab atas kerugian yang disebabkan oleh penggunaan mod di luar website ini, namun kami berkomitmen penuh menjaga keamanan file yang kami rilis.</li>
+                <li>Kami tidak bertanggung jawab atas kerugian yang disebabkan oleh penggunaan mod di luar website ini,
+                    namun kami berkomitmen penuh menjaga keamanan file yang kami rilis.</li>
             </ul>
             <button id="privacyPolicyOkBtn">Saya Mengerti</button>
         </div>
     </div>
-    
+
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1546,7 +1666,7 @@
 
         // Secret admin code
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
-        
+
         // List of fake virus scanners for the aesthetic check
         const VIRUS_SCANNERS = [
             "Acronis (Static ML)", "AhnLab-V3", "Alibaba", "AliCloud", "ALYac", "Antiy-AVL",
@@ -1566,7 +1686,7 @@
         // =========================================================================
         // REAL-TIME FIRESTORE LISTENERS
         // =========================================================================
-        
+
         onSnapshot(modSubmissionsCol, (snapshot) => {
             allModSubmissions = {};
             snapshot.forEach(doc => {
@@ -1699,7 +1819,7 @@
                         return;
                     }
                 }
-                
+
                 if (userDocSnap.exists()) {
                     currentUser = { ...user, ...userDocSnap.data() };
                     if (typeof currentUser.coins === 'undefined') {
@@ -1738,7 +1858,7 @@
             }
             if (document.getElementById('userProfileContent')) displayUserProfileContent();
         });
-        
+
         function setupUserPurchasesListener(userId) {
             if (window.userPurchasesUnsubscribe) {
                 window.userPurchasesUnsubscribe();
@@ -1791,7 +1911,7 @@
                 adminLogin.appendChild(closeBtn);
             }
         }
-        
+
         function hideAdminSecretLogin() {
             document.getElementById('adminSecretLogin').style.display = 'none';
             document.getElementById('adminSecretEmail').value = '';
@@ -1819,7 +1939,7 @@
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const userDoc = await getDoc(doc(usersCol, userCredential.user.uid));
-                
+
                 if (userDoc.exists() && userDoc.data().isAdmin === true) {
                     if (adminLockConfig.isActive && !adminLockConfig.allowedAdminEmails.includes(email)) {
                         await signOut(auth);
@@ -1884,7 +2004,7 @@
             document.getElementById('customModal').style.display = 'none';
             document.getElementById('modalAttachment').innerHTML = '';
         }
-        
+
         // New functions for Privacy Policy Modal
         function showPrivacyPolicyModal() {
             const modal = document.getElementById('privacyPolicyModal');
@@ -1901,7 +2021,7 @@
             document.getElementById('submissionSuccessModal').style.display = 'none';
         }
         window.closeSubmissionSuccessModal = closeSubmissionSuccessModal;
-        
+
         function closeModWarningModal() {
             document.getElementById('modWarningModal').style.display = 'none';
             isModWarningModalOpen = false;
@@ -1932,7 +2052,7 @@
                 console.log(`Warning ${warningData.id} marked as read by ${currentUser.uid}`);
             }
         }
-        
+
         function showSaleNotification(productName) {
             const notificationDiv = document.getElementById('saleNotification');
             const saleMessageSpan = document.getElementById('saleMessage');
@@ -1953,11 +2073,11 @@
             const randomPart2 = Math.random().toString(36).substring(2, 7);
             return `PUR-${timestamp}-${randomPart1}-${randomPart2}`.toUpperCase();
         }
-        
+
         function generateSubmissionId() {
-             const timestamp = Date.now().toString(36).substring(0, 8);
-             const randomPart1 = Math.random().toString(36).substring(2, 8);
-             return `SUB-${timestamp}-${randomPart1}`.toUpperCase();
+            const timestamp = Date.now().toString(36).substring(0, 8);
+            const randomPart1 = Math.random().toString(36).substring(2, 8);
+            return `SUB-${timestamp}-${randomPart1}`.toUpperCase();
         }
 
         function updateAuthLinks() {
@@ -1965,7 +2085,7 @@
             const loggedInLinks = document.getElementById('loggedInLinks');
             const navAdmin = document.getElementById('navAdmin');
             const uploadModBtn = document.getElementById('uploadModBtn');
-            
+
             if (currentUser) {
                 authLinks.style.display = 'none';
                 loggedInLinks.style.display = 'inline-block';
@@ -2000,7 +2120,7 @@
 
         function showPage(pageName) {
             const appContent = document.getElementById('appContent');
-            
+
             document.querySelectorAll('nav a').forEach(link => link.classList.remove('active'));
             const activeLink = document.querySelector(`nav a#nav${pageName.charAt(0).toUpperCase() + pageName.slice(1)}`);
             if (activeLink) activeLink.classList.add('active');
@@ -2147,7 +2267,7 @@
                         showPage('login');
                     });
                     break;
-                
+
                 case 'profile':
                     if (!currentUser) {
                         showModal('Akses Ditolak', 'Anda harus login untuk melihat profil Anda.', 'error');
@@ -2398,7 +2518,7 @@
             }
             checkMaintenanceModeAndRedirect();
         }
-        
+
         function bindAdminEvents() {
             document.getElementById('adminNavUsers').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminUsers', e.target); });
             document.getElementById('adminNavProducts').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminProducts', e.target); });
@@ -2407,48 +2527,48 @@
             document.getElementById('adminNavDiscounts').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminDiscounts', e.target); });
             document.getElementById('adminNavMaintenance').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminMaintenance', e.target); });
             document.getElementById('adminNavWarnings').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminWarnings', e.target); });
-            
+
             const uploadModBtn = document.getElementById('uploadModBtn');
             if (uploadModBtn) {
-                 uploadModBtn.addEventListener('click', (e) => {
+                uploadModBtn.addEventListener('click', (e) => {
                     if (!currentUser) {
                         showModal('Login Diperlukan', 'Anda harus login untuk mengupload mod.', 'warning');
                         return;
                     }
                     showPage('uploadMod');
-                 });
+                });
             }
-            
+
             document.getElementById('createUserFromAdminBtn').addEventListener('click', createUserFromAdmin);
             document.getElementById('addProductBtn').addEventListener('click', addProduct);
-            
+
             const editProductImage = document.getElementById('editProductImage');
-            if(editProductImage) { editProductImage.addEventListener('input', () => displayImagePreview('editProductImage', 'editProductImagePreview')); }
+            if (editProductImage) { editProductImage.addEventListener('input', () => displayImagePreview('editProductImage', 'editProductImagePreview')); }
 
             const adminProductImage = document.getElementById('adminProductImage');
-            if(adminProductImage) { adminProductImage.addEventListener('input', () => displayImagePreview('adminProductImage', 'adminProductImagePreview')); }
+            if (adminProductImage) { adminProductImage.addEventListener('input', () => displayImagePreview('adminProductImage', 'adminProductImagePreview')); }
 
             const discountStatus = document.getElementById('discountStatus');
-            if(discountStatus) { discountStatus.addEventListener('change', toggleDiscountFields); }
+            if (discountStatus) { discountStatus.addEventListener('change', toggleDiscountFields); }
 
             const discountTargetType = document.getElementById('discountTargetType');
-            if(discountTargetType) { discountTargetType.addEventListener('change', toggleDiscountTargetProductSelect); }
-            
+            if (discountTargetType) { discountTargetType.addEventListener('change', toggleDiscountTargetProductSelect); }
+
             document.getElementById('saveDiscountConfigBtn').addEventListener('click', saveDiscountConfig);
-            
+
             const maintenanceStatus = document.getElementById('maintenanceStatus');
-            if(maintenanceStatus) { maintenanceStatus.addEventListener('change', toggleMaintenanceFields); }
+            if (maintenanceStatus) { maintenanceStatus.addEventListener('change', toggleMaintenanceFields); }
 
             document.getElementById('saveMaintenanceConfigBtn').addEventListener('click', saveMaintenanceConfig);
             document.getElementById('stopMaintenanceBtn').addEventListener('click', stopMaintenance);
-            
+
             document.getElementById('sendWarningBtn').addEventListener('click', sendWarning);
 
             const updateProductBtn = document.getElementById('updateProductBtn');
-            if(updateProductBtn) { updateProductBtn.addEventListener('click', updateProduct); }
+            if (updateProductBtn) { updateProductBtn.addEventListener('click', updateProduct); }
             const cancelEditProductBtn = document.getElementById('cancelEditProductBtn');
-            if(cancelEditProductBtn) { cancelEditProductBtn.addEventListener('click', closeEditProductModal); }
-            
+            if (cancelEditProductBtn) { cancelEditProductBtn.addEventListener('click', closeEditProductModal); }
+
             // New admin panel listeners
             const autoReleaseStatus = document.getElementById('autoReleaseStatus');
             if (autoReleaseStatus) {
@@ -2457,7 +2577,7 @@
             }
         }
         window.bindAdminEvents = bindAdminEvents;
-        
+
         function showAdminSection(sectionId, clickedLink) {
             document.querySelectorAll('.admin-content-section').forEach(section => {
                 section.classList.remove('active');
@@ -2500,38 +2620,38 @@
             }
         }
         window.showAdminSection = showAdminSection;
-        
+
         async function createUserFromAdmin() {
             const emailInput = document.getElementById('newUserEmail');
             const passwordInput = document.getElementById('newUserPassword');
             const isAdminSelect = document.getElementById('newUserIsAdmin');
-            
+
             if (!emailInput || !passwordInput || !isAdminSelect) return;
-            
+
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
             const isAdmin = isAdminSelect.value === 'true';
-            
+
             if (!email || !password) {
                 showModal('Input Kosong', 'Email dan password tidak boleh kosong.', 'warning');
                 return;
             }
-            
+
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                
+
                 await setDoc(doc(usersCol, userCredential.user.uid), {
                     username: email,
                     isAdmin: isAdmin,
                     createdAt: new Date().toISOString()
                 });
-                
+
                 showModal('Berhasil!', `Akun ${email} berhasil dibuat sebagai ${isAdmin ? 'Admin' : 'Pengguna Biasa'}.`, 'success');
-                
+
                 emailInput.value = '';
                 passwordInput.value = '';
                 isAdminSelect.value = 'false';
-                
+
             } catch (error) {
                 console.error("Error creating user:", error.message);
                 let errorMessage = "Terjadi kesalahan saat membuat akun.";
@@ -2550,10 +2670,10 @@
         async function displayAllUsers() {
             const usersTableContainer = document.getElementById('usersTableContainer');
             if (!usersTableContainer) return;
-            
+
             try {
                 const querySnapshot = await getDocs(usersCol);
-                
+
                 let html = `
                     <table class="user-table">
                         <thead>
@@ -2566,17 +2686,17 @@
                         </thead>
                         <tbody>
                 `;
-                
+
                 querySnapshot.forEach((doc) => {
                     const userData = doc.data();
                     const userId = doc.id;
-                    
+
                     if (currentUser && userId === currentUser.uid) {
                         return;
                     }
-                    
+
                     const createdAt = userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('id-ID') : '-';
-                    
+
                     html += `
                         <tr>
                             <td data-label="Email">${userData.username || '-'}</td>
@@ -2586,22 +2706,22 @@
                             <td data-label="Tanggal Dibuat">${createdAt}</td>
                             <td data-label="Aksi">
                                 ${!userData.isAdmin ?
-                                    `<button class="action-btn make-admin-btn" data-user-id="${userId}">Jadikan Admin</button>` :
-                                    `<button class="action-btn remove-admin-btn" data-user-id="${userId}">Hapus Admin</button>`
-                                }
+                            `<button class="action-btn make-admin-btn" data-user-id="${userId}">Jadikan Admin</button>` :
+                            `<button class="action-btn remove-admin-btn" data-user-id="${userId}">Hapus Admin</button>`
+                        }
                                 <button class="action-btn delete-user-btn" data-user-id="${userId}">Hapus</button>
                             </td>
                         </tr>
                     `;
                 });
-                
+
                 html += `
                         </tbody>
                     </table>
                 `;
-                
+
                 usersTableContainer.innerHTML = html;
-                
+
                 // Bind events for dynamically loaded buttons
                 usersTableContainer.querySelectorAll('.make-admin-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => toggleAdminStatus(e.target.dataset.userId, true));
@@ -2612,7 +2732,7 @@
                 usersTableContainer.querySelectorAll('.delete-user-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => deleteUser(e.target.dataset.userId));
                 });
-                
+
             } catch (error) {
                 console.error("Error fetching users:", error);
                 usersTableContainer.innerHTML = '<p style="color: var(--error-color);">Gagal memuat daftar pengguna.</p>';
@@ -2689,7 +2809,7 @@
             const products = allProducts;
             const currentDiscountConfig = discountConfig;
             const currentLoggedInUser = currentUser;
-            
+
             if (currentDiscountConfig.isActive && currentDiscountConfig.countdownEndTime) {
                 const endTime = new Date(currentDiscountConfig.countdownEndTime).getTime();
                 const now = new Date().getTime();
@@ -2751,7 +2871,7 @@
             });
         }
         window.displayProducts = displayProducts;
-        
+
         // This function will handle the entire product detail view, including Q&A, and will check for mod warnings
         async function showProductDetail(productId) {
             const product = allProducts[productId];
@@ -2806,7 +2926,7 @@
             detailOriginalPrice.textContent = originalPriceHtml;
             detailDiscountedPrice.textContent = displayPrice === 0 ? 'GRATIS' : `Rp ${displayPrice.toLocaleString('id-ID')}`;
             detailDiscountTag.textContent = discountTag;
-            
+
             detailProductDescription.textContent = product.description || 'Tidak ada deskripsi tersedia untuk modpack ini.';
 
             const clonedBuyButton = detailBuyButton.cloneNode(true);
@@ -2835,14 +2955,14 @@
             const listEl = document.getElementById('modWarningList');
             const proceedBtn = document.getElementById('proceedDownloadBtn');
             const cancelBtn = document.getElementById('cancelDownloadBtn');
-            
+
             listEl.innerHTML = '';
             warnings.forEach(warning => {
                 const li = document.createElement('li');
                 li.textContent = warning;
                 listEl.appendChild(li);
             });
-            
+
             proceedBtn.onclick = () => {
                 onProceed();
                 closeModWarningModal();
@@ -2894,7 +3014,7 @@
             currentPurchaseProductId = productId;
             const priceDisplay = finalPrice === 0 ? 'GRATIS' : `Rp ${finalPrice.toLocaleString('id-ID')}`;
             const message = `Apakah Anda yakin ingin membeli <strong>${product.name}</strong> seharga <strong>${priceDisplay}</strong>?`;
-            
+
             document.getElementById('confirmationMessage').innerHTML = message;
             document.getElementById('confirmationModal').style.display = 'flex';
         }
@@ -2940,7 +3060,7 @@
             }
         }
         window.simulatePurchase = simulatePurchase;
-        
+
         async function registerUser() {
             const emailInput = document.getElementById('regEmail');
             const passwordInput = document.getElementById('regPassword');
@@ -3024,12 +3144,12 @@
             }
         }
         window.loginUser = loginUser;
-        
+
         async function signInWithGoogle() {
             try {
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
-                
+
                 const userDocRef = doc(usersCol, user.uid);
                 const userDocSnap = await getDoc(userDocRef);
 
@@ -3042,7 +3162,7 @@
                         createdAt: new Date().toISOString()
                     });
                 }
-                
+
                 if (!isNewUser && userDocSnap.data().isAdmin === true) {
                     if (adminLockConfig.isActive && !adminLockConfig.allowedAdminEmails.includes(user.email)) {
                         await signOut(auth);
@@ -3059,7 +3179,7 @@
                 } else {
                     showModal('Login Berhasil!', `Selamat datang kembali, <strong>${user.email}</strong>!`, 'success');
                 }
-                
+
                 setTimeout(() => showPage('home'), 1000);
 
             } catch (error) {
@@ -3089,7 +3209,7 @@
             }
         }
         window.displayImagePreview = displayImagePreview;
-        
+
         async function addProduct() {
             const adminProductName = document.getElementById('adminProductName');
             const adminProductPrice = document.getElementById('adminProductPrice');
@@ -3307,7 +3427,7 @@
             if (discountPercentage) discountPercentage.value = currentDiscountConfig.percentage;
             if (discountTargetType) discountTargetType.value = currentDiscountConfig.targetType;
             if (discountTargetUsers) discountTargetUsers.value = currentDiscountConfig.targetUsers;
-            
+
             if (discountCountdownEndTime && currentDiscountConfig.countdownEndTime) {
                 const date = new Date(currentDiscountConfig.countdownEndTime);
                 const year = date.getFullYear();
@@ -3497,7 +3617,7 @@
             if (maintenanceStatusToggle) maintenanceStatusToggle.checked = currentMaintenanceConfig.isActive;
             if (maintenanceReason) maintenanceReason.value = currentMaintenanceConfig.reason || '';
             if (maintenanceDuration) maintenanceDuration.value = currentMaintenanceConfig.estimatedDuration || '';
-            
+
             if (maintenanceEndTime && currentMaintenanceConfig.endTime) {
                 const date = new Date(currentMaintenanceConfig.endTime);
                 const year = date.getFullYear();
@@ -3666,7 +3786,7 @@
             }
         }
         window.sendWarning = sendWarning;
-        
+
         const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 
         async function displayQuestionsForProduct(productId) {
@@ -3676,7 +3796,7 @@
             if (!questionsListDiv || !submitQuestionBtn || !newQuestionTextarea) return;
 
             questionsListDiv.innerHTML = '<p style="text-align: center; color: var(--text-medium);">Memuat pertanyaan...</p>';
-            
+
             // Re-bind the question submission button
             const clonedSubmitButton = submitQuestionBtn.cloneNode(true);
             submitQuestionBtn.parentNode.replaceChild(clonedSubmitButton, submitQuestionBtn);
@@ -3699,12 +3819,12 @@
                         // Replace URLs in question text with clickable links
                         let formattedQuestionText = questionData.questionText;
                         if (questionData.questionImage) {
-                           formattedQuestionText += ` <div style="margin-top: 10px;"><a href="${questionData.questionImage}" target="_blank"><img src="${questionData.questionImage}" class="qna-image" alt="Lampiran Pertanyaan"></a></div>`;
+                            formattedQuestionText += ` <div style="margin-top: 10px;"><a href="${questionData.questionImage}" target="_blank"><img src="${questionData.questionImage}" class="qna-image" alt="Lampiran Pertanyaan"></a></div>`;
                         }
                         formattedQuestionText = formattedQuestionText.replace(URL_REGEX, (url) => {
                             const urlObj = new URL(url);
                             const displayUrl = `${urlObj.hostname}`;
-                            return `<a href="${url}" target="_blank" class="qna-embedded-link">${displayUrl}</a>`;
+                            return `<span style="color: var(--text-medium); font-style: italic;">[Tautan terdeteksi: ${displayUrl}]</span>`;
                         });
 
                         let answersHtml = '';
@@ -3714,12 +3834,12 @@
                                 const answerDate = new Date(answer.answeredAt).toLocaleString('id-ID');
                                 const replierName = allUsers[answer.answeredBy]?.isAdmin ? 'Admin' : (allUsers[answer.answeredBy]?.username || 'Pengguna');
                                 const canModifyAnswer = (currentUser && (currentUser.uid === answer.answeredBy || currentUser.isAdmin));
-                                
+
                                 // Replace URLs in answer text
                                 const formattedAnswerText = answer.answerText.replace(URL_REGEX, (url) => {
                                     const urlObj = new URL(url);
                                     const displayUrl = `${urlObj.hostname}`;
-                                    return `<a href="${url}" target="_blank" class="qna-embedded-link">${displayUrl}</a>`;
+                                    return `<span style="color: var(--text-medium); font-style: italic;">[Tautan terdeteksi: ${displayUrl}]</span>`;
                                 });
 
                                 let answerActionButtons = '';
@@ -3747,7 +3867,7 @@
                             });
                             answersHtml += '</div>';
                         }
-                        
+
                         let replyFormHtml = '';
                         if (currentUser) { // Any logged-in user can reply
                             replyFormHtml = `
@@ -3901,8 +4021,8 @@
 
             questionItem.querySelector('p').style.display = 'none';
             const actions = questionItem.querySelector('.qna-actions');
-            if(actions) actions.style.display = 'none';
-            
+            if (actions) actions.style.display = 'none';
+
             const editForm = document.createElement('div');
             editForm.className = 'edit-question-form';
             editForm.innerHTML = `
@@ -3949,12 +4069,12 @@
 
             questionItem.querySelector('p').style.display = 'block';
             const actions = questionItem.querySelector('.qna-actions');
-            if(actions) actions.style.display = 'flex';
+            if (actions) actions.style.display = 'flex';
             const editForm = questionItem.querySelector('.edit-question-form');
-            if(editForm) editForm.remove();
+            if (editForm) editForm.remove();
         }
         window.cancelEditQuestion = cancelEditQuestion;
-        
+
         async function showEditAnswer(questionId, answerIndex, currentText) {
             const question = allQuestions[questionId];
             if (!question || !currentUser) {
@@ -3972,7 +4092,7 @@
 
             answerItem.querySelector('p').style.display = 'none';
             const actions = answerItem.querySelector('.qna-actions');
-            if(actions) actions.style.display = 'none';
+            if (actions) actions.style.display = 'none';
 
             const editForm = document.createElement('div');
             editForm.className = 'edit-answer-form';
@@ -4031,7 +4151,7 @@
                 showModal('Akses Ditolak', 'Anda tidak memiliki izin untuk menghapus jawaban ini.', 'error');
                 return;
             }
-            
+
             const confirmationModal = document.getElementById('confirmationModal');
             const confirmBtn = document.getElementById('confirmPurchaseBtn');
             const cancelBtn = document.getElementById('cancelPurchaseBtn');
@@ -4069,24 +4189,24 @@
 
             answerItem.querySelector('p').style.display = 'block';
             const actions = answerItem.querySelector('.qna-actions');
-            if(actions) actions.style.display = 'flex';
+            if (actions) actions.style.display = 'flex';
             const editForm = answerItem.querySelector('.edit-answer-form');
-            if(editForm) editForm.remove();
+            if (editForm) editForm.remove();
         }
         window.cancelEditAnswer = cancelEditAnswer;
-        
+
         async function displayUserProfileContent() {
             const purchaseHistoryList = document.getElementById('purchaseHistoryList');
             const activeDiscountInfo = document.getElementById('activeDiscountInfo');
             const modSubmissionStatus = document.getElementById('modSubmissionStatus');
-            
+
             if (!currentUser) {
                 if (purchaseHistoryList) purchaseHistoryList.innerHTML = '<p style="color:var(--text-medium);">Anda harus login untuk melihat riwayat pembelian.</p>';
                 if (activeDiscountInfo) activeDiscountInfo.innerHTML = '<p style="color:var(--text-medium);">Anda harus login untuk melihat diskon.</p>';
                 if (modSubmissionStatus) modSubmissionStatus.innerHTML = '<p style="color:var(--text-medium);">Anda harus login untuk melihat status pengajuan mod.</p>';
                 return;
             }
-            
+
             // Display purchase history
             if (purchaseHistoryList) {
                 const purchases = Object.values(userPurchases).sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
@@ -4112,7 +4232,7 @@
                     purchaseHistoryList.innerHTML = html;
                 }
             }
-            
+
             // Display active discount info
             if (activeDiscountInfo) {
                 const currentDiscountConfig = discountConfig;
@@ -4136,7 +4256,7 @@
                 }
                 activeDiscountInfo.innerHTML = discountHtml;
             }
-            
+
             // Display mod submission status
             if (modSubmissionStatus) {
                 const userSubmissions = Object.values(allModSubmissions).filter(sub => sub.userId === currentUser.uid);
@@ -4215,7 +4335,7 @@
             }
         }
         window.submitMod = submitMod;
-        
+
         async function displayModSubmissionsAdmin() {
             const submissionsListDiv = document.getElementById('modSubmissionsList');
             if (!submissionsListDiv) return;
@@ -4341,7 +4461,7 @@
             }
         }
         window.rejectMod = rejectMod;
-        
+
         async function saveAutoReleaseStatus(enabled) {
             try {
                 await updateDoc(doc(configCol, "admin_settings"), { autoRelease: enabled });
@@ -4359,12 +4479,12 @@
                 showModal('Login Diperlukan', 'Anda harus login untuk memulai obrolan.', 'error');
                 return;
             }
-            
+
             const adminChatModal = document.getElementById('adminChatModal');
             adminChatModal.style.display = 'flex';
             currentChatId = chatId;
             displayChatMessages(chatId);
-            
+
             // Re-bind send message button
             const sendBtn = document.getElementById('sendChatMessageBtn');
             const clonedSendBtn = sendBtn.cloneNode(true);
@@ -4439,19 +4559,19 @@
         window.sendChatMessage = sendChatMessage;
 
         function displayAdminChatsList() {
-             const chatListContainer = document.getElementById('adminChatListContainer');
-             if (!chatListContainer) return;
-             chatListContainer.innerHTML = '<h4>Daftar Obrolan Pengajuan</h4><p style="color: var(--text-medium);">Pilih pengajuan mod untuk melihat obrolan.</p>';
-             
-             let html = '';
-             if (Object.keys(allModSubmissions).length > 0) {
-                 html += '<ul style="list-style: none; padding: 0;">';
-                 Object.values(allModSubmissions).forEach(sub => {
-                     html += `<li><button onclick="openAdminChat('${sub.chatId}')" style="width: 100%; text-align: left; margin-bottom: 5px;">${sub.name} (oleh ${allUsers[sub.userId]?.username || 'Pengguna'})</button></li>`;
-                 });
-                 html += '</ul>';
-                 chatListContainer.innerHTML = html;
-             }
+            const chatListContainer = document.getElementById('adminChatListContainer');
+            if (!chatListContainer) return;
+            chatListContainer.innerHTML = '<h4>Daftar Obrolan Pengajuan</h4><p style="color: var(--text-medium);">Pilih pengajuan mod untuk melihat obrolan.</p>';
+
+            let html = '';
+            if (Object.keys(allModSubmissions).length > 0) {
+                html += '<ul style="list-style: none; padding: 0;">';
+                Object.values(allModSubmissions).forEach(sub => {
+                    html += `<li><button onclick="openAdminChat('${sub.chatId}')" style="width: 100%; text-align: left; margin-bottom: 5px;">${sub.name} (oleh ${allUsers[sub.userId]?.username || 'Pengguna'})</button></li>`;
+                });
+                html += '</ul>';
+                chatListContainer.innerHTML = html;
+            }
         }
         window.displayAdminChatsList = displayAdminChatsList;
 
@@ -4467,23 +4587,23 @@
         window.setupSubmissionNotifications = setupSubmissionNotifications;
 
         function setupChatNotifications() {
-             onSnapshot(collection(adminChatsCol), (snapshot) => {
-                 const chatNotification = document.getElementById('chatNotification');
-                 if (chatNotification && currentUser && currentUser.isAdmin) {
-                     let hasUnread = false;
-                     snapshot.forEach(chatDoc => {
-                         const chatData = chatDoc.data();
-                         // Logic to check for unread messages (e.g., comparing last read timestamp vs last message timestamp)
-                         // For now, a simple notification for any new message is fine.
-                         // This part needs more complex Firestore logic to be truly useful.
-                         // But for demonstration, we can assume a new doc/message means a notification is needed.
-                         hasUnread = true;
-                     });
-                     chatNotification.style.display = hasUnread ? 'inline' : 'none';
-                 } else if (chatNotification) {
-                     chatNotification.style.display = 'none';
-                 }
-             });
+            onSnapshot(collection(adminChatsCol), (snapshot) => {
+                const chatNotification = document.getElementById('chatNotification');
+                if (chatNotification && currentUser && currentUser.isAdmin) {
+                    let hasUnread = false;
+                    snapshot.forEach(chatDoc => {
+                        const chatData = chatDoc.data();
+                        // Logic to check for unread messages (e.g., comparing last read timestamp vs last message timestamp)
+                        // For now, a simple notification for any new message is fine.
+                        // This part needs more complex Firestore logic to be truly useful.
+                        // But for demonstration, we can assume a new doc/message means a notification is needed.
+                        hasUnread = true;
+                    });
+                    chatNotification.style.display = hasUnread ? 'inline' : 'none';
+                } else if (chatNotification) {
+                    chatNotification.style.display = 'none';
+                }
+            });
         }
         window.setupChatNotifications = setupChatNotifications;
 
@@ -4496,40 +4616,40 @@
             if (navAdmin) { navAdmin.addEventListener('click', (e) => { e.preventDefault(); showPage('admin'); }); }
             const navLogout = document.getElementById('navLogout');
             if (navLogout) { navLogout.addEventListener('click', (e) => { e.preventDefault(); logoutUser(); }); }
-            
+
             const uploadModBtn = document.getElementById('uploadModBtn');
             if (uploadModBtn) {
-                 uploadModBtn.addEventListener('click', (e) => {
+                uploadModBtn.addEventListener('click', (e) => {
                     if (!currentUser) {
                         showModal('Login Diperlukan', 'Anda harus login untuk mengupload mod.', 'warning');
                         return;
                     }
                     showPage('uploadMod');
-                 });
+                });
             }
-            
+
             document.getElementById('privacyPolicyLink').addEventListener('click', (e) => { e.preventDefault(); showPrivacyPolicyModal(); });
             document.getElementById('privacyPolicyCloseButton').addEventListener('click', closePrivacyPolicyModal);
             document.getElementById('privacyPolicyOkBtn').addEventListener('click', closePrivacyPolicyModal);
-            
+
             document.getElementById('modWarningCloseButton').addEventListener('click', closeModWarningModal);
 
             document.getElementById('modalCloseButton').addEventListener('click', closeModal);
             document.getElementById('mainModalCloseButton').addEventListener('click', closeModal);
             document.getElementById('productDetailCloseButton').addEventListener('click', closeProductDetailModal);
             document.getElementById('confirmationCloseButton').addEventListener('click', hideConfirmation);
-            
+
             const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
             if (confirmPurchaseBtn) { confirmPurchaseBtn.addEventListener('click', () => { if (currentPurchaseProductId) { simulatePurchase(currentPurchaseProductId); } hideConfirmation(); }); }
             const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
             if (cancelPurchaseBtn) { cancelPurchaseBtn.addEventListener('click', () => { showModal('Pembelian Dibatalkan', 'Anda telah membatalkan pembelian.', 'warning'); hideConfirmation(); }); }
-            
+
             document.getElementById('adminSecretLoginBtn').addEventListener('click', verifyAdminSecretLogin);
             document.getElementById('editProductCloseButton').addEventListener('click', closeEditProductModal);
             document.getElementById('updateProductBtn').addEventListener('click', updateProduct);
             const cancelEditProductBtn = document.getElementById('cancelEditProductBtn');
             if (cancelEditProductBtn) { cancelEditProductBtn.addEventListener('click', closeEditProductModal); }
-            
+
             // New keydown event listener for a more deliberate secret admin login
             document.addEventListener('keydown', (e) => {
                 const isShiftA = e.shiftKey && e.key.toUpperCase() === 'A';
