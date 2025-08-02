@@ -1291,6 +1291,25 @@
         #modSubmissionForm textarea {
             min-height: 100px;
         }
+        
+        #modSubmissionForm input[type="file"] {
+            display: none;
+        }
+        
+        #modSubmissionForm .file-upload-label {
+            display: block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        
+        #modSubmissionForm .file-upload-label:hover {
+            background-color: var(--accent-hover);
+        }
 
         .admin-submission-item {
             background-color: var(--bg-light);
@@ -1610,6 +1629,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
         // Your Firebase configuration
         const firebaseConfig = {
@@ -1626,6 +1646,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app); // Get storage service
         const googleProvider = new GoogleAuthProvider(); // Google Auth Provider
 
         // Firestore collection references
@@ -1647,9 +1668,16 @@
         let allAdminChats = {};
         let discountConfig = {};
         let maintenanceConfig = {
-            isActive: false, startTime: null, endTime: null, reason: "", estimatedDuration: ""
+            isActive: false,
+            startTime: null,
+            endTime: null,
+            reason: "",
+            estimatedDuration: ""
         };
-        let adminLockConfig = { isActive: false, allowedAdminEmails: [] };
+        let adminLockConfig = {
+            isActive: false,
+            allowedAdminEmails: []
+        };
         let currentUser = null;
         let countdownInterval = null;
         let maintenanceCountdownInterval = null;
@@ -1775,7 +1803,11 @@
                 const data = docSnap.data();
                 discountConfig = data.discount || {};
                 maintenanceConfig = data.maintenance || {
-                    isActive: false, startTime: null, endTime: null, reason: "", estimatedDuration: ""
+                    isActive: false,
+                    startTime: null,
+                    endTime: null,
+                    reason: "",
+                    estimatedDuration: ""
                 };
                 console.log("Global config updated:", discountConfig, maintenanceConfig);
                 displayProducts();
@@ -1786,8 +1818,21 @@
             } else {
                 console.log("Global settings document does not exist, initializing default.");
                 setDoc(globalSettingsDocRef, {
-                    discount: { isActive: false, percentage: 10, targetType: 'all', targetProducts: [], targetUsers: '', countdownEndTime: null },
-                    maintenance: { isActive: false, startTime: null, endTime: null, reason: "", estimatedDuration: "" }
+                    discount: {
+                        isActive: false,
+                        percentage: 10,
+                        targetType: 'all',
+                        targetProducts: [],
+                        targetUsers: '',
+                        countdownEndTime: null
+                    },
+                    maintenance: {
+                        isActive: false,
+                        startTime: null,
+                        endTime: null,
+                        reason: "",
+                        estimatedDuration: ""
+                    }
                 });
             }
         });
@@ -1796,13 +1841,19 @@
         onSnapshot(adminSettingsDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                adminLockConfig = data.adminLock || { isActive: false, allowedAdminEmails: [] };
+                adminLockConfig = data.adminLock || {
+                    isActive: false,
+                    allowedAdminEmails: []
+                };
                 autoReleaseEnabled = data.autoRelease || false;
                 console.log("Admin lock & auto-release config updated:", adminLockConfig, autoReleaseEnabled);
                 if (document.getElementById('autoReleaseStatus')) document.getElementById('autoReleaseStatus').checked = autoReleaseEnabled;
             } else {
                 console.log("Admin settings document does not exist, initializing default.");
-                setDoc(adminSettingsDocRef, { adminLock: adminLockConfig, autoRelease: false });
+                setDoc(adminSettingsDocRef, {
+                    adminLock: adminLockConfig,
+                    autoRelease: false
+                });
             }
         });
 
@@ -1821,9 +1872,13 @@
                 }
 
                 if (userDocSnap.exists()) {
-                    currentUser = { ...user, ...userDocSnap.data() };
+                    currentUser = { ...user,
+                        ...userDocSnap.data()
+                    };
                     if (typeof currentUser.coins === 'undefined') {
-                        await updateDoc(doc(usersCol, user.uid), { coins: 0 });
+                        await updateDoc(doc(usersCol, user.uid), {
+                            coins: 0
+                        });
                         currentUser.coins = 0;
                     }
                 } else {
@@ -1833,7 +1888,11 @@
                         createdAt: new Date().toISOString(),
                         coins: 0
                     });
-                    currentUser = { ...user, username: user.email, isAdmin: false, coins: 0 };
+                    currentUser = { ...user,
+                        username: user.email,
+                        isAdmin: false,
+                        coins: 0
+                    };
                 }
                 console.log("Current User (Firebase Auth + Firestore):", currentUser);
                 updateAuthLinks();
@@ -1867,7 +1926,9 @@
             window.userPurchasesUnsubscribe = onSnapshot(q, (snapshot) => {
                 userPurchases = {};
                 snapshot.forEach(doc => {
-                    userPurchases[doc.id] = { ...doc.data(), id: doc.id };
+                    userPurchases[doc.id] = { ...doc.data(),
+                        id: doc.id
+                    };
                 });
                 console.log("User-specific purchases updated:", userPurchases);
                 if (document.getElementById('userProfileContent')) displayUserProfileContent();
@@ -1882,7 +1943,9 @@
             window.warningUnsubscribe = onSnapshot(q, (snapshot) => {
                 userWarnings = {};
                 snapshot.forEach(doc => {
-                    const warningData = { ...doc.data(), id: doc.id };
+                    const warningData = { ...doc.data(),
+                        id: doc.id
+                    };
                     const isGlobal = !warningData.targetUserIds || warningData.targetUserIds.length === 0;
                     const isTargeted = warningData.targetUserIds && warningData.targetUserIds.includes(userId);
                     if ((isGlobal || isTargeted) && !warningData.isRead[userId]) {
@@ -2048,7 +2111,9 @@
                 const warningDocRef = doc(warningsCol, warningData.id);
                 const currentReadBy = warningData.isRead || {};
                 currentReadBy[currentUser.uid] = true;
-                await updateDoc(warningDocRef, { isRead: currentReadBy });
+                await updateDoc(warningDocRef, {
+                    isRead: currentReadBy
+                });
                 console.log(`Warning ${warningData.id} marked as read by ${currentUser.uid}`);
             }
         }
@@ -2140,7 +2205,7 @@
             switch (pageName) {
                 case 'home':
                     htmlContent = `
-                        <h1>� Beli Modpack GTA San Andreas 💰</h1>
+                        <h1>🎮 Beli Modpack GTA San Andreas 💰</h1>
                         <p>Dapatkan modpack terbaik untuk pengalaman bermain GTA San Andreas yang lebih seru!</p>
                         <div id="discountCountdownSection" class="discount-countdown-section" style="display:none;">
                             <h2>Penawaran Spesial Berakhir Dalam!</h2>
@@ -2185,13 +2250,17 @@
                                 <input type="number" id="modPrice" placeholder="Contoh: 50000">
                             </div>
                             <div class="form-group">
-                                <label for="modImage">URL Gambar Produk (Opsional):</label>
-                                <input type="text" id="modImage" placeholder="URL Gambar. Contoh: https://i.imgur.com/modpack_gta.png">
+                                <label for="modImageFile">Upload Gambar Produk (Opsional):</label>
+                                <input type="file" id="modImageFile" accept="image/*">
+                                <label for="modImageFile" class="file-upload-label">Pilih Gambar</label>
+                                <span id="modImageFileName" style="color:var(--text-medium); margin-left: 10px;">Belum ada file dipilih.</span>
                                 <img id="modImagePreview" src="" alt="Pratinjau Gambar" style="max-width: 100px; max-height: 100px; margin-top: 10px; display: none; border-radius: 5px;">
                             </div>
                             <div class="form-group">
-                                <label for="modDownloadUrl">URL Unduhan Modpack:</label>
-                                <input type="text" id="modDownloadUrl" placeholder="Contoh: https://link.mediafire.com/modpack_v2">
+                                <label for="modFile">Upload File Modpack:</label>
+                                <input type="file" id="modFile" accept=".zip,.rar,.7z">
+                                <label for="modFile" class="file-upload-label">Pilih File Mod</label>
+                                <span id="modFileName" style="color:var(--text-medium); margin-left: 10px;">Belum ada file dipilih.</span>
                             </div>
                             <div class="form-group">
                                 <label for="modDescription">Deskripsi/Fitur Modpack:</label>
@@ -2206,7 +2275,33 @@
                         </div>
                     `;
                     appContent.innerHTML = htmlContent;
-                    document.getElementById('modImage').addEventListener('input', () => displayImagePreview('modImage', 'modImagePreview'));
+                    document.getElementById('modImageFile').addEventListener('change', () => {
+                        const fileInput = document.getElementById('modImageFile');
+                        const fileNameSpan = document.getElementById('modImageFileName');
+                        const previewImg = document.getElementById('modImagePreview');
+                        if (fileInput.files.length > 0) {
+                            fileNameSpan.textContent = fileInput.files[0].name;
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                previewImg.src = e.target.result;
+                                previewImg.style.display = 'block';
+                            };
+                            reader.readAsDataURL(fileInput.files[0]);
+                        } else {
+                            fileNameSpan.textContent = "Belum ada file dipilih.";
+                            previewImg.src = '';
+                            previewImg.style.display = 'none';
+                        }
+                    });
+                    document.getElementById('modFile').addEventListener('change', () => {
+                        const fileInput = document.getElementById('modFile');
+                        const fileNameSpan = document.getElementById('modFileName');
+                        if (fileInput.files.length > 0) {
+                            fileNameSpan.textContent = fileInput.files[0].name;
+                        } else {
+                            fileNameSpan.textContent = "Belum ada file dipilih.";
+                        }
+                    });
                     document.getElementById('submitModFormBtn').addEventListener('click', submitMod);
                     break;
                 case 'login':
@@ -2518,15 +2613,37 @@
             }
             checkMaintenanceModeAndRedirect();
         }
+        window.showPage = showPage;
 
         function bindAdminEvents() {
-            document.getElementById('adminNavUsers').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminUsers', e.target); });
-            document.getElementById('adminNavProducts').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminProducts', e.target); });
-            document.getElementById('adminNavSubmissions').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminSubmissions', e.target); });
-            document.getElementById('adminNavChats').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminChats', e.target); });
-            document.getElementById('adminNavDiscounts').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminDiscounts', e.target); });
-            document.getElementById('adminNavMaintenance').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminMaintenance', e.target); });
-            document.getElementById('adminNavWarnings').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminWarnings', e.target); });
+            document.getElementById('adminNavUsers').addEventListener('click', (e) => {
+                e.preventDefault();
+                showAdminSection('adminUsers', e.target);
+            });
+            document.getElementById('adminNavProducts').addEventListener('click', (e) => {
+                e.preventDefault();
+                showAdminSection('adminProducts', e.target);
+            });
+            document.getElementById('adminNavSubmissions').addEventListener('click', (e) => {
+                e.preventDefault();
+                showAdminSection('adminSubmissions', e.target);
+            });
+            document.getElementById('adminNavChats').addEventListener('click', (e) => {
+                e.preventDefault();
+                showAdminSection('adminChats', e.target);
+            });
+            document.getElementById('adminNavDiscounts').addEventListener('click', (e) => {
+                e.preventDefault();
+                showAdminSection('adminDiscounts', e.target);
+            });
+            document.getElementById('adminNavMaintenance').addEventListener('click', (e) => {
+                e.preventDefault();
+                showAdminSection('adminMaintenance', e.target);
+            });
+            document.getElementById('adminNavWarnings').addEventListener('click', (e) => {
+                e.preventDefault();
+                showAdminSection('adminWarnings', e.target);
+            });
 
             const uploadModBtn = document.getElementById('uploadModBtn');
             if (uploadModBtn) {
@@ -2543,21 +2660,31 @@
             document.getElementById('addProductBtn').addEventListener('click', addProduct);
 
             const editProductImage = document.getElementById('editProductImage');
-            if (editProductImage) { editProductImage.addEventListener('input', () => displayImagePreview('editProductImage', 'editProductImagePreview')); }
+            if (editProductImage) {
+                editProductImage.addEventListener('input', () => displayImagePreview('editProductImage', 'editProductImagePreview'));
+            }
 
             const adminProductImage = document.getElementById('adminProductImage');
-            if (adminProductImage) { adminProductImage.addEventListener('input', () => displayImagePreview('adminProductImage', 'adminProductImagePreview')); }
+            if (adminProductImage) {
+                adminProductImage.addEventListener('input', () => displayImagePreview('adminProductImage', 'adminProductImagePreview'));
+            }
 
             const discountStatus = document.getElementById('discountStatus');
-            if (discountStatus) { discountStatus.addEventListener('change', toggleDiscountFields); }
+            if (discountStatus) {
+                discountStatus.addEventListener('change', toggleDiscountFields);
+            }
 
             const discountTargetType = document.getElementById('discountTargetType');
-            if (discountTargetType) { discountTargetType.addEventListener('change', toggleDiscountTargetProductSelect); }
+            if (discountTargetType) {
+                discountTargetType.addEventListener('change', toggleDiscountTargetProductSelect);
+            }
 
             document.getElementById('saveDiscountConfigBtn').addEventListener('click', saveDiscountConfig);
 
             const maintenanceStatus = document.getElementById('maintenanceStatus');
-            if (maintenanceStatus) { maintenanceStatus.addEventListener('change', toggleMaintenanceFields); }
+            if (maintenanceStatus) {
+                maintenanceStatus.addEventListener('change', toggleMaintenanceFields);
+            }
 
             document.getElementById('saveMaintenanceConfigBtn').addEventListener('click', saveMaintenanceConfig);
             document.getElementById('stopMaintenanceBtn').addEventListener('click', stopMaintenance);
@@ -2565,9 +2692,13 @@
             document.getElementById('sendWarningBtn').addEventListener('click', sendWarning);
 
             const updateProductBtn = document.getElementById('updateProductBtn');
-            if (updateProductBtn) { updateProductBtn.addEventListener('click', updateProduct); }
+            if (updateProductBtn) {
+                updateProductBtn.addEventListener('click', updateProduct);
+            }
             const cancelEditProductBtn = document.getElementById('cancelEditProductBtn');
-            if (cancelEditProductBtn) { cancelEditProductBtn.addEventListener('click', closeEditProductModal); }
+            if (cancelEditProductBtn) {
+                cancelEditProductBtn.addEventListener('click', closeEditProductModal);
+            }
 
             // New admin panel listeners
             const autoReleaseStatus = document.getElementById('autoReleaseStatus');
@@ -2706,9 +2837,9 @@
                             <td data-label="Tanggal Dibuat">${createdAt}</td>
                             <td data-label="Aksi">
                                 ${!userData.isAdmin ?
-                            `<button class="action-btn make-admin-btn" data-user-id="${userId}">Jadikan Admin</button>` :
-                            `<button class="action-btn remove-admin-btn" data-user-id="${userId}">Hapus Admin</button>`
-                        }
+                                `<button class="action-btn make-admin-btn" data-user-id="${userId}">Jadikan Admin</button>` :
+                                `<button class="action-btn remove-admin-btn" data-user-id="${userId}">Hapus Admin</button>`
+                            }
                                 <button class="action-btn delete-user-btn" data-user-id="${userId}">Hapus</button>
                             </td>
                         </tr>
@@ -2815,7 +2946,12 @@
                 const now = new Date().getTime();
                 if (now >= endTime) {
                     saveDiscountConfigToFirestore({
-                        isActive: false, percentage: 0, targetType: 'all', targetProducts: [], targetUsers: '', countdownEndTime: null
+                        isActive: false,
+                        percentage: 0,
+                        targetType: 'all',
+                        targetProducts: [],
+                        targetUsers: '',
+                        countdownEndTime: null
                     });
                     showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
                 }
@@ -2932,15 +3068,18 @@
             const clonedBuyButton = detailBuyButton.cloneNode(true);
             detailBuyButton.parentNode.replaceChild(clonedBuyButton, detailBuyButton);
             clonedBuyButton.addEventListener('click', () => {
+                pendingDownloadProductId = productId; // Store the product ID for later use
                 // Check for warnings before proceeding with purchase
                 const hasWarnings = product.warnings && product.warnings.length > 0;
                 if (hasWarnings) {
-                    showModWarningModal(product.warnings, () => confirmPurchase(productId));
+                    showModWarningModal(product.warnings);
                 } else {
                     confirmPurchase(productId);
                 }
                 closeProductDetailModal();
-            }, { once: true });
+            }, {
+                once: true
+            });
 
             currentProductIdForQNA = productId;
             await displayQuestionsForProduct(productId);
@@ -2949,7 +3088,7 @@
         }
         window.showProductDetail = showProductDetail;
 
-        function showModWarningModal(warnings, onProceed) {
+        function showModWarningModal(warnings) {
             const modal = document.getElementById('modWarningModal');
             const messageEl = document.getElementById('modWarningMessage');
             const listEl = document.getElementById('modWarningList');
@@ -2963,11 +3102,20 @@
                 listEl.appendChild(li);
             });
 
-            proceedBtn.onclick = () => {
-                onProceed();
+            // Re-bind buttons with the pending product ID
+            const clonedProceedBtn = proceedBtn.cloneNode(true);
+            proceedBtn.parentNode.replaceChild(clonedProceedBtn, proceedBtn);
+            clonedProceedBtn.onclick = () => {
+                if (pendingDownloadProductId) {
+                    confirmPurchase(pendingDownloadProductId);
+                }
                 closeModWarningModal();
             };
-            cancelBtn.onclick = () => closeModWarningModal();
+
+            const clonedCancelBtn = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(clonedCancelBtn, cancelBtn);
+            clonedCancelBtn.onclick = () => closeModWarningModal();
+
 
             modal.style.display = 'flex';
             isModWarningModalOpen = true;
@@ -3018,6 +3166,7 @@
             document.getElementById('confirmationMessage').innerHTML = message;
             document.getElementById('confirmationModal').style.display = 'flex';
         }
+        window.confirmPurchase = confirmPurchase;
 
         function hideConfirmation() {
             document.getElementById('confirmationModal').style.display = 'none';
@@ -3192,6 +3341,24 @@
             }
         }
         window.signInWithGoogle = signInWithGoogle;
+        
+        async function handleFileUpload(file, path) {
+            if (!file) {
+                return null;
+            }
+
+            const storageRef = ref(storage, path);
+            try {
+                const uploadTask = await uploadBytes(storageRef, file);
+                const downloadUrl = await getDownloadURL(uploadTask.ref);
+                return downloadUrl;
+            } catch (error) {
+                console.error("Error uploading file:", error);
+                showModal('Unggah Gagal', `Terjadi kesalahan saat mengunggah file. Silakan coba lagi.`, 'error');
+                return null;
+            }
+        }
+        window.handleFileUpload = handleFileUpload;
 
         function displayImagePreview(inputId, previewImgId) {
             const urlInput = document.getElementById(inputId);
@@ -3240,7 +3407,12 @@
 
             try {
                 await setDoc(doc(productsCol, productId), {
-                    id: productId, name: name, price: price, image: imageUrl || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack', downloadUrl: downloadUrl, description: description
+                    id: productId,
+                    name: name,
+                    price: price,
+                    image: imageUrl || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack',
+                    downloadUrl: downloadUrl,
+                    description: description
                 });
                 console.log("Product added to Firestore:", productId);
 
@@ -3290,7 +3462,10 @@
 
         function showEditProductModal(productId) {
             const product = allProducts[productId];
-            if (!product) { showModal('Error!', 'Produk tidak ditemukan untuk diedit.', 'error'); return; }
+            if (!product) {
+                showModal('Error!', 'Produk tidak ditemukan untuk diedit.', 'error');
+                return;
+            }
             document.getElementById('editProductId').value = product.id;
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editProductPrice').value = product.price;
@@ -3302,7 +3477,9 @@
                 editProductImage.value = product.image;
                 editProductImagePreview.src = product.image;
                 editProductImagePreview.style.display = 'block';
-                editProductImagePreview.onerror = () => { editProductImagePreview.src = 'https://placehold.co/100x100/2a2a2a/f0f0f0?text=Gambar+Rusak'; };
+                editProductImagePreview.onerror = () => {
+                    editProductImagePreview.src = 'https://placehold.co/100x100/2a2a2a/f0f0f0?text=Gambar+Rusak';
+                };
             } else {
                 editProductImage.value = '';
                 editProductImagePreview.src = '';
@@ -3340,7 +3517,11 @@
 
             try {
                 await updateDoc(doc(productsCol, productId), {
-                    name: name, price: price, image: imageUrl || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack', downloadUrl: downloadUrl, description: description
+                    name: name,
+                    price: price,
+                    image: imageUrl || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack',
+                    downloadUrl: downloadUrl,
+                    description: description
                 });
                 showModal('Berhasil!', `Produk "<strong>${name}</strong>" berhasil diperbarui!`, 'success');
                 closeEditProductModal();
@@ -3353,7 +3534,10 @@
 
         async function deleteProduct(productId) {
             const product = allProducts[productId];
-            if (!product) { showModal('Error!', 'Produk tidak ditemukan untuk dihapus.', 'error'); return; }
+            if (!product) {
+                showModal('Error!', 'Produk tidak ditemukan untuk dihapus.', 'error');
+                return;
+            }
             const confirmationModal = document.getElementById('confirmationModal');
             const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
             const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
@@ -3396,7 +3580,9 @@
             }
             const sortedProducts = Object.keys(salesCount)
                 .map(productId => ({
-                    id: productId, name: products[productId] ? products[productId].name : 'Produk Tidak Dikenal', sales: salesCount[productId]
+                    id: productId,
+                    name: products[productId] ? products[productId].name : 'Produk Tidak Dikenal',
+                    sales: salesCount[productId]
                 }))
                 .sort((a, b) => b.sales - a.sales)
                 .slice(0, 5);
@@ -3487,7 +3673,9 @@
 
         async function saveDiscountConfigToFirestore(updates) {
             try {
-                await updateDoc(doc(configCol, "global_settings"), { discount: updates });
+                await updateDoc(doc(configCol, "global_settings"), {
+                    discount: updates
+                });
                 console.log("Discount config updated in Firestore.");
             } catch (error) {
                 console.error("Error saving discount config:", error.message);
@@ -3521,9 +3709,18 @@
             const countdownEndTime = endTimeValue ? new Date(endTimeValue).toISOString() : null;
 
             if (isActive) {
-                if (isNaN(percentage) || percentage <= 0 || percentage > 100) { showModal('Input Tidak Valid', 'Persentase diskon harus antara 1-100.', 'warning'); return; }
-                if (targetType === 'specific' && targetProducts.length === 0) { showModal('Pilih Produk', 'Jika target diskon spesifik, pilih setidaknya satu produk.', 'warning'); return; }
-                if (countdownEndTime && new Date(countdownEndTime).getTime() <= new Date().getTime()) { showModal('Waktu Berakhir Tidak Valid', 'Waktu berakhir diskon harus di masa depan jika diatur.', 'warning'); return; }
+                if (isNaN(percentage) || percentage <= 0 || percentage > 100) {
+                    showModal('Input Tidak Valid', 'Persentase diskon harus antara 1-100.', 'warning');
+                    return;
+                }
+                if (targetType === 'specific' && targetProducts.length === 0) {
+                    showModal('Pilih Produk', 'Jika target diskon spesifik, pilih setidaknya satu produk.', 'warning');
+                    return;
+                }
+                if (countdownEndTime && new Date(countdownEndTime).getTime() <= new Date().getTime()) {
+                    showModal('Waktu Berakhir Tidak Valid', 'Waktu berakhir diskon harus di masa depan jika diatur.', 'warning');
+                    return;
+                }
             }
 
             const newConfig = {
@@ -3536,7 +3733,9 @@
             };
 
             try {
-                await updateDoc(doc(configCol, "global_settings"), { discount: newConfig });
+                await updateDoc(doc(configCol, "global_settings"), {
+                    discount: newConfig
+                });
                 showModal('Berhasil!', 'Pengaturan diskon berhasil disimpan!', 'success');
             } catch (error) {
                 console.error("Error saving discount config:", error.message);
@@ -3554,7 +3753,9 @@
             const countdownSection = document.getElementById('discountCountdownSection');
             const countdownTimer = document.getElementById('countdownTimer');
             const countdownMessage = document.getElementById('countdownMessage');
-            if (!countdownSection || !countdownTimer || !countdownMessage) { return; }
+            if (!countdownSection || !countdownTimer || !countdownMessage) {
+                return;
+            }
             if (!currentDiscountConfig.isActive || !currentDiscountConfig.countdownEndTime) {
                 countdownSection.style.display = 'none';
                 return;
@@ -3572,7 +3773,12 @@
                     countdownTimer.classList.add('expired');
                     countdownMessage.textContent = "Penawaran spesial telah berakhir!";
                     saveDiscountConfigToFirestore({
-                        isActive: false, percentage: 0, targetType: 'all', targetProducts: [], targetUsers: '', countdownEndTime: null
+                        isActive: false,
+                        percentage: 0,
+                        targetType: 'all',
+                        targetProducts: [],
+                        targetUsers: '',
+                        countdownEndTime: null
                     });
                     showModal('Diskon Berakhir!', 'Penawaran spesial telah berakhir. Harga kembali normal.', 'warning');
                     return;
@@ -3647,18 +3853,38 @@
             const estimatedDuration = maintenanceDuration.value.trim();
             let endTimeValue = maintenanceEndTime.value;
             let endTime = endTimeValue ? new Date(endTimeValue).toISOString() : null;
-            if (!isActive) { endTime = null; }
+            if (!isActive) {
+                endTime = null;
+            }
             if (isActive) {
-                if (!reason) { showModal('Input Kosong', 'Harap masukkan alasan maintenance yang akan ditampilkan ke pengguna.', 'warning'); return; }
-                if (!estimatedDuration) { showModal('Input Kosong', 'Harap masukkan perkiraan durasi maintenance yang akan ditampilkan ke pengguna.', 'warning'); return; }
-                if (endTime && new Date(endTime).getTime() <= new Date().getTime()) { showModal('Waktu Berakhir Tidak Valid', 'Waktu berakhir maintenance harus di masa depan jika diatur.', 'warning'); return; }
+                if (!reason) {
+                    showModal('Input Kosong', 'Harap masukkan alasan maintenance yang akan ditampilkan ke pengguna.', 'warning');
+                    return;
+                }
+                if (!estimatedDuration) {
+                    showModal('Input Kosong', 'Harap masukkan perkiraan durasi maintenance yang akan ditampilkan ke pengguna.', 'warning');
+                    return;
+                }
+                if (endTime && new Date(endTime).getTime() <= new Date().getTime()) {
+                    showModal('Waktu Berakhir Tidak Valid', 'Waktu berakhir maintenance harus di masa depan jika diatur.', 'warning');
+                    return;
+                }
             }
             const newConfig = {
-                isActive: isActive, startTime: isActive ? new Date().toISOString() : null, endTime: endTime, reason: reason, estimatedDuration: estimatedDuration
+                isActive: isActive,
+                startTime: isActive ? new Date().toISOString() : null,
+                endTime: endTime,
+                reason: reason,
+                estimatedDuration: estimatedDuration
             };
             try {
-                if (maintenanceCountdownInterval) { clearInterval(maintenanceCountdownInterval); maintenanceCountdownInterval = null; }
-                await updateDoc(doc(configCol, "global_settings"), { maintenance: newConfig });
+                if (maintenanceCountdownInterval) {
+                    clearInterval(maintenanceCountdownInterval);
+                    maintenanceCountdownInterval = null;
+                }
+                await updateDoc(doc(configCol, "global_settings"), {
+                    maintenance: newConfig
+                });
                 showModal('Berhasil!', `Mode pemeliharaan ${isActive ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
             } catch (error) {
                 console.error("Error saving maintenance config:", error.message);
@@ -3678,21 +3904,35 @@
             confirmPurchaseBtn.onclick = async () => {
                 try {
                     await updateDoc(doc(configCol, "global_settings"), {
-                        maintenance: { isActive: false, startTime: null, endTime: null, reason: "", estimatedDuration: "" }
+                        maintenance: {
+                            isActive: false,
+                            startTime: null,
+                            endTime: null,
+                            reason: "",
+                            estimatedDuration: ""
+                        }
                     });
                     showModal('Berhasil!', 'Mode pemeliharaan telah dihentikan. Situs kembali online!', 'success');
                     setTimeout(() => showPage('home'), 1000);
                 } catch (error) {
                     console.error("Error stopping maintenance:", error.message);
                     showModal('Gagal!', 'Terjadi kesalahan saat menghentikan mode pemeliharaan.', 'error');
-                } finally { hideConfirmation(); }
+                } finally {
+                    hideConfirmation();
+                }
             };
-            cancelPurchaseBtn.onclick = () => { showModal('Dibatalkan', 'Penghentian mode pemeliharaan dibatalkan.', 'warning'); hideConfirmation(); };
+            cancelPurchaseBtn.onclick = () => {
+                showModal('Dibatalkan', 'Penghentian mode pemeliharaan dibatalkan.', 'warning');
+                hideConfirmation();
+            };
         }
         window.stopMaintenance = stopMaintenance;
 
         function startMaintenanceCountdown() {
-            if (maintenanceCountdownInterval) { clearInterval(maintenanceCountdownInterval); maintenanceCountdownInterval = null; }
+            if (maintenanceCountdownInterval) {
+                clearInterval(maintenanceCountdownInterval);
+                maintenanceCountdownInterval = null;
+            }
             const currentMaintenanceConfig = maintenanceConfig;
             const maintenanceCountdownElement = document.getElementById('maintenanceCountdown');
             const maintenanceReasonElement = document.getElementById('maintenanceReason');
@@ -3705,7 +3945,11 @@
             const endTime = new Date(currentMaintenanceConfig.endTime).getTime();
             maintenanceCountdownElement.style.display = 'block';
             maintenanceReasonElement.style.display = 'block';
-            if (currentMaintenanceConfig.reason) { maintenanceReasonElement.innerHTML = `<strong>Alasan Maintenance:</strong><br>${currentMaintenanceConfig.reason}`; } else { maintenanceReasonElement.innerHTML = ''; }
+            if (currentMaintenanceConfig.reason) {
+                maintenanceReasonElement.innerHTML = `<strong>Alasan Maintenance:</strong><br>${currentMaintenanceConfig.reason}`;
+            } else {
+                maintenanceReasonElement.innerHTML = '';
+            }
             maintenanceCountdownInterval = setInterval(() => {
                 const now = new Date().getTime();
                 const distance = endTime - now;
@@ -3713,7 +3957,10 @@
                     clearInterval(maintenanceCountdownInterval);
                     maintenanceCountdownInterval = null;
                     maintenanceCountdownElement.textContent = "Maintenance selesai!";
-                    saveMaintenanceConfigToFirestore({ isActive: false, endTime: null });
+                    saveMaintenanceConfigToFirestore({
+                        isActive: false,
+                        endTime: null
+                    });
                     return;
                 }
                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -3732,17 +3979,38 @@
             const maintenanceReasonElement = document.getElementById('maintenanceReason');
             const isAdminLoggedIn = (currentUser && currentUser.isAdmin === true);
             if (currentMaintenanceConfig.isActive && !isAdminLoggedIn) {
-                if (appContent) { appContent.style.display = 'none'; }
-                if (maintenanceOverlay) { maintenanceOverlay.style.display = 'flex'; }
-                if (maintenanceCountdownElement && maintenanceReasonElement) {
-                    if (currentMaintenanceConfig.reason) { maintenanceReasonElement.innerHTML = `<strong>Alasan Maintenance:</strong><br>${currentMaintenanceConfig.reason}`; } else { maintenanceReasonElement.innerHTML = ''; }
-                    if (currentMaintenanceConfig.estimatedDuration) { maintenanceCountdownElement.textContent = `Perkiraan durasi: ${currentMaintenanceConfig.estimatedDuration}`; } else { maintenanceCountdownElement.innerHTML = ''; } // Fixed bug here
+                if (appContent) {
+                    appContent.style.display = 'none';
                 }
-                if (currentMaintenanceConfig.endTime) { startMaintenanceCountdown(); }
+                if (maintenanceOverlay) {
+                    maintenanceOverlay.style.display = 'flex';
+                }
+                if (maintenanceCountdownElement && maintenanceReasonElement) {
+                    if (currentMaintenanceConfig.reason) {
+                        maintenanceReasonElement.innerHTML = `<strong>Alasan Maintenance:</strong><br>${currentMaintenanceConfig.reason}`;
+                    } else {
+                        maintenanceReasonElement.innerHTML = '';
+                    }
+                    if (currentMaintenanceConfig.estimatedDuration) {
+                        maintenanceCountdownElement.textContent = `Perkiraan durasi: ${currentMaintenanceConfig.estimatedDuration}`;
+                    } else {
+                        maintenanceCountdownElement.innerHTML = '';
+                    } // Fixed bug here
+                }
+                if (currentMaintenanceConfig.endTime) {
+                    startMaintenanceCountdown();
+                }
             } else {
-                if (appContent) { appContent.style.display = 'block'; }
-                if (maintenanceOverlay) { maintenanceOverlay.style.display = 'none'; }
-                if (maintenanceCountdownInterval) { clearInterval(maintenanceCountdownInterval); maintenanceCountdownInterval = null; }
+                if (appContent) {
+                    appContent.style.display = 'block';
+                }
+                if (maintenanceOverlay) {
+                    maintenanceOverlay.style.display = 'none';
+                }
+                if (maintenanceCountdownInterval) {
+                    clearInterval(maintenanceCountdownInterval);
+                    maintenanceCountdownInterval = null;
+                }
             }
         }
         window.checkMaintenanceModeAndRedirect = checkMaintenanceModeAndRedirect;
@@ -3769,9 +4037,16 @@
             const message = warningMessageInput.value.trim();
             const fileUrl = warningFileUrlInput.value.trim();
             const selectedUserIds = Array.from(warningTargetUsersSelect.selectedOptions).map(option => option.value);
-            if (!message) { showModal('Peringatan Kosong', 'Pesan peringatan tidak boleh kosong.', 'warning'); return; }
+            if (!message) {
+                showModal('Peringatan Kosong', 'Pesan peringatan tidak boleh kosong.', 'warning');
+                return;
+            }
             const newWarning = {
-                message: message, fileUrl: fileUrl || null, targetUserIds: selectedUserIds, sentAt: new Date().toISOString(), isRead: {}
+                message: message,
+                fileUrl: fileUrl || null,
+                targetUserIds: selectedUserIds,
+                sentAt: new Date().toISOString(),
+                isRead: {}
             };
             try {
                 await addDoc(warningsCol, newWarning);
@@ -3816,10 +4091,10 @@
                         const questionDate = new Date(questionData.askedAt).toLocaleString('id-ID');
                         const canModifyQuestion = (currentUser && (currentUser.uid === questionData.userId || currentUser.isAdmin));
 
-                        // Replace URLs in question text with clickable links
+                        // Replace URLs in question text with plain text
                         let formattedQuestionText = questionData.questionText;
                         if (questionData.questionImage) {
-                            formattedQuestionText += ` <div style="margin-top: 10px;"><a href="${questionData.questionImage}" target="_blank"><img src="${questionData.questionImage}" class="qna-image" alt="Lampiran Pertanyaan"></a></div>`;
+                            formattedQuestionText += ` <div style="margin-top: 10px;">Gambar terdeteksi: <span style="color: var(--accent-color); font-style: italic;">(URL disembunyikan untuk keamanan)</span></div>`;
                         }
                         formattedQuestionText = formattedQuestionText.replace(URL_REGEX, (url) => {
                             const urlObj = new URL(url);
@@ -4131,7 +4406,9 @@
                     answeredAt: new Date().toISOString()
                 };
 
-                await updateDoc(questionDocRef, { answers: updatedAnswers });
+                await updateDoc(questionDocRef, {
+                    answers: updatedAnswers
+                });
                 showModal('Berhasil!', 'Jawaban berhasil diperbarui!', 'success');
             } catch (error) {
                 console.error("Error updating answer:", error.message);
@@ -4166,7 +4443,9 @@
                     const questionDocRef = doc(questionsCol, questionId);
                     const updatedAnswers = [...question.answers];
                     updatedAnswers.splice(answerIndex, 1);
-                    await updateDoc(questionDocRef, { answers: updatedAnswers });
+                    await updateDoc(questionDocRef, {
+                        answers: updatedAnswers
+                    });
                     showModal('Berhasil!', 'Jawaban berhasil dihapus.', 'success');
                 } catch (error) {
                     console.error("Error deleting answer:", error.message);
@@ -4287,44 +4566,64 @@
                 return;
             }
 
-            const name = document.getElementById('modName').value.trim();
-            const price = parseFloat(document.getElementById('modPrice').value);
-            const image = document.getElementById('modImage').value.trim();
-            const downloadUrl = document.getElementById('modDownloadUrl').value.trim();
-            const description = document.getElementById('modDescription').value.trim();
+            const modName = document.getElementById('modName').value.trim();
+            const modPrice = parseFloat(document.getElementById('modPrice').value);
+            const modImageFile = document.getElementById('modImageFile').files[0];
+            const modFile = document.getElementById('modFile').files[0];
+            const modDescription = document.getElementById('modDescription').value.trim();
             const virusTotalLink = document.getElementById('modVirusTotal').value.trim();
 
-            if (!name || isNaN(price) || price < 0 || !downloadUrl || !description || !virusTotalLink) {
-                showModal('Input Tidak Valid', 'Nama, harga, URL unduhan, deskripsi, dan bukti VirusTotal harus diisi.', 'warning');
+            if (!modName || isNaN(modPrice) || modPrice < 0 || !modFile || !modDescription || !virusTotalLink) {
+                showModal('Input Tidak Valid', 'Nama, harga, file mod, deskripsi, dan URL VirusTotal harus diisi.', 'warning');
                 return;
             }
 
+            // Show loading message
+            showModal('Mengunggah Mod...', 'Harap tunggu, proses ini mungkin memakan waktu beberapa saat.', 'info', '', '', false);
+
             const submissionId = generateSubmissionId();
+            
+            let imageUrl = '';
+            if (modImageFile) {
+                imageUrl = await handleFileUpload(modImageFile, `mod_images/${submissionId}-${modImageFile.name}`);
+                if (!imageUrl) {
+                    closeModal();
+                    return;
+                }
+            }
+            
+            const downloadUrl = await handleFileUpload(modFile, `mod_files/${submissionId}-${modFile.name}`);
+            if (!downloadUrl) {
+                closeModal();
+                return;
+            }
+
             const modSubmissionData = {
                 id: submissionId,
-                name,
-                price,
-                image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack',
-                downloadUrl,
-                description,
+                name: modName,
+                price: modPrice,
+                image: imageUrl,
+                downloadUrl: downloadUrl,
+                description: modDescription,
+                virusTotalLink: virusTotalLink,
                 userId: currentUser.uid,
                 username: currentUser.email,
                 submittedAt: new Date().toISOString(),
                 status: 'pending',
                 chatId: submissionId,
-                virusTotalLink
+                warnings: []
             };
 
             try {
                 if (autoReleaseEnabled) {
                     await setDoc(doc(productsCol, submissionId), modSubmissionData);
-                    showModal('Mod Berhasil Dirilis', `Mod "${name}" telah dirilis secara otomatis!`, 'success');
+                    showModal('Mod Berhasil Dirilis', `Mod "${modName}" telah dirilis secara otomatis!`, 'success');
                     showPage('home');
                 } else {
                     await setDoc(doc(modSubmissionsCol, submissionId), modSubmissionData);
                     const submissionSuccessModal = document.getElementById('submissionSuccessModal');
                     const messageEl = document.getElementById('submissionSuccessMessage');
-                    messageEl.textContent = `Tunggu 1 - 5 hari lagi untuk peninjauan mod Anda. Jika tidak ada tanggapan, silakan hubungi admin melalui chat.`;
+                    messageEl.innerHTML = `Tunggu 1 - 5 hari lagi untuk peninjauan mod Anda. <br>Jika tidak ada tanggapan, silakan hubungi admin melalui chat.`;
                     const chatBtn = document.getElementById('submissionChatButton');
                     chatBtn.onclick = () => openAdminChat(submissionId);
                     submissionSuccessModal.style.display = 'flex';
@@ -4464,7 +4763,9 @@
 
         async function saveAutoReleaseStatus(enabled) {
             try {
-                await updateDoc(doc(configCol, "admin_settings"), { autoRelease: enabled });
+                await updateDoc(doc(configCol, "admin_settings"), {
+                    autoRelease: enabled
+                });
                 showModal('Berhasil', `Rilis Otomatis telah ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
             } catch (error) {
                 console.error("Error saving auto-release status:", error);
@@ -4608,14 +4909,36 @@
         window.setupChatNotifications = setupChatNotifications;
 
         function setupGlobalEventListeners() {
-            document.getElementById('navHome').addEventListener('click', (e) => { e.preventDefault(); showPage('home'); });
-            document.getElementById('navLogin').addEventListener('click', (e) => { e.preventDefault(); showPage('login'); });
-            document.getElementById('navRegister').addEventListener('click', (e) => { e.preventDefault(); showPage('register'); });
-            document.getElementById('navProfile').addEventListener('click', (e) => { e.preventDefault(); showPage('profile'); });
+            document.getElementById('navHome').addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('home');
+            });
+            document.getElementById('navLogin').addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('login');
+            });
+            document.getElementById('navRegister').addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('register');
+            });
+            document.getElementById('navProfile').addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('profile');
+            });
             const navAdmin = document.getElementById('navAdmin');
-            if (navAdmin) { navAdmin.addEventListener('click', (e) => { e.preventDefault(); showPage('admin'); }); }
+            if (navAdmin) {
+                navAdmin.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage('admin');
+                });
+            }
             const navLogout = document.getElementById('navLogout');
-            if (navLogout) { navLogout.addEventListener('click', (e) => { e.preventDefault(); logoutUser(); }); }
+            if (navLogout) {
+                navLogout.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    logoutUser();
+                });
+            }
 
             const uploadModBtn = document.getElementById('uploadModBtn');
             if (uploadModBtn) {
@@ -4628,7 +4951,10 @@
                 });
             }
 
-            document.getElementById('privacyPolicyLink').addEventListener('click', (e) => { e.preventDefault(); showPrivacyPolicyModal(); });
+            document.getElementById('privacyPolicyLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                showPrivacyPolicyModal();
+            });
             document.getElementById('privacyPolicyCloseButton').addEventListener('click', closePrivacyPolicyModal);
             document.getElementById('privacyPolicyOkBtn').addEventListener('click', closePrivacyPolicyModal);
 
@@ -4640,15 +4966,29 @@
             document.getElementById('confirmationCloseButton').addEventListener('click', hideConfirmation);
 
             const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
-            if (confirmPurchaseBtn) { confirmPurchaseBtn.addEventListener('click', () => { if (currentPurchaseProductId) { simulatePurchase(currentPurchaseProductId); } hideConfirmation(); }); }
+            if (confirmPurchaseBtn) {
+                confirmPurchaseBtn.addEventListener('click', () => {
+                    if (currentPurchaseProductId) {
+                        simulatePurchase(currentPurchaseProductId);
+                    }
+                    hideConfirmation();
+                });
+            }
             const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
-            if (cancelPurchaseBtn) { cancelPurchaseBtn.addEventListener('click', () => { showModal('Pembelian Dibatalkan', 'Anda telah membatalkan pembelian.', 'warning'); hideConfirmation(); }); }
+            if (cancelPurchaseBtn) {
+                cancelPurchaseBtn.addEventListener('click', () => {
+                    showModal('Pembelian Dibatalkan', 'Anda telah membatalkan pembelian.', 'warning');
+                    hideConfirmation();
+                });
+            }
 
             document.getElementById('adminSecretLoginBtn').addEventListener('click', verifyAdminSecretLogin);
             document.getElementById('editProductCloseButton').addEventListener('click', closeEditProductModal);
             document.getElementById('updateProductBtn').addEventListener('click', updateProduct);
             const cancelEditProductBtn = document.getElementById('cancelEditProductBtn');
-            if (cancelEditProductBtn) { cancelEditProductBtn.addEventListener('click', closeEditProductModal); }
+            if (cancelEditProductBtn) {
+                cancelEditProductBtn.addEventListener('click', closeEditProductModal);
+            }
 
             // New keydown event listener for a more deliberate secret admin login
             document.addEventListener('keydown', (e) => {
@@ -4658,7 +4998,9 @@
                 if (isShiftA) {
                     keySequence = 'ShiftA';
                     clearTimeout(keyTimeout);
-                    keyTimeout = setTimeout(() => { keySequence = ''; }, 1000);
+                    keyTimeout = setTimeout(() => {
+                        keySequence = '';
+                    }, 1000);
                 } else if (isShiftS && keySequence === 'ShiftA') {
                     showAdminSecretLogin();
                     keySequence = '';
