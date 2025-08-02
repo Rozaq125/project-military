@@ -1140,6 +1140,19 @@
             text-decoration: underline;
             cursor: pointer;
         }
+        
+        .qna-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: zoom-in;
+            transition: transform 0.2s ease;
+        }
+
+        .qna-image:hover {
+            transform: scale(1.05);
+        }
 
         /* Fix for footer positioning on small screens */
         body {
@@ -1153,8 +1166,77 @@
             margin-top: auto;
             width: 100%;
         }
-
         
+        /* Mod Submission Page */
+        #modSubmissionForm textarea {
+            min-height: 100px;
+        }
+
+        .admin-submission-item {
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .admin-submission-item .submission-info {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+        .admin-submission-item .submission-info strong {
+            color: var(--text-light);
+        }
+        .admin-submission-item .submission-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Admin Chat UI */
+        .admin-chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .chat-list {
+            list-style: none;
+            padding: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+            margin-bottom: 10px;
+        }
+        .chat-message {
+            background-color: var(--bg-medium);
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-bottom: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .chat-message.admin {
+            align-self: flex-end;
+            background-color: var(--accent-color);
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        .chat-message.user {
+            align-self: flex-start;
+            background-color: var(--bg-light);
+            border-bottom-left-radius: 0;
+        }
+        .chat-input-form {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input-form input {
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
@@ -1193,6 +1275,18 @@
             <button id="mainModalCloseButton">Tutup</button>
         </div>
     </div>
+    
+    <!-- Mod Submission success modal -->
+    <div id="submissionSuccessModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="submissionSuccessCloseButton">&times;</span>
+            <h2 id="submissionSuccessTitle">✅ Berhasil Terkirim!</h2>
+            <p>Terima kasih, kami akan meninjau Mod anda.</p>
+            <p id="submissionSuccessMessage"></p>
+            <button id="submissionChatButton">Chat Admin</button>
+            <button onclick="closeSubmissionSuccessModal()">Tutup</button>
+        </div>
+    </div>
 
     <!-- Product Detail Modal with Q&A -->
     <div id="productDetailModal" class="modal">
@@ -1217,6 +1311,10 @@
                     <div class="form-group">
                         <textarea id="newQuestionText" rows="3" placeholder="Tulis pertanyaan Anda di sini..."></textarea>
                     </div>
+                    <div class="form-group">
+                        <label for="newQuestionImage">URL Gambar (Opsional):</label>
+                        <input type="text" id="newQuestionImage" placeholder="Tempel URL gambar di sini">
+                    </div>
                     <button id="submitQuestionBtn">Kirim Pertanyaan</button>
                 </div>
                 <div id="questionsList">
@@ -1224,6 +1322,24 @@
                 </div>
             </div>
             
+        </div>
+    </div>
+
+    <!-- Admin Chat Modal -->
+    <div id="adminChatModal" class="modal">
+        <div class="modal-content" style="max-width: 600px; text-align: left;">
+            <span class="close-button" id="adminChatCloseButton">&times;</span>
+            <h2>💬 Chat Admin</h2>
+            <div class="admin-chat-container">
+                <div id="adminChatList" class="chat-list">
+                    <!-- Chat messages will be loaded here -->
+                </div>
+                <div id="chatInfo" style="margin-bottom: 10px;"></div>
+                <div class="chat-input-form">
+                    <textarea id="chatInputText" rows="1" placeholder="Tulis pesan Anda..."></textarea>
+                    <button id="sendChatMessageBtn">Kirim</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1357,12 +1473,16 @@
         const configCol = collection(db, "config");
         const warningsCol = collection(db, "warnings");
         const questionsCol = collection(db, "questions"); // New: Questions collection
+        const modSubmissionsCol = collection(db, "modSubmissions");
+        const adminChatsCol = collection(db, "adminChats");
 
         // Global state variables
         let allProducts = {};
         let allUsers = {};
         let allPurchases = {};
         let allQuestions = {};
+        let allModSubmissions = {};
+        let allAdminChats = {};
         let discountConfig = {};
         let maintenanceConfig = {
             isActive: false, startTime: null, endTime: null, reason: "", estimatedDuration: ""
@@ -1374,8 +1494,11 @@
         let userPurchases = {};
         let userWarnings = {};
         let currentProductIdForQNA = null; // New state variable for Q&A
+        let currentChatId = null; // For admin chat
         let keySequence = ''; // For the secret admin login key combo
         let keyTimeout = null; // New timeout for key combo
+        let isChatActive = false; // To prevent multiple chat listeners
+        let autoReleaseEnabled = false; // Global flag for auto-release
 
         // Secret admin code
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
@@ -1383,6 +1506,15 @@
         // =========================================================================
         // REAL-TIME FIRESTORE LISTENERS
         // =========================================================================
+        
+        onSnapshot(modSubmissionsCol, (snapshot) => {
+            allModSubmissions = {};
+            snapshot.forEach(doc => {
+                allModSubmissions[doc.id] = { ...doc.data(), id: doc.id };
+            });
+            console.log("Mod submissions updated:", allModSubmissions);
+            if (document.getElementById('adminSubmissions')) displayModSubmissionsAdmin();
+        });
 
         onSnapshot(productsCol, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
@@ -1483,11 +1615,14 @@
         const adminSettingsDocRef = doc(configCol, "admin_settings");
         onSnapshot(adminSettingsDocRef, (docSnap) => {
             if (docSnap.exists()) {
-                adminLockConfig = docSnap.data().adminLock || { isActive: false, allowedAdminEmails: [] };
-                console.log("Admin lock config updated:", adminLockConfig);
+                const data = docSnap.data();
+                adminLockConfig = data.adminLock || { isActive: false, allowedAdminEmails: [] };
+                autoReleaseEnabled = data.autoRelease || false;
+                console.log("Admin lock & auto-release config updated:", adminLockConfig, autoReleaseEnabled);
+                if (document.getElementById('autoReleaseStatus')) document.getElementById('autoReleaseStatus').checked = autoReleaseEnabled;
             } else {
                 console.log("Admin settings document does not exist, initializing default.");
-                setDoc(adminSettingsDocRef, { adminLock: adminLockConfig });
+                setDoc(adminSettingsDocRef, { adminLock: adminLockConfig, autoRelease: false });
             }
         });
 
@@ -1699,6 +1834,12 @@
             const modal = document.getElementById('privacyPolicyModal');
             modal.style.display = 'none';
         }
+        window.closePrivacyPolicyModal = closePrivacyPolicyModal;
+
+        function closeSubmissionSuccessModal() {
+            document.getElementById('submissionSuccessModal').style.display = 'none';
+        }
+        window.closeSubmissionSuccessModal = closeSubmissionSuccessModal;
 
         async function displayWarningModal(warningData) {
             const modalTitle = "Peringatan Admin!";
@@ -1744,6 +1885,12 @@
             const randomPart1 = Math.random().toString(36).substring(2, 8);
             const randomPart2 = Math.random().toString(36).substring(2, 7);
             return `PUR-${timestamp}-${randomPart1}-${randomPart2}`.toUpperCase();
+        }
+        
+        function generateSubmissionId() {
+             const timestamp = Date.now().toString(36).substring(0, 8);
+             const randomPart1 = Math.random().toString(36).substring(2, 8);
+             return `SUB-${timestamp}-${randomPart1}`.toUpperCase();
         }
 
         function updateAuthLinks() {
@@ -1812,13 +1959,62 @@
                             </div>
                         <div class="top-products-list" id="topProductsList">
                             </div>
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button id="submitModBtn">Ajukan Mod Anda</button>
+                        </div>
                     `;
                     appContent.innerHTML = htmlContent;
                     displayProducts();
                     displayTopSellingProducts();
                     startCountdown();
+                    if (document.getElementById('submitModBtn')) {
+                        document.getElementById('submitModBtn').addEventListener('click', () => {
+                            if (!currentUser) {
+                                showModal('Login Diperlukan', 'Anda harus login untuk mengajukan mod.', 'warning');
+                                return;
+                            }
+                            showPage('submitMod');
+                        });
+                    }
                     break;
-
+                case 'submitMod':
+                    if (!currentUser) {
+                        showModal('Login Diperlukan', 'Anda harus login untuk mengajukan mod.', 'warning');
+                        showPage('login');
+                        return;
+                    }
+                    htmlContent = `
+                        <h2>🚀 Ajukan Mod / Modpack Baru</h2>
+                        <p style="text-align:center; color:var(--text-medium);">Isi formulir di bawah ini untuk mengirimkan mod Anda agar ditinjau oleh admin.</p>
+                        <div id="modSubmissionForm">
+                            <div class="form-group">
+                                <label for="modName">Nama Modpack:</label>
+                                <input type="text" id="modName" placeholder="Contoh: Modpack Ultimate Graphics v2">
+                            </div>
+                            <div class="form-group">
+                                <label for="modPrice">Harga (IDR):</label>
+                                <input type="number" id="modPrice" placeholder="Contoh: 50000">
+                            </div>
+                            <div class="form-group">
+                                <label for="modImage">URL Gambar Produk (Opsional):</label>
+                                <input type="text" id="modImage" placeholder="URL Gambar. Contoh: https://i.imgur.com/modpack_gta.png">
+                                <img id="modImagePreview" src="" alt="Pratinjau Gambar" style="max-width: 100px; max-height: 100px; margin-top: 10px; display: none; border-radius: 5px;">
+                            </div>
+                            <div class="form-group">
+                                <label for="modDownloadUrl">URL Unduhan Modpack:</label>
+                                <input type="text" id="modDownloadUrl" placeholder="Contoh: https://link.mediafire.com/modpack_v2">
+                            </div>
+                            <div class="form-group">
+                                <label for="modDescription">Deskripsi/Fitur Modpack:</label>
+                                <textarea id="modDescription" rows="5" placeholder="Masukkan deskripsi atau fitur modpack di sini."></textarea>
+                            </div>
+                            <button id="submitModFormBtn">Ajukan Mod</button>
+                        </div>
+                    `;
+                    appContent.innerHTML = htmlContent;
+                    document.getElementById('modImage').addEventListener('input', () => displayImagePreview('modImage', 'modImagePreview'));
+                    document.getElementById('submitModFormBtn').addEventListener('click', submitMod);
+                    break;
                 case 'login':
                     if (currentUser) {
                         showModal('Sudah Login', `Anda sudah login sebagai ${currentUser.email}. Silakan logout terlebih dahulu jika ingin login dengan akun lain.`, 'warning');
@@ -1892,7 +2088,6 @@
                                 <p class="profile-info">Email: <strong>${currentUser.email || 'N/A'}</strong></p>
                                 <p class="profile-info">ID Pengguna: <small>${currentUser.uid}</small></p>
                             </div>
-
                             <div class="profile-section">
                                 <h3>Diskon Aktif</h3>
                                 <div id="activeDiscountInfo">
@@ -1906,6 +2101,12 @@
                                 <div id="purchaseHistoryList">
                                     <!-- Purchase history will be loaded here -->
                                     <p style="color:var(--text-medium);">Anda belum melakukan pembelian.</p>
+                                </div>
+                            </div>
+                            <div class="profile-section">
+                                <h3>Status Pengajuan Mod</h3>
+                                <div id="modSubmissionStatus">
+                                    <p style="color:var(--text-medium);">Anda tidak memiliki pengajuan mod yang tertunda.</p>
                                 </div>
                             </div>
 
@@ -1938,6 +2139,8 @@
                                 <ul class="admin-sidebar-nav">
                                     <li><a href="#" id="adminNavUsers" class="active">Manajemen Pengguna</a></li>
                                     <li><a href="#" id="adminNavProducts">Manajemen Produk</a></li>
+                                    <li><a href="#" id="adminNavSubmissions">Manajemen Pengajuan Mod</a><span id="submissionNotification" style="display:none; color: var(--warning-color); margin-left: 5px;">🔔</span></li>
+                                    <li><a href="#" id="adminNavChats">Chat Admin</a><span id="chatNotification" style="display:none; color: var(--warning-color); margin-left: 5px;">🔔</span></li>
                                     <li><a href="#" id="adminNavDiscounts">Pengaturan Diskon & Lock</a></li>
                                     <li><a href="#" id="adminNavMaintenance">Mode Pemeliharaan</a></li>
                                     <li><a href="#" id="adminNavWarnings">Kirim Peringatan</a></li>
@@ -1998,7 +2201,22 @@
                                         <p style="text-align:center; color:var(--text-medium);">Memuat produk...</p>
                                     </div>
                                 </div>
-
+                                <div id="adminSubmissions" class="admin-content-section">
+                                    <h3>Manajemen Pengajuan Mod</h3>
+                                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="checkbox" id="autoReleaseStatus">
+                                        <label for="autoReleaseStatus" style="margin: 0; font-weight: normal;">Aktifkan Rilis Otomatis</label>
+                                    </div>
+                                    <div id="modSubmissionsList">
+                                        <p style="text-align:center; color:var(--text-medium);">Tidak ada pengajuan mod baru.</p>
+                                    </div>
+                                </div>
+                                <div id="adminChats" class="admin-content-section">
+                                    <h3>Chat Admin</h3>
+                                    <div id="adminChatListContainer" style="max-height: 600px; overflow-y: auto;">
+                                        <p style="text-align: center; color: var(--text-medium);">Pilih pengajuan mod untuk memulai obrolan.</p>
+                                    </div>
+                                </div>
                                 <div id="adminDiscounts" class="admin-content-section">
                                     <h3 style="margin-top: 0;">💰 Pengaturan Diskon 💰</h3>
                                     <div class="form-group">
@@ -2094,7 +2312,11 @@
                     `;
                     appContent.innerHTML = htmlContent;
                     bindAdminEvents();
-                    showAdminSection('adminUsers', document.querySelector('nav a#adminNavUsers'));
+                    // Setup default admin section and listeners
+                    document.getElementById('adminNavUsers').classList.add('active');
+                    displayAllUsers();
+                    setupSubmissionNotifications();
+                    setupChatNotifications();
                     break;
                 default:
                     showPage('home');
@@ -2106,6 +2328,8 @@
         function bindAdminEvents() {
             document.getElementById('adminNavUsers').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminUsers', e.target); });
             document.getElementById('adminNavProducts').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminProducts', e.target); });
+            document.getElementById('adminNavSubmissions').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminSubmissions', e.target); });
+            document.getElementById('adminNavChats').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminChats', e.target); });
             document.getElementById('adminNavDiscounts').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminDiscounts', e.target); });
             document.getElementById('adminNavMaintenance').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminMaintenance', e.target); });
             document.getElementById('adminNavWarnings').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminWarnings', e.target); });
@@ -2139,8 +2363,15 @@
             if(updateProductBtn) { updateProductBtn.addEventListener('click', updateProduct); }
             const cancelEditProductBtn = document.getElementById('cancelEditProductBtn');
             if(cancelEditProductBtn) { cancelEditProductBtn.addEventListener('click', closeEditProductModal); }
+            
+            // New admin panel listeners
+            const autoReleaseStatus = document.getElementById('autoReleaseStatus');
+            if (autoReleaseStatus) {
+                autoReleaseStatus.checked = autoReleaseEnabled;
+                autoReleaseStatus.addEventListener('change', (e) => saveAutoReleaseStatus(e.target.checked));
+            }
         }
-
+        
         function showAdminSection(sectionId, clickedLink) {
             document.querySelectorAll('.admin-content-section').forEach(section => {
                 section.classList.remove('active');
@@ -2162,6 +2393,12 @@
                     break;
                 case 'adminProducts':
                     displayProductsAdmin();
+                    break;
+                case 'adminSubmissions':
+                    displayModSubmissionsAdmin();
+                    break;
+                case 'adminChats':
+                    displayAdminChatsList();
                     break;
                 case 'adminDiscounts':
                     loadDiscountConfig();
@@ -2457,7 +2694,7 @@
                     (discountConfig.targetType === 'specific' && discountConfig.targetProducts.includes(product.id));
 
                 if (isUserTargeted && isProductTargeted) {
-                    appliedDiscountPercentage = discountConfig.percentage;
+                    appliedDiscountPercentage = currentDiscountConfig.percentage;
                 }
             }
 
@@ -2496,6 +2733,7 @@
             document.getElementById('productDetailModal').style.display = 'none';
             currentProductIdForQNA = null;
         }
+        window.closeProductDetailModal = closeProductDetailModal;
 
         let currentPurchaseProductId = null;
 
@@ -2540,6 +2778,7 @@
             document.getElementById('confirmationModal').style.display = 'none';
             currentPurchaseProductId = null;
         }
+        window.hideConfirmation = hideConfirmation;
 
         function simulatePurchase(productId) {
             const products = allProducts;
@@ -2575,6 +2814,7 @@
                 showModal('Pembelian Gagal', 'Terjadi kesalahan saat memproses pembelian.', 'error');
             }
         }
+        window.simulatePurchase = simulatePurchase;
         
         async function registerUser() {
             const emailInput = document.getElementById('regEmail');
@@ -2614,6 +2854,7 @@
                 showModal('Registrasi Gagal', errorMessage, 'error');
             }
         }
+        window.registerUser = registerUser;
 
         async function loginUser() {
             const emailInput = document.getElementById('loginEmail');
@@ -2657,6 +2898,7 @@
                 showModal('Login Gagal', errorMessage, 'error');
             }
         }
+        window.loginUser = loginUser;
         
         async function signInWithGoogle() {
             try {
@@ -2704,6 +2946,7 @@
                 showModal('Login Gagal', errorMessage, 'error');
             }
         }
+        window.signInWithGoogle = signInWithGoogle;
 
         function displayImagePreview(inputId, previewImgId) {
             const urlInput = document.getElementById(inputId);
@@ -2720,6 +2963,7 @@
                 previewImg.style.display = 'none';
             }
         }
+        window.displayImagePreview = displayImagePreview;
         
         async function addProduct() {
             const adminProductName = document.getElementById('adminProductName');
@@ -2768,6 +3012,7 @@
                 showModal('Gagal Menambah Produk', 'Terjadi kesalahan saat menambahkan produk.', 'error');
             }
         }
+        window.addProduct = addProduct;
 
         async function displayProductsAdmin() {
             const allProductsListDiv = document.getElementById('allProductsList');
@@ -3322,12 +3567,16 @@
                     snapshot.forEach(questionDoc => {
                         const questionData = questionDoc.data();
                         const questionId = questionDoc.id;
-                        const askerName = questionData.username || 'Pengguna Anonim';
+                        const askerName = allUsers[questionData.userId]?.isAdmin ? 'Admin' : (allUsers[questionData.userId]?.username || 'Pengguna Anonim');
                         const questionDate = new Date(questionData.askedAt).toLocaleString('id-ID');
                         const canModifyQuestion = (currentUser && (currentUser.uid === questionData.userId || currentUser.isAdmin));
 
                         // Replace URLs in question text with clickable links
-                        const formattedQuestionText = questionData.questionText.replace(URL_REGEX, (url) => {
+                        let formattedQuestionText = questionData.questionText;
+                        if (questionData.questionImage) {
+                           formattedQuestionText += ` <div style="margin-top: 10px;"><a href="${questionData.questionImage}" target="_blank"><img src="${questionData.questionImage}" class="qna-image" alt="Lampiran Pertanyaan"></a></div>`;
+                        }
+                        formattedQuestionText = formattedQuestionText.replace(URL_REGEX, (url) => {
                             const urlObj = new URL(url);
                             const displayUrl = `${urlObj.hostname}`;
                             return `<a href="${url}" target="_blank" class="qna-embedded-link">${displayUrl}</a>`;
@@ -3338,7 +3587,7 @@
                             answersHtml += '<div class="answer-list">';
                             questionData.answers.forEach((answer, index) => {
                                 const answerDate = new Date(answer.answeredAt).toLocaleString('id-ID');
-                                const replierName = allUsers[answer.answeredBy] && allUsers[answer.answeredBy].isAdmin ? 'Admin' : (allUsers[answer.answeredBy]?.username || 'Pengguna');
+                                const replierName = allUsers[answer.answeredBy]?.isAdmin ? 'Admin' : (allUsers[answer.answeredBy]?.username || 'Pengguna');
                                 const canModifyAnswer = (currentUser && (currentUser.uid === answer.answeredBy || currentUser.isAdmin));
                                 
                                 // Replace URLs in answer text
@@ -3413,9 +3662,12 @@
 
         async function submitQuestion(productId) {
             const newQuestionTextarea = document.getElementById('newQuestionText');
+            const newQuestionImageInput = document.getElementById('newQuestionImage');
             if (!newQuestionTextarea) return;
 
             const questionText = newQuestionTextarea.value.trim();
+            const questionImage = newQuestionImageInput ? newQuestionImageInput.value.trim() : null;
+
             if (!questionText) {
                 showModal('Gagal', 'Pertanyaan tidak boleh kosong.', 'warning');
                 return;
@@ -3431,12 +3683,14 @@
                     userId: currentUser.uid,
                     username: currentUser.email,
                     questionText: questionText,
+                    questionImage: questionImage,
                     askedAt: new Date().toISOString(),
                     answers: []
                 };
                 await addDoc(questionsCol, questionData);
                 showModal('Berhasil!', 'Pertanyaan Anda berhasil dikirim!', 'success');
                 newQuestionTextarea.value = '';
+                if (newQuestionImageInput) newQuestionImageInput.value = '';
             } catch (error) {
                 console.error("Error submitting question:", error.message);
                 showModal('Gagal', 'Terjadi kesalahan saat mengirim pertanyaan.', 'error');
@@ -3696,14 +3950,15 @@
         }
         window.cancelEditAnswer = cancelEditAnswer;
         
-        // This function will display user-specific profile content
         async function displayUserProfileContent() {
             const purchaseHistoryList = document.getElementById('purchaseHistoryList');
             const activeDiscountInfo = document.getElementById('activeDiscountInfo');
+            const modSubmissionStatus = document.getElementById('modSubmissionStatus');
             
             if (!currentUser) {
                 if (purchaseHistoryList) purchaseHistoryList.innerHTML = '<p style="color:var(--text-medium);">Anda harus login untuk melihat riwayat pembelian.</p>';
                 if (activeDiscountInfo) activeDiscountInfo.innerHTML = '<p style="color:var(--text-medium);">Anda harus login untuk melihat diskon.</p>';
+                if (modSubmissionStatus) modSubmissionStatus.innerHTML = '<p style="color:var(--text-medium);">Anda harus login untuk melihat status pengajuan mod.</p>';
                 return;
             }
             
@@ -3756,8 +4011,316 @@
                 }
                 activeDiscountInfo.innerHTML = discountHtml;
             }
+            
+            // Display mod submission status
+            if (modSubmissionStatus) {
+                const userSubmissions = Object.values(allModSubmissions).filter(sub => sub.userId === currentUser.uid);
+                if (userSubmissions.length > 0) {
+                    modSubmissionStatus.innerHTML = `
+                        <h4>Pengajuan Anda:</h4>
+                        <ul>
+                            ${userSubmissions.map(sub => `
+                                <li>
+                                    <strong>${sub.name}</strong> - Diajukan pada: ${new Date(sub.submittedAt).toLocaleString('id-ID')}.
+                                    <br>Status: Menunggu Persetujuan Admin.
+                                    <button class="action-btn" onclick="openAdminChat('${sub.chatId}')" style="background-color: var(--warning-color);">Chat Admin</button>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    modSubmissionStatus.innerHTML = '<p style="color:var(--text-medium);">Anda tidak memiliki pengajuan mod yang tertunda.</p>';
+                }
+            }
         }
         window.displayUserProfileContent = displayUserProfileContent;
+
+        // Mod Submission Logic
+        async function submitMod() {
+            if (!currentUser) {
+                showModal('Login Diperlukan', 'Anda harus login untuk mengajukan mod.', 'error');
+                return;
+            }
+
+            const name = document.getElementById('modName').value.trim();
+            const price = parseFloat(document.getElementById('modPrice').value);
+            const image = document.getElementById('modImage').value.trim();
+            const downloadUrl = document.getElementById('modDownloadUrl').value.trim();
+            const description = document.getElementById('modDescription').value.trim();
+
+            if (!name || isNaN(price) || price < 0 || !downloadUrl || !description) {
+                showModal('Input Tidak Valid', 'Nama, harga, URL unduhan, dan deskripsi harus diisi.', 'warning');
+                return;
+            }
+
+            const submissionId = generateSubmissionId();
+            const modSubmissionData = {
+                id: submissionId,
+                name,
+                price,
+                image: image || 'https://placehold.co/150x180/2a2a2a/f0f0f0?text=Modpack',
+                downloadUrl,
+                description,
+                userId: currentUser.uid,
+                username: currentUser.email,
+                submittedAt: new Date().toISOString(),
+                status: 'pending',
+                chatId: submissionId
+            };
+
+            try {
+                if (autoReleaseEnabled) {
+                    await setDoc(doc(productsCol, submissionId), modSubmissionData);
+                    showModal('Mod Berhasil Dirilis', `Mod "${name}" telah dirilis secara otomatis!`, 'success');
+                    showPage('home');
+                } else {
+                    await setDoc(doc(modSubmissionsCol, submissionId), modSubmissionData);
+                    const submissionSuccessModal = document.getElementById('submissionSuccessModal');
+                    const messageEl = document.getElementById('submissionSuccessMessage');
+                    messageEl.textContent = `Tunggu 1 - 5 hari lagi untuk peninjauan mod Anda. Jika tidak ada tanggapan, silakan hubungi admin melalui chat.`;
+                    const chatBtn = document.getElementById('submissionChatButton');
+                    chatBtn.onclick = () => openAdminChat(submissionId);
+                    submissionSuccessModal.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error("Error submitting mod:", error);
+                showModal('Gagal Mengajukan Mod', 'Terjadi kesalahan saat mengajukan mod. Silakan coba lagi.', 'error');
+            }
+        }
+        window.submitMod = submitMod;
+        
+        async function displayModSubmissionsAdmin() {
+            const submissionsListDiv = document.getElementById('modSubmissionsList');
+            if (!submissionsListDiv) return;
+
+            if (Object.keys(allModSubmissions).length === 0) {
+                submissionsListDiv.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Tidak ada pengajuan mod baru.</p>';
+            } else {
+                let html = '';
+                Object.values(allModSubmissions).forEach(sub => {
+                    const submittedBy = allUsers[sub.userId]?.username || 'Pengguna Tidak Dikenal';
+                    html += `
+                        <div class="admin-submission-item">
+                            <div class="submission-info">
+                                <strong>Nama Mod: ${sub.name}</strong>
+                                <span>Diajukan oleh: ${submittedBy}</span>
+                                <span>Harga: Rp ${sub.price.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="submission-actions">
+                                <button class="action-btn" style="background-color: var(--success-color);" onclick="approveMod('${sub.id}')">Setujui</button>
+                                <button class="action-btn" style="background-color: var(--error-color);" onclick="rejectMod('${sub.id}')">Tolak</button>
+                                <button class="action-btn" onclick="openAdminChat('${sub.chatId}')">Chat Admin</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                submissionsListDiv.innerHTML = html;
+            }
+        }
+        window.displayModSubmissionsAdmin = displayModSubmissionsAdmin;
+
+        async function approveMod(submissionId) {
+            const submission = allModSubmissions[submissionId];
+            if (!submission) return;
+
+            try {
+                // Add the mod to the products collection
+                await setDoc(doc(productsCol, submission.id), {
+                    id: submission.id,
+                    name: submission.name,
+                    price: submission.price,
+                    image: submission.image,
+                    downloadUrl: submission.downloadUrl,
+                    description: submission.description,
+                    submittedBy: submission.username,
+                    submittedAt: submission.submittedAt,
+                    releaseDate: new Date().toISOString()
+                });
+                // Send a success message to the admin chat
+                await addDoc(collection(adminChatsCol, submission.chatId, 'messages'), {
+                    text: `Mod "${submission.name}" Anda telah disetujui dan sekarang tersedia di toko!`,
+                    sender: 'admin',
+                    timestamp: new Date().toISOString()
+                });
+                // Delete the submission from the pending list
+                await deleteDoc(doc(modSubmissionsCol, submissionId));
+                showModal('Berhasil', `Mod "${submission.name}" telah disetujui dan dirilis.`, 'success');
+            } catch (error) {
+                console.error("Error approving mod:", error);
+                showModal('Gagal', 'Terjadi kesalahan saat menyetujui mod.', 'error');
+            }
+        }
+        window.approveMod = approveMod;
+
+        async function rejectMod(submissionId) {
+            const submission = allModSubmissions[submissionId];
+            if (!submission) return;
+
+            const reason = prompt('Masukkan alasan penolakan:');
+            if (!reason) {
+                showModal('Dibatalkan', 'Penolakan mod dibatalkan.', 'warning');
+                return;
+            }
+
+            try {
+                // Send a rejection message to the admin chat
+                await addDoc(collection(adminChatsCol, submission.chatId, 'messages'), {
+                    text: `Mod "${submission.name}" Anda telah ditolak. Alasan: ${reason}.`,
+                    sender: 'admin',
+                    timestamp: new Date().toISOString()
+                });
+                // Delete the submission from the pending list
+                await deleteDoc(doc(modSubmissionsCol, submissionId));
+                showModal('Berhasil', `Mod "${submission.name}" telah ditolak.`, 'success');
+            } catch (error) {
+                console.error("Error rejecting mod:", error);
+                showModal('Gagal', 'Terjadi kesalahan saat menolak mod.', 'error');
+            }
+        }
+        window.rejectMod = rejectMod;
+        
+        async function saveAutoReleaseStatus(enabled) {
+            try {
+                await updateDoc(doc(configCol, "admin_settings"), { autoRelease: enabled });
+                showModal('Berhasil', `Rilis Otomatis telah ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`, 'success');
+            } catch (error) {
+                console.error("Error saving auto-release status:", error);
+                showModal('Gagal', 'Terjadi kesalahan saat menyimpan pengaturan.', 'error');
+            }
+        }
+        window.saveAutoReleaseStatus = saveAutoReleaseStatus;
+
+        // Admin Chat System Logic
+        function openAdminChat(chatId) {
+            if (!currentUser) {
+                showModal('Login Diperlukan', 'Anda harus login untuk memulai obrolan.', 'error');
+                return;
+            }
+            
+            const adminChatModal = document.getElementById('adminChatModal');
+            adminChatModal.style.display = 'flex';
+            currentChatId = chatId;
+            displayChatMessages(chatId);
+            
+            // Re-bind send message button
+            const sendBtn = document.getElementById('sendChatMessageBtn');
+            const clonedSendBtn = sendBtn.cloneNode(true);
+            sendBtn.parentNode.replaceChild(clonedSendBtn, sendBtn);
+            clonedSendBtn.addEventListener('click', () => sendChatMessage(chatId));
+
+            const closeBtn = document.getElementById('adminChatCloseButton');
+            const clonedCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(clonedCloseBtn, closeBtn);
+            clonedCloseBtn.addEventListener('click', () => {
+                adminChatModal.style.display = 'none';
+                isChatActive = false;
+            });
+
+            isChatActive = true;
+        }
+        window.openAdminChat = openAdminChat;
+
+        async function displayChatMessages(chatId) {
+            const chatList = document.getElementById('adminChatList');
+            const chatInfo = document.getElementById('chatInfo');
+            if (!chatList || !chatId) return;
+
+            const modSubmission = allModSubmissions[chatId];
+            if (modSubmission) {
+                chatInfo.textContent = `Obrolan tentang mod: ${modSubmission.name}`;
+            } else {
+                chatInfo.textContent = 'Obrolan Admin';
+            }
+
+            const messagesQuery = query(collection(adminChatsCol, chatId, 'messages'));
+            onSnapshot(messagesQuery, (snapshot) => {
+                let messagesHtml = '';
+                snapshot.forEach(msgDoc => {
+                    const msgData = msgDoc.data();
+                    const isSenderAdmin = msgData.sender === 'admin';
+                    const messageClass = isSenderAdmin ? 'admin' : 'user';
+                    messagesHtml += `
+                        <li class="chat-message ${messageClass}">
+                            <small>${msgData.sender}:</small>
+                            <p>${msgData.text}</p>
+                        </li>
+                    `;
+                });
+                chatList.innerHTML = messagesHtml;
+                chatList.scrollTop = chatList.scrollHeight;
+            });
+        }
+        window.displayChatMessages = displayChatMessages;
+
+        async function sendChatMessage(chatId) {
+            const chatInput = document.getElementById('chatInputText');
+            if (!chatInput || !chatId || !currentUser) return;
+
+            const messageText = chatInput.value.trim();
+            if (!messageText) return;
+
+            const sender = currentUser.isAdmin ? 'admin' : 'user';
+
+            try {
+                await addDoc(collection(adminChatsCol, chatId, 'messages'), {
+                    text: messageText,
+                    sender: sender,
+                    timestamp: new Date().toISOString()
+                });
+                chatInput.value = '';
+            } catch (error) {
+                console.error("Error sending chat message:", error);
+                showModal('Gagal Mengirim Pesan', 'Terjadi kesalahan saat mengirim pesan.', 'error');
+            }
+        }
+        window.sendChatMessage = sendChatMessage;
+
+        function displayAdminChatsList() {
+             const chatListContainer = document.getElementById('adminChatListContainer');
+             if (!chatListContainer) return;
+             chatListContainer.innerHTML = '<h4>Daftar Obrolan Pengajuan</h4><p style="color: var(--text-medium);">Pilih pengajuan mod untuk melihat obrolan.</p>';
+             
+             let html = '';
+             if (Object.keys(allModSubmissions).length > 0) {
+                 html += '<ul style="list-style: none; padding: 0;">';
+                 Object.values(allModSubmissions).forEach(sub => {
+                     html += `<li><button onclick="openAdminChat('${sub.chatId}')" style="width: 100%; text-align: left; margin-bottom: 5px;">${sub.name} (oleh ${allUsers[sub.userId]?.username || 'Pengguna'})</button></li>`;
+                 });
+                 html += '</ul>';
+                 chatListContainer.innerHTML = html;
+             }
+        }
+        window.displayAdminChatsList = displayAdminChatsList;
+
+        function setupSubmissionNotifications() {
+            onSnapshot(modSubmissionsCol, (snapshot) => {
+                const submissionNotification = document.getElementById('submissionNotification');
+                if (submissionNotification) {
+                    const hasNewSubmissions = !snapshot.empty;
+                    submissionNotification.style.display = hasNewSubmissions ? 'inline' : 'none';
+                }
+            });
+        }
+
+        function setupChatNotifications() {
+             onSnapshot(collection(adminChatsCol), (snapshot) => {
+                 const chatNotification = document.getElementById('chatNotification');
+                 if (chatNotification && currentUser && currentUser.isAdmin) {
+                     let hasUnread = false;
+                     snapshot.forEach(chatDoc => {
+                         const chatData = chatDoc.data();
+                         // Logic to check for unread messages (e.g., comparing last read timestamp vs last message timestamp)
+                         // For now, a simple notification for any new message is fine.
+                         // This part needs more complex Firestore logic to be truly useful.
+                         // But for demonstration, we can assume a new doc/message means a notification is needed.
+                         hasUnread = true;
+                     });
+                     chatNotification.style.display = hasUnread ? 'inline' : 'none';
+                 } else if (chatNotification) {
+                     chatNotification.style.display = 'none';
+                 }
+             });
+        }
 
         function setupGlobalEventListeners() {
             document.getElementById('navHome').addEventListener('click', (e) => { e.preventDefault(); showPage('home'); });
@@ -3807,6 +4370,7 @@
                 }
             });
         }
+        window.setupGlobalEventListeners = setupGlobalEventListeners;
 
         document.addEventListener('DOMContentLoaded', () => {
             setupGlobalEventListeners();
