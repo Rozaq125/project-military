@@ -52,6 +52,7 @@
             max-width: 900px;
             margin: 30px auto;
             box-sizing: border-box;
+            flex-grow: 1; /* Allows main content to fill space */
         }
 
         h1, h2, h3 {
@@ -759,25 +760,6 @@
         }
 
         /* Hidden Admin Login */
-        .hidden-admin-login {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 12px;
-            cursor: pointer;
-            transition: color 0.3s;
-            z-index: 9999;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 5px 10px;
-            border-radius: 3px;
-        }
-
-        .hidden-admin-login:hover {
-            color: rgba(255, 255, 255, 0.8);
-            background-color: rgba(0, 0, 0, 0.8);
-        }
-
         .admin-secret-login {
             position: fixed;
             top: 50%;
@@ -1005,12 +987,109 @@
                 font-size: 0.95em;
             }
         }
+        
+        /* New styles for the Privacy Policy Modal */
+        #privacyPolicyModal .modal-content {
+            background-color: white;
+            color: black;
+            text-align: left;
+            max-width: 800px;
+        }
+
+        #privacyPolicyModal .modal-content h2 {
+            color: black;
+            text-align: center;
+        }
+
+        #privacyPolicyModal .modal-content p, #privacyPolicyModal .modal-content li {
+            color: #333;
+            font-size: 1em;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        #privacyPolicyModal .modal-content ul {
+            padding-left: 20px;
+        }
+
+        #privacyPolicyModal .close-button {
+            color: #999;
+        }
+
+        /* New styles for the Question & Answer section */
+        .qna-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .qna-section h3 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .qna-form {
+            background-color: var(--bg-light);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .question-item {
+            background-color: var(--bg-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .question-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-light);
+        }
+        
+        .question-item small {
+            display: block;
+            color: var(--text-medium);
+            font-size: 0.8em;
+            margin-bottom: 10px;
+        }
+
+        .answer-list {
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .answer-item {
+            margin-bottom: 10px;
+        }
+        
+        .answer-item p {
+            margin: 0;
+            font-size: 0.95em;
+            color: var(--text-medium);
+        }
+
+        .answer-form {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .answer-form textarea {
+            flex-grow: 1;
+        }
+        
     </style>
 </head>
 <body>
     <header>
         <nav>
-            <a href="#" id="navHome">Beranda</a>
+            <a href="#" id="navHome" class="active">Beranda</a>
             <span id="authLinks">
                 <a href="#" id="navLogin">Login</a>
                 <a href="#" id="navRegister">Register</a>
@@ -1025,7 +1104,14 @@
 
     <main class="container" id="appContent">
     </main>
+    
+    <footer>
+        <p style="text-align: center; color: var(--text-medium); margin-top: 20px;">
+            <a href="#" id="privacyPolicyLink" style="color: var(--accent-color); text-decoration: none;">Keamanan Privasi</a> | &copy; 2024 Share Mod | All Rights Reserved.
+        </p>
+    </footer>
 
+    <!-- Modal for general messages -->
     <div id="customModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="modalCloseButton">&times;</span>
@@ -1037,7 +1123,7 @@
         </div>
     </div>
 
-    <!-- Product Detail Modal -->
+    <!-- Product Detail Modal with Q&A -->
     <div id="productDetailModal" class="modal">
         <div class="product-detail-modal-content">
             <span class="close-button" id="productDetailCloseButton">&times;</span>
@@ -1051,6 +1137,22 @@
             <h3>Fitur Modpack:</h3>
             <p id="detailProductDescription" class="product-description"></p>
             <button id="detailBuyButton">Beli Sekarang</button>
+            
+            <!-- New Q&A Section -->
+            <div id="qnaSectionForProduct" class="qna-section">
+                <h3>Tanya Jawab</h3>
+                <div class="qna-form">
+                    <h4>Ajukan Pertanyaan</h4>
+                    <div class="form-group">
+                        <textarea id="newQuestionText" rows="3" placeholder="Tulis pertanyaan Anda di sini..."></textarea>
+                    </div>
+                    <button id="submitQuestionBtn">Kirim Pertanyaan</button>
+                </div>
+                <div id="questionsList">
+                    <p style="text-align: center; color: var(--text-medium);">Belum ada pertanyaan. Jadilah yang pertama bertanya!</p>
+                </div>
+            </div>
+            
         </div>
     </div>
 
@@ -1078,8 +1180,6 @@
             <p>Terima kasih atas kesabaran Anda -ArtiviveTeam....</p>
         </div>
     </div>
-
-    <div class="hidden-admin-login" id="hiddenAdminLogin">Login for admin</div>
 
     <div id="adminSecretLogin" class="admin-secret-login">
         <h2>🔐 Admin Secret Login</h2>
@@ -1127,7 +1227,35 @@
             <button id="cancelEditProductBtn" style="background-color: var(--error-color);">Batal</button>
         </div>
     </div>
-
+    
+    <!-- New Privacy Policy Modal -->
+    <div id="privacyPolicyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="privacyPolicyCloseButton">&times;</span>
+            <h2>🛡️ Kebijakan Privasi</h2>
+            <p>Kami sangat menghargai privasi dan keamanan para pengguna website kami. Website ini dirancang untuk memberikan akses mudah dan aman dalam mengunduh mod atau modpack GTA San Andreas tanpa mengganggu privasi pribadi Anda.</p>
+            <h3>🔐 Keamanan Akun Pengguna</h3>
+            <ul>
+                <li>Kami tidak meminta, menyimpan, atau mengakses informasi akun pribadi Anda seperti email, username, password, atau informasi login lainnya.</li>
+                <li>Admin atau pemilik website tidak memiliki akses terhadap data pribadi Anda. Semua aktivitas Anda di website ini tidak terlacak secara personal dan tidak dapat dikenali secara individu.</li>
+                <li>Kami tidak menggunakan sistem login atau pelacakan akun pengguna, sehingga tidak ada informasi pribadi yang bisa dilihat, digunakan, atau disalahgunakan oleh siapapun—termasuk admin.</li>
+            </ul>
+            <h3>✅ Jaminan Privasi</h3>
+            <ul>
+                <li>Kami tidak membagikan informasi apa pun kepada pihak ketiga karena kami tidak mengumpulkan informasi pengguna sejak awal.</li>
+                <li>Semua file yang tersedia hanya untuk keperluan modifikasi game dan tidak mengandung pelacak atau virus yang dapat merusak sistem atau mencuri data pengguna.</li>
+                <li>Anda dapat mengunduh dan menggunakan mod dengan rasa aman, tanpa takut akan kebocoran data atau penyalahgunaan akun.</li>
+            </ul>
+            <h3>⚠️ Penegasan</h3>
+            <p>Dengan menggunakan website ini, Anda menyetujui bahwa:</p>
+            <ul>
+                <li>Aktivitas Anda tidak dicatat atau disimpan secara personal.</li>
+                <li>Kami tidak bertanggung jawab atas kerugian yang disebabkan oleh penggunaan mod di luar website ini, namun kami berkomitmen penuh menjaga keamanan file yang kami rilis.</li>
+            </ul>
+            <button id="privacyPolicyOkBtn">Saya Mengerti</button>
+        </div>
+    </div>
+    
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1157,6 +1285,7 @@
         const purchasesCol = collection(db, "purchases");
         const configCol = collection(db, "config");
         const warningsCol = collection(db, "warnings");
+        const questionsCol = collection(db, "questions"); // New: Questions collection
 
         // Global state variables
         let allProducts = {};
@@ -1164,11 +1293,7 @@
         let allPurchases = {};
         let discountConfig = {};
         let maintenanceConfig = {
-            isActive: false,
-            startTime: null,
-            endTime: null,
-            reason: "",
-            estimatedDuration: ""
+            isActive: false, startTime: null, endTime: null, reason: "", estimatedDuration: ""
         };
         let adminLockConfig = { isActive: false, allowedAdminEmails: [] };
         let currentUser = null;
@@ -1176,6 +1301,8 @@
         let maintenanceCountdownInterval = null;
         let userPurchases = {};
         let userWarnings = {};
+        let currentProductIdForQNA = null; // New state variable for Q&A
+        let keySequence = ''; // For the secret admin login key combo
 
         // Secret admin code
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
@@ -1368,7 +1495,7 @@
 
         function showAdminSecretLogin() {
             const adminLogin = document.getElementById('adminSecretLogin');
-            adminLogin.style.display = 'block';
+            adminLogin.style.display = 'flex';
             if (!adminLogin.querySelector('.close-button')) {
                 const closeBtn = document.createElement('span');
                 closeBtn.className = 'close-button';
@@ -1472,6 +1599,17 @@
             document.getElementById('customModal').style.display = 'none';
             document.getElementById('modalAttachment').innerHTML = '';
         }
+        
+        // New functions for Privacy Policy Modal
+        function showPrivacyPolicyModal() {
+            const modal = document.getElementById('privacyPolicyModal');
+            modal.style.display = 'flex';
+        }
+
+        function closePrivacyPolicyModal() {
+            const modal = document.getElementById('privacyPolicyModal');
+            modal.style.display = 'none';
+        }
 
         async function displayWarningModal(warningData) {
             const modalTitle = "Peringatan Admin!";
@@ -1522,13 +1660,22 @@
         function updateAuthLinks() {
             const authLinks = document.getElementById('authLinks');
             const loggedInLinks = document.getElementById('loggedInLinks');
+            const navAdmin = document.getElementById('navAdmin');
             
             if (currentUser) {
                 authLinks.style.display = 'none';
                 loggedInLinks.style.display = 'inline-block';
+                if (currentUser.isAdmin) {
+                    navAdmin.style.display = 'inline-block';
+                } else {
+                    navAdmin.style.display = 'none';
+                }
             } else {
                 authLinks.style.display = 'inline-block';
                 loggedInLinks.style.display = 'none';
+                if (navAdmin) {
+                    navAdmin.style.display = 'none';
+                }
             }
         }
 
@@ -2186,8 +2333,8 @@
                 btn.addEventListener('click', (e) => showProductDetail(e.target.dataset.productId));
             });
         }
-
-        function showProductDetail(productId) {
+        
+        async function showProductDetail(productId) {
             const product = allProducts[productId];
             if (!product) {
                 showModal('Error!', 'Produk tidak ditemukan.', 'error');
@@ -2218,7 +2365,7 @@
                 const isUserTargeted = !discountConfig.targetUsers || (currentUser && discountConfig.targetUsers.toLowerCase().includes(currentUser.email.toLowerCase()));
                 const isProductTargeted =
                     discountConfig.targetType === 'all' ||
-                    (discountConfig.targetType === 'specific' && currentDiscountConfig.targetProducts.includes(product.id));
+                    (discountConfig.targetType === 'specific' && discountConfig.targetProducts.includes(product.id));
 
                 if (isUserTargeted && isProductTargeted) {
                     appliedDiscountPercentage = discountConfig.percentage;
@@ -2243,16 +2390,22 @@
             
             detailProductDescription.textContent = product.description || 'Tidak ada deskripsi tersedia untuk modpack ini.';
 
-            detailBuyButton.addEventListener('click', () => {
+            const clonedBuyButton = detailBuyButton.cloneNode(true);
+            detailBuyButton.parentNode.replaceChild(clonedBuyButton, detailBuyButton);
+            clonedBuyButton.addEventListener('click', () => {
                 confirmPurchase(productId);
                 closeProductDetailModal();
             }, { once: true });
+
+            currentProductIdForQNA = productId;
+            await displayQuestionsForProduct(productId);
 
             detailModal.style.display = 'flex';
         }
 
         function closeProductDetailModal() {
             document.getElementById('productDetailModal').style.display = 'none';
+            currentProductIdForQNA = null;
         }
 
         let currentPurchaseProductId = null;
@@ -2275,7 +2428,7 @@
                 const isUserTargeted = !currentDiscountConfig.targetUsers || (currentLoggedInUser && currentDiscountConfig.targetUsers.toLowerCase().includes(currentLoggedInUser.email.toLowerCase()));
                 const isProductTargeted =
                     currentDiscountConfig.targetType === 'all' ||
-                    (currentDiscountConfig.targetType === 'specific' && currentDiscountConfig.targetProducts.includes(product.id));
+                    (currentDiscountConfig.targetType === 'specific' && discountConfig.targetProducts.includes(product.id));
 
                 if (isUserTargeted && isProductTargeted) {
                     appliedDiscountPercentage = currentDiscountConfig.percentage;
@@ -3012,8 +3165,6 @@
                 if (maintenanceOverlay) { maintenanceOverlay.style.display = 'none'; }
                 if (maintenanceCountdownInterval) { clearInterval(maintenanceCountdownInterval); maintenanceCountdownInterval = null; }
             }
-            const adminLoginBtn = document.querySelector('.hidden-admin-login');
-            if (adminLoginBtn) { adminLoginBtn.style.display = currentMaintenanceConfig.isActive ? 'block' : 'none'; }
         }
         window.checkMaintenanceModeAndRedirect = checkMaintenanceModeAndRedirect;
 
@@ -3057,6 +3208,138 @@
         }
         window.sendWarning = sendWarning;
 
+        // New functions for the Q&A system
+        async function displayQuestionsForProduct(productId) {
+            const questionsListDiv = document.getElementById('questionsList');
+            const submitQuestionBtn = document.getElementById('submitQuestionBtn');
+            const newQuestionTextarea = document.getElementById('newQuestionText');
+            if (!questionsListDiv || !submitQuestionBtn || !newQuestionTextarea) return;
+
+            questionsListDiv.innerHTML = '<p style="text-align: center; color: var(--text-medium);">Memuat pertanyaan...</p>';
+            
+            // Re-bind the question submission button
+            const clonedSubmitButton = submitQuestionBtn.cloneNode(true);
+            submitQuestionBtn.parentNode.replaceChild(clonedSubmitButton, submitQuestionBtn);
+            clonedSubmitButton.addEventListener('click', () => submitQuestion(productId));
+
+            const qnaQuery = query(questionsCol, where("productId", "==", productId));
+
+            onSnapshot(qnaQuery, (snapshot) => {
+                if (snapshot.empty) {
+                    questionsListDiv.innerHTML = '<p style="text-align: center; color: var(--text-medium);">Belum ada pertanyaan. Jadilah yang pertama bertanya!</p>';
+                } else {
+                    let html = '';
+                    snapshot.forEach(questionDoc => {
+                        const questionData = questionDoc.data();
+                        const questionId = questionDoc.id;
+                        const askerName = questionData.username || 'Pengguna Anonim';
+                        const questionDate = new Date(questionData.askedAt).toLocaleString('id-ID');
+
+                        let answersHtml = '';
+                        if (questionData.answers && questionData.answers.length > 0) {
+                            answersHtml += '<div class="answer-list">';
+                            questionData.answers.forEach(answer => {
+                                const answerDate = new Date(answer.answeredAt).toLocaleString('id-ID');
+                                answersHtml += `
+                                    <div class="answer-item">
+                                        <p><strong>Admin:</strong> ${answer.answerText}</p>
+                                        <small>Dijawab pada: ${answerDate}</small>
+                                    </div>
+                                `;
+                            });
+                            answersHtml += '</div>';
+                        }
+                        
+                        let answerFormHtml = '';
+                        if (currentUser && currentUser.isAdmin) {
+                            answerFormHtml = `
+                                <div class="answer-form">
+                                    <textarea id="answerText_${questionId}" rows="2" placeholder="Tulis jawaban admin..."></textarea>
+                                    <button onclick="submitAnswer('${questionId}')">Jawab</button>
+                                </div>
+                            `;
+                        }
+
+                        html += `
+                            <div class="question-item">
+                                <strong>${askerName} bertanya:</strong>
+                                <small>Pada: ${questionDate}</small>
+                                <p>${questionData.questionText}</p>
+                                ${answersHtml}
+                                ${answerFormHtml}
+                            </div>
+                        `;
+                    });
+                    questionsListDiv.innerHTML = html;
+                }
+            });
+        }
+        window.displayQuestionsForProduct = displayQuestionsForProduct;
+
+        async function submitQuestion(productId) {
+            const newQuestionTextarea = document.getElementById('newQuestionText');
+            if (!newQuestionTextarea) return;
+
+            const questionText = newQuestionTextarea.value.trim();
+            if (!questionText) {
+                showModal('Gagal', 'Pertanyaan tidak boleh kosong.', 'warning');
+                return;
+            }
+            if (!currentUser) {
+                showModal('Gagal', 'Anda harus login untuk mengajukan pertanyaan.', 'error');
+                return;
+            }
+
+            try {
+                const questionData = {
+                    productId: productId,
+                    userId: currentUser.uid,
+                    username: currentUser.email,
+                    questionText: questionText,
+                    askedAt: new Date().toISOString(),
+                    answers: []
+                };
+                await addDoc(questionsCol, questionData);
+                showModal('Berhasil!', 'Pertanyaan Anda berhasil dikirim!', 'success');
+                newQuestionTextarea.value = '';
+            } catch (error) {
+                console.error("Error submitting question:", error.message);
+                showModal('Gagal', 'Terjadi kesalahan saat mengirim pertanyaan.', 'error');
+            }
+        }
+        window.submitQuestion = submitQuestion;
+
+        async function submitAnswer(questionId) {
+            const answerTextarea = document.getElementById(`answerText_${questionId}`);
+            if (!answerTextarea || !currentUser || !currentUser.isAdmin) return;
+
+            const answerText = answerTextarea.value.trim();
+            if (!answerText) {
+                showModal('Gagal', 'Jawaban tidak boleh kosong.', 'warning');
+                return;
+            }
+
+            try {
+                const questionDocRef = doc(questionsCol, questionId);
+                const questionDocSnap = await getDoc(questionDocRef);
+                const currentAnswers = questionDocSnap.data().answers || [];
+                
+                currentAnswers.push({
+                    answeredBy: currentUser.uid,
+                    answeredAt: new Date().toISOString(),
+                    answerText: answerText
+                });
+
+                await updateDoc(questionDocRef, { answers: currentAnswers });
+                showModal('Berhasil!', 'Jawaban berhasil ditambahkan!', 'success');
+                answerTextarea.value = '';
+            } catch (error) {
+                console.error("Error submitting answer:", error.message);
+                showModal('Gagal', 'Terjadi kesalahan saat mengirim jawaban.', 'error');
+            }
+        }
+        window.submitAnswer = submitAnswer;
+
         function setupGlobalEventListeners() {
             document.getElementById('navHome').addEventListener('click', (e) => { e.preventDefault(); showPage('home'); });
             document.getElementById('navLogin').addEventListener('click', (e) => { e.preventDefault(); showPage('login'); });
@@ -3066,8 +3349,11 @@
             if (navAdmin) { navAdmin.addEventListener('click', (e) => { e.preventDefault(); showPage('admin'); }); }
             const navLogout = document.getElementById('navLogout');
             if (navLogout) { navLogout.addEventListener('click', (e) => { e.preventDefault(); logoutUser(); }); }
-            document.getElementById('hiddenAdminLogin').addEventListener('click', showAdminSecretLogin);
             
+            document.getElementById('privacyPolicyLink').addEventListener('click', (e) => { e.preventDefault(); showPrivacyPolicyModal(); });
+            document.getElementById('privacyPolicyCloseButton').addEventListener('click', closePrivacyPolicyModal);
+            document.getElementById('privacyPolicyOkBtn').addEventListener('click', closePrivacyPolicyModal);
+
             document.getElementById('modalCloseButton').addEventListener('click', closeModal);
             document.getElementById('mainModalCloseButton').addEventListener('click', closeModal);
             document.getElementById('productDetailCloseButton').addEventListener('click', closeProductDetailModal);
@@ -3083,6 +3369,21 @@
             document.getElementById('updateProductBtn').addEventListener('click', updateProduct);
             const cancelEditProductBtn = document.getElementById('cancelEditProductBtn');
             if (cancelEditProductBtn) { cancelEditProductBtn.addEventListener('click', closeEditProductModal); }
+            
+            // New keydown event listener for secret admin login
+            let keySequence = '';
+            document.addEventListener('keydown', (e) => {
+                if (e.shiftKey) {
+                    keySequence = 'Shift';
+                }
+                if (keySequence === 'Shift' && e.key.toUpperCase() === 'A') {
+                    keySequence += 'A';
+                }
+                if (keySequence === 'ShiftA' && e.key.toUpperCase() === 'S') {
+                    showAdminSecretLogin();
+                    keySequence = '';
+                }
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -3094,4 +3395,3 @@
     </script>
 </body>
 </html>
-
