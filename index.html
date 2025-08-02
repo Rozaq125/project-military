@@ -68,16 +68,40 @@
             padding: 15px 0;
             box-shadow: 0 2px 10px var(--shadow-color);
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
-
-        nav {
+        
+        .header-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+        
+        #headerNav {
             display: flex;
             justify-content: center;
             gap: 25px;
-            flex-wrap: wrap; /* Untuk responsif */
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+        
+        #uploadModBtn {
+            background-color: var(--success-color);
+            margin-right: 25px;
+            padding: 8px 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
-        nav a {
+        nav a, #uploadModBtn {
             color: var(--text-light);
             text-decoration: none;
             font-weight: bold;
@@ -1241,18 +1265,23 @@
 </head>
 <body>
     <header>
-        <nav>
-            <a href="#" id="navHome" class="active">Beranda</a>
-            <span id="authLinks">
-                <a href="#" id="navLogin">Login</a>
-                <a href="#" id="navRegister">Register</a>
-            </span>
-            <span id="loggedInLinks" style="display:none;">
-                <a href="#" id="navProfile">Profil</a>
-                <a href="#" id="navAdmin">Admin Panel</a>
-                <a href="#" id="navLogout">Logout</a>
-            </span>
-        </nav>
+        <div class="header-content">
+            <nav>
+                <a href="#" id="navHome" class="active">Beranda</a>
+            </nav>
+            <button id="uploadModBtn">Upload Mod</button>
+            <nav id="headerNav">
+                <span id="authLinks">
+                    <a href="#" id="navLogin">Login</a>
+                    <a href="#" id="navRegister">Register</a>
+                </span>
+                <span id="loggedInLinks" style="display:none;">
+                    <a href="#" id="navProfile">Profil</a>
+                    <a href="#" id="navAdmin">Admin Panel</a>
+                    <a href="#" id="navLogout">Logout</a>
+                </span>
+            </nav>
+        </div>
     </header>
 
     <main class="container" id="appContent">
@@ -1342,6 +1371,19 @@
             </div>
         </div>
     </div>
+    
+    <!-- Mod Download Warning Modal -->
+    <div id="modWarningModal" class="modal">
+        <div class="modal-content warning">
+            <span class="close-button" id="modWarningCloseButton">&times;</span>
+            <h2>⚠️ Peringatan Keamanan Mod</h2>
+            <p id="modWarningMessage">Mod ini memiliki beberapa peringatan keamanan:</p>
+            <ul id="modWarningList"></ul>
+            <button id="proceedDownloadBtn">Tetap Unduh</button>
+            <button id="cancelDownloadBtn" style="background-color: var(--error-color);">Batal</button>
+        </div>
+    </div>
+
 
     <div id="saleNotification" class="sale-notification">
         <p><span class="sale-icon">💰</span> <span id="saleMessage"></span></p>
@@ -1499,9 +1541,26 @@
         let keyTimeout = null; // New timeout for key combo
         let isChatActive = false; // To prevent multiple chat listeners
         let autoReleaseEnabled = false; // Global flag for auto-release
+        let isModWarningModalOpen = false;
 
         // Secret admin code
         const SECRET_ADMIN_CODE = "6748303865593375593_573=47.6,;'584`~";
+        
+        // List of fake virus scanners for the aesthetic check
+        const VIRUS_SCANNERS = [
+            "Acronis (Static ML)", "AhnLab-V3", "Alibaba", "AliCloud", "ALYac", "Antiy-AVL",
+            "Arcabit", "Avast", "Avast-Mobile", "AVG", "Avira (no cloud)", "Baidu",
+            "BitDefender", "BitDefenderTheta", "ClamAV", "CMC", "Cynet", "DrWeb",
+            "Emsisoft", "eScan", "ESET-NOD32", "Fortinet", "GData", "Google",
+            "Gridinsoft (no cloud)", "Ikarus", "Jiangmin", "K7AntiVirus", "K7GW",
+            "Kaspersky", "Kingsoft", "Malwarebytes", "MAX", "MaxSecure", "Microsoft",
+            "NANO-Antivirus", "Panda", "QuickHeal", "Rising", "Sangfor Engine Zero",
+            "Skyhigh (SWG)", "Sophos", "SUPERAntiSpyware", "Symantec", "TACHYON",
+            "Tencent", "Trellix (ENS)", "Trellix (HX)", "TrendMicro", "TrendMicro-HouseCall",
+            "Varist", "VBA32", "VIPRE", "VirIT", "ViRobot", "WithSecure", "Xcitium",
+            "Yandex", "Zillya", "ZoneAlarm by Check Point", "Zoner", "Arctic Wolf"
+        ];
+
 
         // =========================================================================
         // REAL-TIME FIRESTORE LISTENERS
@@ -1761,7 +1820,7 @@
                 const userDoc = await getDoc(doc(usersCol, userCredential.user.uid));
                 
                 if (userDoc.exists() && userDoc.data().isAdmin === true) {
-                    if (adminLockConfig.isActive && !adminLockConfig.allowedAdminEmails.includes(email)) {
+                    if (adminLockConfig.isActive && !adminLockConfig.allowedAdminEmails.includes(user.email)) {
                         await signOut(auth);
                         errorElement.textContent = 'Admin Lock aktif. Email ini tidak diizinkan.';
                         return;
@@ -1818,6 +1877,7 @@
 
             modal.style.display = 'flex';
         }
+        window.showModal = showModal;
 
         function closeModal() {
             document.getElementById('customModal').style.display = 'none';
@@ -1840,6 +1900,12 @@
             document.getElementById('submissionSuccessModal').style.display = 'none';
         }
         window.closeSubmissionSuccessModal = closeSubmissionSuccessModal;
+        
+        function closeModWarningModal() {
+            document.getElementById('modWarningModal').style.display = 'none';
+            isModWarningModalOpen = false;
+        }
+        window.closeModWarningModal = closeModWarningModal;
 
         async function displayWarningModal(warningData) {
             const modalTitle = "Peringatan Admin!";
@@ -1897,10 +1963,12 @@
             const authLinks = document.getElementById('authLinks');
             const loggedInLinks = document.getElementById('loggedInLinks');
             const navAdmin = document.getElementById('navAdmin');
+            const uploadModBtn = document.getElementById('uploadModBtn');
             
             if (currentUser) {
                 authLinks.style.display = 'none';
                 loggedInLinks.style.display = 'inline-block';
+                uploadModBtn.style.display = 'block';
                 if (currentUser.isAdmin) {
                     navAdmin.style.display = 'inline-block';
                 } else {
@@ -1909,11 +1977,13 @@
             } else {
                 authLinks.style.display = 'inline-block';
                 loggedInLinks.style.display = 'none';
+                uploadModBtn.style.display = 'none';
                 if (navAdmin) {
                     navAdmin.style.display = 'none';
                 }
             }
         }
+        window.updateAuthLinks = updateAuthLinks;
 
         async function logoutUser() {
             try {
@@ -1925,6 +1995,7 @@
                 showModal('Logout Gagal', 'Terjadi kesalahan saat logout.', 'error');
             }
         }
+        window.logoutUser = logoutUser;
 
         function showPage(pageName) {
             const appContent = document.getElementById('appContent');
@@ -1959,33 +2030,30 @@
                             </div>
                         <div class="top-products-list" id="topProductsList">
                             </div>
-                        <div style="text-align: center; margin-top: 30px;">
-                            <button id="submitModBtn">Ajukan Mod Anda</button>
-                        </div>
                     `;
                     appContent.innerHTML = htmlContent;
                     displayProducts();
                     displayTopSellingProducts();
                     startCountdown();
-                    if (document.getElementById('submitModBtn')) {
-                        document.getElementById('submitModBtn').addEventListener('click', () => {
+                    if (document.getElementById('uploadModBtn')) {
+                        document.getElementById('uploadModBtn').addEventListener('click', () => {
                             if (!currentUser) {
-                                showModal('Login Diperlukan', 'Anda harus login untuk mengajukan mod.', 'warning');
+                                showModal('Login Diperlukan', 'Anda harus login untuk mengupload mod.', 'warning');
                                 return;
                             }
-                            showPage('submitMod');
+                            showPage('uploadMod');
                         });
                     }
                     break;
-                case 'submitMod':
+                case 'uploadMod':
                     if (!currentUser) {
-                        showModal('Login Diperlukan', 'Anda harus login untuk mengajukan mod.', 'warning');
+                        showModal('Login Diperlukan', 'Anda harus login untuk mengupload mod.', 'warning');
                         showPage('login');
                         return;
                     }
                     htmlContent = `
-                        <h2>🚀 Ajukan Mod / Modpack Baru</h2>
-                        <p style="text-align:center; color:var(--text-medium);">Isi formulir di bawah ini untuk mengirimkan mod Anda agar ditinjau oleh admin.</p>
+                        <h2>🚀 Upload Mod Baru</h2>
+                        <p style="text-align:center; color:var(--text-medium);">Isi formulir di bawah ini untuk mengunggah mod Anda agar ditinjau oleh admin.</p>
                         <div id="modSubmissionForm">
                             <div class="form-group">
                                 <label for="modName">Nama Modpack:</label>
@@ -2008,7 +2076,12 @@
                                 <label for="modDescription">Deskripsi/Fitur Modpack:</label>
                                 <textarea id="modDescription" rows="5" placeholder="Masukkan deskripsi atau fitur modpack di sini."></textarea>
                             </div>
-                            <button id="submitModFormBtn">Ajukan Mod</button>
+                            <div class="form-group">
+                                <label for="modVirusTotal">Bukti Screenshot VirusTotal:</label>
+                                <p style="color:var(--text-medium); font-size: 0.9em;">Untuk memastikan keamanan, silakan unggah file mod Anda ke <a href="https://www.virustotal.com" target="_blank" class="qna-embedded-link">virustotal.com</a> dan berikan tautan/gambar hasil scan di sini.</p>
+                                <input type="text" id="modVirusTotal" placeholder="URL gambar hasil scan">
+                            </div>
+                            <button id="submitModFormBtn">Upload Mod</button>
                         </div>
                     `;
                     appContent.innerHTML = htmlContent;
@@ -2333,6 +2406,17 @@
             document.getElementById('adminNavDiscounts').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminDiscounts', e.target); });
             document.getElementById('adminNavMaintenance').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminMaintenance', e.target); });
             document.getElementById('adminNavWarnings').addEventListener('click', (e) => { e.preventDefault(); showAdminSection('adminWarnings', e.target); });
+            
+            const uploadModBtn = document.getElementById('uploadModBtn');
+            if (uploadModBtn) {
+                uploadModBtn.addEventListener('click', () => {
+                    if (!currentUser) {
+                        showModal('Login Diperlukan', 'Anda harus login untuk mengupload mod.', 'warning');
+                        return;
+                    }
+                    showPage('uploadMod');
+                });
+            }
 
             document.getElementById('createUserFromAdminBtn').addEventListener('click', createUserFromAdmin);
             document.getElementById('addProductBtn').addEventListener('click', addProduct);
@@ -2371,6 +2455,7 @@
                 autoReleaseStatus.addEventListener('change', (e) => saveAutoReleaseStatus(e.target.checked));
             }
         }
+        window.bindAdminEvents = bindAdminEvents;
         
         function showAdminSection(sectionId, clickedLink) {
             document.querySelectorAll('.admin-content-section').forEach(section => {
@@ -2413,6 +2498,7 @@
                     break;
             }
         }
+        window.showAdminSection = showAdminSection;
         
         async function createUserFromAdmin() {
             const emailInput = document.getElementById('newUserEmail');
@@ -2458,6 +2544,7 @@
                 showModal('Gagal Membuat Akun', errorMessage, 'error');
             }
         }
+        window.createUserFromAdmin = createUserFromAdmin;
 
         async function displayAllUsers() {
             const usersTableContainer = document.getElementById('usersTableContainer');
@@ -2530,6 +2617,7 @@
                 usersTableContainer.innerHTML = '<p style="color: var(--error-color);">Gagal memuat daftar pengguna.</p>';
             }
         }
+        window.displayAllUsers = displayAllUsers;
 
         async function toggleAdminStatus(userId, makeAdmin) {
             const confirmationModal = document.getElementById('confirmationModal');
@@ -2561,6 +2649,7 @@
                 hideConfirmation();
             };
         }
+        window.toggleAdminStatus = toggleAdminStatus;
 
         async function deleteUser(userId) {
             const confirmationModal = document.getElementById('confirmationModal');
@@ -2590,6 +2679,7 @@
                 hideConfirmation();
             };
         }
+        window.deleteUser = deleteUser;
 
         function displayProducts() {
             const productGrid = document.getElementById('productGrid');
@@ -2659,7 +2749,9 @@
                 btn.addEventListener('click', (e) => showProductDetail(e.target.dataset.productId));
             });
         }
+        window.displayProducts = displayProducts;
         
+        // This function will handle the entire product detail view, including Q&A, and will check for mod warnings
         async function showProductDetail(productId) {
             const product = allProducts[productId];
             if (!product) {
@@ -2719,7 +2811,13 @@
             const clonedBuyButton = detailBuyButton.cloneNode(true);
             detailBuyButton.parentNode.replaceChild(clonedBuyButton, detailBuyButton);
             clonedBuyButton.addEventListener('click', () => {
-                confirmPurchase(productId);
+                // Check for warnings before proceeding with purchase
+                const hasWarnings = product.warnings && product.warnings.length > 0;
+                if (hasWarnings) {
+                    showModWarningModal(product.warnings, () => confirmPurchase(productId));
+                } else {
+                    confirmPurchase(productId);
+                }
                 closeProductDetailModal();
             }, { once: true });
 
@@ -2728,6 +2826,32 @@
 
             detailModal.style.display = 'flex';
         }
+        window.showProductDetail = showProductDetail;
+
+        function showModWarningModal(warnings, onProceed) {
+            const modal = document.getElementById('modWarningModal');
+            const messageEl = document.getElementById('modWarningMessage');
+            const listEl = document.getElementById('modWarningList');
+            const proceedBtn = document.getElementById('proceedDownloadBtn');
+            const cancelBtn = document.getElementById('cancelDownloadBtn');
+            
+            listEl.innerHTML = '';
+            warnings.forEach(warning => {
+                const li = document.createElement('li');
+                li.textContent = warning;
+                listEl.appendChild(li);
+            });
+            
+            proceedBtn.onclick = () => {
+                onProceed();
+                closeModWarningModal();
+            };
+            cancelBtn.onclick = () => closeModWarningModal();
+
+            modal.style.display = 'flex';
+            isModWarningModalOpen = true;
+        }
+        window.showModWarningModal = showModWarningModal;
 
         function closeProductDetailModal() {
             document.getElementById('productDetailModal').style.display = 'none';
@@ -4047,9 +4171,10 @@
             const image = document.getElementById('modImage').value.trim();
             const downloadUrl = document.getElementById('modDownloadUrl').value.trim();
             const description = document.getElementById('modDescription').value.trim();
+            const virusTotalLink = document.getElementById('modVirusTotal').value.trim();
 
-            if (!name || isNaN(price) || price < 0 || !downloadUrl || !description) {
-                showModal('Input Tidak Valid', 'Nama, harga, URL unduhan, dan deskripsi harus diisi.', 'warning');
+            if (!name || isNaN(price) || price < 0 || !downloadUrl || !description || !virusTotalLink) {
+                showModal('Input Tidak Valid', 'Nama, harga, URL unduhan, deskripsi, dan bukti VirusTotal harus diisi.', 'warning');
                 return;
             }
 
@@ -4065,7 +4190,8 @@
                 username: currentUser.email,
                 submittedAt: new Date().toISOString(),
                 status: 'pending',
-                chatId: submissionId
+                chatId: submissionId,
+                virusTotalLink
             };
 
             try {
@@ -4092,9 +4218,10 @@
         async function displayModSubmissionsAdmin() {
             const submissionsListDiv = document.getElementById('modSubmissionsList');
             if (!submissionsListDiv) return;
+            submissionsListDiv.innerHTML = '<h3>Daftar Pengajuan Mod</h3>';
 
             if (Object.keys(allModSubmissions).length === 0) {
-                submissionsListDiv.innerHTML = '<p style="text-align:center; color:var(--text-medium);">Tidak ada pengajuan mod baru.</p>';
+                submissionsListDiv.innerHTML += '<p style="text-align:center; color:var(--text-medium);">Tidak ada pengajuan mod baru.</p>';
             } else {
                 let html = '';
                 Object.values(allModSubmissions).forEach(sub => {
@@ -4105,6 +4232,24 @@
                                 <strong>Nama Mod: ${sub.name}</strong>
                                 <span>Diajukan oleh: ${submittedBy}</span>
                                 <span>Harga: Rp ${sub.price.toLocaleString('id-ID')}</span>
+                                <span>Deskripsi: ${sub.description}</span>
+                                <span>VirusTotal Link: <a href="${sub.virusTotalLink}" target="_blank" class="qna-embedded-link">${sub.virusTotalLink}</a></span>
+                                <div style="margin-top: 15px;">
+                                    <strong>Status Keamanan:</strong>
+                                    <div style="max-height: 200px; overflow-y: auto; margin-top: 10px; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px;">
+                                        ${VIRUS_SCANNERS.map(scanner => `
+                                            <div>
+                                                <input type="checkbox" id="scanner_${sub.id}_${scanner.replace(/\s/g, '_')}" name="scanners" value="${scanner}">
+                                                <label for="scanner_${sub.id}_${scanner.replace(/\s/g, '_')}">${scanner} <span style="color:var(--success-color);">(Undetected)</span></label>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    <div class="form-group" style="margin-top: 10px;">
+                                        <label for="modWarnings_${sub.id}">Peringatan (jika ada):</label>
+                                        <textarea id="modWarnings_${sub.id}" rows="3" placeholder="Masukkan peringatan keamanan atau alasan penolakan di sini."></textarea>
+                                    </div>
+                                    <button class="action-btn" onclick="checkAllScanners('${sub.id}')" style="background-color: var(--success-color); margin-top: 5px;">Ceklist Semua</button>
+                                </div>
                             </div>
                             <div class="submission-actions">
                                 <button class="action-btn" style="background-color: var(--success-color);" onclick="approveMod('${sub.id}')">Setujui</button>
@@ -4114,17 +4259,31 @@
                         </div>
                     `;
                 });
-                submissionsListDiv.innerHTML = html;
+                submissionsListDiv.innerHTML += html;
             }
         }
         window.displayModSubmissionsAdmin = displayModSubmissionsAdmin;
 
+        function checkAllScanners(submissionId) {
+            document.querySelectorAll(`input[id^="scanner_${submissionId}"]`).forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        }
+        window.checkAllScanners = checkAllScanners;
+
         async function approveMod(submissionId) {
             const submission = allModSubmissions[submissionId];
             if (!submission) return;
+            const warnings = document.getElementById(`modWarnings_${submissionId}`).value.trim();
+
+            const isSafe = Array.from(document.querySelectorAll(`input[id^="scanner_${submissionId}"]`)).every(checkbox => checkbox.checked);
+            if (!isSafe) {
+                showModal('Peringatan', 'Mod belum ditandai aman dari semua scanner. Silakan periksa kembali atau tolak mod ini.', 'warning');
+                return;
+            }
 
             try {
-                // Add the mod to the products collection
+                // Add the mod to the products collection with warnings if any
                 await setDoc(doc(productsCol, submission.id), {
                     id: submission.id,
                     name: submission.name,
@@ -4134,7 +4293,8 @@
                     description: submission.description,
                     submittedBy: submission.username,
                     submittedAt: submission.submittedAt,
-                    releaseDate: new Date().toISOString()
+                    releaseDate: new Date().toISOString(),
+                    warnings: warnings ? warnings.split('\n').filter(w => w.trim() !== '') : []
                 });
                 // Send a success message to the admin chat
                 await addDoc(collection(adminChatsCol, submission.chatId, 'messages'), {
@@ -4156,9 +4316,9 @@
             const submission = allModSubmissions[submissionId];
             if (!submission) return;
 
-            const reason = prompt('Masukkan alasan penolakan:');
+            const reason = document.getElementById(`modWarnings_${submissionId}`).value.trim();
             if (!reason) {
-                showModal('Dibatalkan', 'Penolakan mod dibatalkan.', 'warning');
+                showModal('Input Kosong', 'Harap masukkan alasan penolakan.', 'warning');
                 return;
             }
 
@@ -4301,6 +4461,7 @@
                 }
             });
         }
+        window.setupSubmissionNotifications = setupSubmissionNotifications;
 
         function setupChatNotifications() {
              onSnapshot(collection(adminChatsCol), (snapshot) => {
@@ -4321,6 +4482,7 @@
                  }
              });
         }
+        window.setupChatNotifications = setupChatNotifications;
 
         function setupGlobalEventListeners() {
             document.getElementById('navHome').addEventListener('click', (e) => { e.preventDefault(); showPage('home'); });
@@ -4331,6 +4493,17 @@
             if (navAdmin) { navAdmin.addEventListener('click', (e) => { e.preventDefault(); showPage('admin'); }); }
             const navLogout = document.getElementById('navLogout');
             if (navLogout) { navLogout.addEventListener('click', (e) => { e.preventDefault(); logoutUser(); }); }
+            
+            const uploadModBtn = document.getElementById('uploadModBtn');
+            if (uploadModBtn) {
+                 uploadModBtn.addEventListener('click', (e) => {
+                    if (!currentUser) {
+                        showModal('Login Diperlukan', 'Anda harus login untuk mengupload mod.', 'warning');
+                        return;
+                    }
+                    showPage('uploadMod');
+                 });
+            }
             
             document.getElementById('privacyPolicyLink').addEventListener('click', (e) => { e.preventDefault(); showPrivacyPolicyModal(); });
             document.getElementById('privacyPolicyCloseButton').addEventListener('click', closePrivacyPolicyModal);
